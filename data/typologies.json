@@ -1,0 +1,93 @@
+[
+  {
+    "id": "smurfing",
+    "name": "Structuring / Smurfing",
+    "description": "Breaking up large transactions into smaller amounts — typically just below reporting or detection thresholds — to avoid triggering AML controls. In crypto this manifests as repeated transfers of amounts like 0.99 ETH or 9,900 USDC that suspiciously cluster below round numbers. Named after 'smurfs', the low-level couriers used in traditional smurfing schemes.",
+    "fatfReference": "FATF Guidance on AML/CFT Measures and Financial Inclusion, 2013; FinCEN 31 CFR § 1010.314 (Structuring)",
+    "indicators": [
+      "Multiple transactions with values just below round-number thresholds (e.g., 0.99, 9.9, 99, 999)",
+      "Consistent pattern of sub-threshold amounts across many counterparties",
+      "High frequency of transactions over a short time window",
+      "Total aggregate volume significantly higher than any individual transaction",
+      "Transactions timed to avoid business-hours AML monitoring windows"
+    ]
+  },
+  {
+    "id": "layering_dex",
+    "name": "Layering via Decentralized Exchange",
+    "description": "Using decentralized exchanges (DEXs) such as Uniswap, SushiSwap, or Curve to rapidly swap between tokens, obscuring the origin of funds through a series of trades that are difficult to trace without specialized blockchain analytics. Unlike centralized exchanges, DEXs have no KYC/AML controls, making them attractive layering venues. Common pattern: USDC → ETH → WBTC → DAI in rapid succession before off-ramping.",
+    "fatfReference": "FinCEN FIN-2019-A003 (Advisory on Illicit Activity Involving Convertible Virtual Currency); FATF Report on Virtual Assets and Virtual Asset Service Providers, 2021",
+    "indicators": [
+      "Multiple token swap transactions across different DEX protocols within hours",
+      "Token type changes 3+ times in a single session",
+      "Use of low-liquidity tokens that create audit trail complexity",
+      "Interaction with DEX aggregators (1inch, Paraswap) for routing obfuscation",
+      "Funds received from high-risk counterparty, immediately swapped, then moved to new address"
+    ]
+  },
+  {
+    "id": "mixer_obfuscation",
+    "name": "Mixer / Tumbler Obfuscation",
+    "description": "Direct interaction with cryptocurrency mixing services (tumblers), most notably Tornado Cash, to sever the on-chain link between source and destination wallets. Mixers pool deposits from many users and return equivalent amounts (minus fees) to withdrawal addresses, making blockchain tracing extremely difficult. OFAC designated Tornado Cash in August 2022. Any interaction — deposit or withdrawal — is a critical AML red flag.",
+    "fatfReference": "FinCEN Advisory FIN-2022-NTC2 (Illicit Finance Risk of Virtual Currency Mixers); OFAC SDN designation of Tornado Cash (08/08/2022)",
+    "indicators": [
+      "Direct ETH transfer to or from known Tornado Cash router contracts",
+      "Transaction to address flagged as mixer deposit/withdrawal relay",
+      "Use of fixed-denomination deposits (0.1, 1, 10, 100 ETH) characteristic of Tornado Cash",
+      "Withdrawal to a fresh wallet immediately after mixer interaction",
+      "Interaction with contracts associated with Aztec Network or other ZK-based mixers"
+    ]
+  },
+  {
+    "id": "rapid_hop_layering",
+    "name": "Rapid Fund Movement / Hop Layering",
+    "description": "Moving funds through 3 or more wallets in under 24 hours, with each hop transferring a high percentage of the received balance. This pattern mimics traditional wire-stripping techniques used in bank fraud — each hop adds a layer of distance between the original source and final destination, exploiting the difficulty of real-time blockchain monitoring. Also called 'chaining' in on-chain forensics contexts.",
+    "fatfReference": "FATF Report on Virtual Assets and Virtual Asset Service Providers, 2021 (Section 5: Red Flag Indicators); FinCEN FIN-2019-A003",
+    "indicators": [
+      "3 or more sequential outbound transactions within 24 hours",
+      "Each hop transfers >80% of received balance (minimal retention pattern)",
+      "Intermediate wallet addresses with no prior transaction history ('burner' wallets)",
+      "Final destination is a centralized exchange deposit address (off-ramp)",
+      "Transaction graph forms a straight chain rather than a fan or cluster"
+    ]
+  },
+  {
+    "id": "convergence_pattern",
+    "name": "Fund Convergence / Integration Aggregation",
+    "description": "Multiple source wallets — often controlled by the same actor — funneling funds into a single destination wallet before off-ramping or converting to fiat. This is characteristic of the 'integration' phase of money laundering: after placement and layering, funds are consolidated before final conversion. Common in exchange hacks, rug pulls, and ransomware cash-outs where proceeds are fragmented to avoid detection.",
+    "fatfReference": "FATF Guidance for a Risk-Based Approach: Virtual Assets and Virtual Asset Service Providers, 2019 (Annex A: Red Flag Indicators); FATF Typologies Report 2020",
+    "indicators": [
+      "5 or more distinct inbound addresses within a short time window",
+      "Large single outbound transaction shortly after multiple inbound flows",
+      "Inbound addresses are all freshly created (no prior history)",
+      "Total inbound volume significantly larger than any single prior wallet balance",
+      "Destination is a mixer, DEX, or centralized exchange"
+    ]
+  },
+  {
+    "id": "peel_chain",
+    "name": "Peel Chain",
+    "description": "A sequential transaction pattern where each step transfers the bulk of funds to a new address while 'peeling off' a small amount to a different address. Over many hops this obscures the total volume moved and the ultimate destination. Named for its visual appearance in blockchain transaction graphs: a long chain with small branches peeling off at each step. Widely used in ransomware payment processing and exchange hack cash-outs.",
+    "fatfReference": "FATF Report on Virtual Assets and Virtual Asset Service Providers, 2021; Chainalysis Crypto Crime Report 2023 (Ransomware chapter); FinCEN FIN-2021-A002",
+    "indicators": [
+      "Sequential single-output transactions where >90% of value moves to a new address",
+      "Small residual amounts left at each intermediate address",
+      "Chain of 5+ hops with consistent value-forward pattern",
+      "Intermediate addresses have single inbound and single outbound transaction only",
+      "Pattern terminates at exchange deposit address or OTC desk"
+    ]
+  },
+  {
+    "id": "high_volume_anomaly",
+    "name": "High Volume Anomaly",
+    "description": "Transaction volume grossly inconsistent with the wallet's apparent age or operational history — a classic 'red flag' indicator across both traditional and crypto AML. A wallet created days ago moving millions of dollars in ETH has no legitimate business explanation in most contexts. This typology does not indicate a specific laundering method but signals that enhanced due diligence and source-of-funds inquiry is urgently required.",
+    "fatfReference": "FATF Guidance for a Risk-Based Approach: Virtual Assets and Virtual Asset Service Providers, 2019 (Annex A: Indicator 7); FinCEN Customer Due Diligence Final Rule (31 CFR § 1010.230)",
+    "indicators": [
+      "Total transaction volume exceeds 100 ETH in a wallet less than 30 days old",
+      "Volume dramatically exceeds peer wallets with similar age/activity profiles",
+      "No evidence of legitimate business activity (NFT sales, DeFi yield, etc.) to explain volume",
+      "Sudden large inbound transfer to a dormant or new wallet",
+      "Volume spike coincides with known exploit, rug pull, or ransomware event date"
+    ]
+  }
+]

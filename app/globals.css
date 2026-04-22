@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+:root {
+  --bg-base: #0a0a0f;
+  --bg-card: #0d0d14;
+  --bg-surface: #111118;
+  --border-subtle: #1a1a24;
+  --accent-green: #00ff88;
+  --text-primary: #e2e8f0;
+  --text-muted: #6b7280;
+}
+
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+}
+
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeSlideIn 0.45s ease-out forwards;
+}
+
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
