@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { WalletTransaction } from '@/types';
+import { formatETH } from '@/lib/utils';
 
 const HIGH_RISK_ADDRESSES = new Set([
   '0x098b716b8aaf21512996dc57eb0615e2383e2f96',
@@ -297,11 +298,15 @@ export default function TransactionBreakdown({
                     }}
                   >
                     <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: 'var(--text-primary)' }}>
-                      {tx.value.toFixed(4)}
+                      {tx.tokenSymbol && tx.tokenSymbol !== 'ETH'
+                        ? tx.value.toLocaleString('en-US', { maximumFractionDigits: 4 })
+                        : formatETH(tx.value)}
                     </span>
-                    <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: 'var(--text-dim)', marginLeft: 5 }}>
-                      {tx.tokenSymbol ?? 'ETH'}
-                    </span>
+                    {tx.tokenSymbol && tx.tokenSymbol !== 'ETH' && (
+                      <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: 'var(--text-dim)', marginLeft: 5 }}>
+                        {tx.tokenSymbol}
+                      </span>
+                    )}
                   </td>
                   <td style={{ padding: '11px 16px' }}>
                     <AddressCell addr={tx.from} />

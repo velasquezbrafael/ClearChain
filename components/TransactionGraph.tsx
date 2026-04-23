@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import * as d3 from 'd3';
 import type { WalletTransaction } from '@/types';
 import InfoTooltip from '@/components/InfoTooltip';
 import { getLabel } from '@/lib/labels';
+import { formatETH } from '@/lib/utils';
 
 const MIXER_ADDRESSES = new Set([
   '0x722122df12d4e14e13ac3b6895a86e84145b6967',
@@ -446,47 +447,57 @@ export default function TransactionGraph({ transactions, queriedAddress, hopData
     return () => { if (simRef.current) { simRef.current(); simRef.current = null; } };
   }, [transactions, queriedAddress, hopData, hopDepth, isFullscreen]);
 
-  // Fullscreen graph — useLayoutEffect so D3 can measure dimensions
-  useLayoutEffect(() => {
-    if (!isFullscreen || !fullSvgRef.current || !fullContainerRef.current) return;
-    if (transactions.length === 0) return;
+  // Fullscreen graph — rAF so the portal has painted before D3 measures dimensions
+  useEffect(() => {
+    if (!isFullscreen || transactions.length === 0) return;
 
-    const container = fullContainerRef.current;
-    const W = container.clientWidth;
-    const H = container.clientHeight;
-    setFullContainerWidth(W);
+    let raf: number;
+    raf = requestAnimationFrame(() => {
+      if (!fullSvgRef.current || !fullContainerRef.current) return;
 
-    const { nodes, links } = buildGraphData(transactions, queriedAddress, hopData, hopDepth);
-    if (nodes.length === 0) return;
+      const container = fullContainerRef.current;
+      const rect = container.getBoundingClientRect();
+      const W = rect.width || container.clientWidth;
+      const H = rect.height || container.clientHeight;
+      if (W === 0 || H === 0) return;
 
-    if (fullSimRef.current) fullSimRef.current();
-    fullSimRef.current = initD3Graph({
-      svgEl: d3.select(fullSvgRef.current),
-      W, H, nodes, links,
-      queriedAddress, hopDepth,
-      onTooltip: setFullTooltip,
-      containerEl: container,
-      onNodeClick: (node) => {
-        const addr = node.id.toLowerCase();
-        const txCount = transactions.filter(tx =>
-          tx.from.toLowerCase() === addr || tx.to.toLowerCase() === addr
-        ).length;
-        const totalETH = transactions
-          .filter(tx => tx.from.toLowerCase() === addr || tx.to.toLowerCase() === addr)
-          .reduce((sum, tx) => sum + tx.value, 0);
-        setSelectedNode({
-          address: node.id,
-          volume: node.volume,
-          isMixer: node.isMixer,
-          isHighRisk: node.isHighRisk,
-          hopLevel: node.hopLevel,
-          txCount,
-          totalETH,
-        });
-      },
+      setFullContainerWidth(W);
+
+      const { nodes, links } = buildGraphData(transactions, queriedAddress, hopData, hopDepth);
+      if (nodes.length === 0) return;
+
+      if (fullSimRef.current) fullSimRef.current();
+      fullSimRef.current = initD3Graph({
+        svgEl: d3.select(fullSvgRef.current),
+        W, H, nodes, links,
+        queriedAddress, hopDepth,
+        onTooltip: setFullTooltip,
+        containerEl: container,
+        onNodeClick: (node) => {
+          const addr = node.id.toLowerCase();
+          const txCount = transactions.filter(tx =>
+            tx.from.toLowerCase() === addr || tx.to.toLowerCase() === addr
+          ).length;
+          const totalETH = transactions
+            .filter(tx => tx.from.toLowerCase() === addr || tx.to.toLowerCase() === addr)
+            .reduce((sum, tx) => sum + tx.value, 0);
+          setSelectedNode({
+            address: node.id,
+            volume: node.volume,
+            isMixer: node.isMixer,
+            isHighRisk: node.isHighRisk,
+            hopLevel: node.hopLevel,
+            txCount,
+            totalETH,
+          });
+        },
+      });
     });
 
-    return () => { if (fullSimRef.current) { fullSimRef.current(); fullSimRef.current = null; } };
+    return () => {
+      cancelAnimationFrame(raf);
+      if (fullSimRef.current) { fullSimRef.current(); fullSimRef.current = null; }
+    };
   }, [isFullscreen, transactions, queriedAddress, hopData, hopDepth]);
 
   // Esc to close fullscreen
@@ -563,7 +574,7 @@ export default function TransactionGraph({ transactions, queriedAddress, hopData
               {tt.content.address}
             </div>
             <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: 'var(--text-primary)' }}>
-              {tt.content.volume.toFixed(4)} ETH
+              {formatETH(tt.content.volume)}
             </div>
             {tt.content.flags.map(f => (
               <div key={f} style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: f.includes('2nd') ? '#6b7280' : '#ff3b3b' }}>
@@ -580,7 +591,7 @@ export default function TransactionGraph({ transactions, queriedAddress, hopData
               {tt.content.hash.slice(0, 20)}...
             </div>
             <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: 'var(--text-primary)' }}>
-              {tt.content.value.toFixed(4)} ETH
+              {formatETH(tt.content.value)}
             </div>
             <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: 'var(--text-dim)' }}>
               {tt.content.date}
@@ -756,7 +767,7 @@ export default function TransactionGraph({ transactions, queriedAddress, hopData
                       </div>
                       <div>
                         <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.12em', color: 'var(--text-dim)', marginBottom: 4 }}>TOTAL ETH</div>
-                        <div style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 20, fontWeight: 700, color: 'var(--text-primary)' }}>{selectedNode.totalETH.toFixed(3)}</div>
+                        <div style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 20, fontWeight: 700, color: 'var(--text-primary)' }}>{formatETH(selectedNode.totalETH)}</div>
                       </div>
                     </div>
 
@@ -818,7 +829,7 @@ export default function TransactionGraph({ transactions, queriedAddress, hopData
                         { label: 'QUERIED WALLET', value: `${queriedAddress.slice(0, 8)}...${queriedAddress.slice(-6)}`, color: '#00ff88' },
                         { label: 'DIRECT COUNTERPARTIES', value: hop1Count, color: 'var(--text-primary)' },
                         { label: 'HIGH-RISK CONNECTIONS', value: highRiskCount, color: highRiskCount > 0 ? '#ff3b3b' : 'var(--text-primary)' },
-                        { label: 'TOTAL ETH FLOW', value: `${totalETHFlow.toFixed(4)} ETH`, color: 'var(--text-primary)' },
+                        { label: 'TOTAL ETH FLOW', value: formatETH(totalETHFlow), color: 'var(--text-primary)' },
                       ].map(({ label, value, color }) => (
                         <div key={label}>
                           <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.12em', color: 'var(--text-dim)', marginBottom: 4 }}>{label}</div>
