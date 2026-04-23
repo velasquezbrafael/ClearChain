@@ -66,11 +66,12 @@ function isTxFlagged(tx: WalletTransaction, queriedAddress: string): boolean {
   return riskTag(counterparty) !== null;
 }
 
-function AddressCell({ addr }: { addr: string }) {
+function AddressCell({ addr, onAnalyzeAddress }: { addr: string; onAnalyzeAddress?: (a: string) => void }) {
   const [copied, setCopied] = useState(false);
   const tag = riskTag(addr);
 
-  async function copy() {
+  async function copy(e: React.MouseEvent) {
+    e.stopPropagation();
     try {
       await navigator.clipboard.writeText(addr);
       setCopied(true);
@@ -126,6 +127,29 @@ function AddressCell({ addr }: { addr: string }) {
       >
         {copied ? '✓' : '⊕'}
       </button>
+      {onAnalyzeAddress && (
+        <button
+          onClick={e => { e.stopPropagation(); onAnalyzeAddress(addr); }}
+          title={`Analyze ${addr}`}
+          style={{
+            opacity: 0,
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            padding: 0,
+            color: 'var(--text-dim)',
+            fontSize: 10,
+            lineHeight: 1,
+            transition: 'opacity 0.15s, color 0.15s',
+          }}
+          className="group-hover:opacity-100"
+          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#00ff88'; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-dim)'; }}
+          aria-label={`Analyze ${addr}`}
+        >
+          →
+        </button>
+      )}
     </span>
   );
 }
@@ -135,9 +159,11 @@ const MAX_DISPLAY = 25;
 export default function TransactionBreakdown({
   transactions,
   queriedAddress,
+  onAnalyzeAddress,
 }: {
   transactions: WalletTransaction[];
   queriedAddress: string;
+  onAnalyzeAddress?: (addr: string) => void;
 }) {
   const sorted = [...transactions].sort((a, b) => b.timestamp - a.timestamp);
   const display = sorted.slice(0, MAX_DISPLAY);
@@ -309,10 +335,10 @@ export default function TransactionBreakdown({
                     )}
                   </td>
                   <td style={{ padding: '11px 16px' }}>
-                    <AddressCell addr={tx.from} />
+                    <AddressCell addr={tx.from} onAnalyzeAddress={tx.from.toLowerCase() !== queriedAddress.toLowerCase() ? onAnalyzeAddress : undefined} />
                   </td>
                   <td style={{ padding: '11px 16px' }}>
-                    <AddressCell addr={tx.to} />
+                    <AddressCell addr={tx.to} onAnalyzeAddress={tx.to.toLowerCase() !== queriedAddress.toLowerCase() ? onAnalyzeAddress : undefined} />
                   </td>
                 </tr>
               );

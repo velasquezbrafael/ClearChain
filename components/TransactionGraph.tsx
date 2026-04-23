@@ -401,9 +401,10 @@ interface TransactionGraphProps {
   transactions: WalletTransaction[];
   queriedAddress: string;
   hopData?: HopEntry[];
+  onAnalyzeAddress?: (addr: string) => void;
 }
 
-export default function TransactionGraph({ transactions, queriedAddress, hopData }: TransactionGraphProps) {
+export default function TransactionGraph({ transactions, queriedAddress, hopData, onAnalyzeAddress }: TransactionGraphProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const simRef = useRef<(() => void) | null>(null);
@@ -813,6 +814,37 @@ export default function TransactionGraph({ transactions, queriedAddress, hopData
                       >
                         VIEW ON ETHERSCAN
                       </a>
+                    )}
+
+                    {/* Analyze drill-down */}
+                    {onAnalyzeAddress && selectedNode.hopLevel !== 0 && (
+                      <button
+                        onClick={() => {
+                          setIsFullscreen(false);
+                          setSelectedNode(null);
+                          onAnalyzeAddress(selectedNode.address);
+                        }}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          fontFamily: 'var(--font-jetbrains-mono)',
+                          fontSize: 9,
+                          letterSpacing: '0.1em',
+                          color: '#00ff88',
+                          background: 'rgba(0,255,136,0.08)',
+                          border: '1px solid rgba(0,255,136,0.25)',
+                          borderRadius: 3,
+                          padding: '6px 10px',
+                          cursor: 'pointer',
+                          transition: 'background 0.15s, border-color 0.15s',
+                          marginTop: 4,
+                        }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,255,136,0.14)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(0,255,136,0.4)'; }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,255,136,0.08)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(0,255,136,0.25)'; }}
+                      >
+                        ANALYZE THIS WALLET →
+                      </button>
                     )}
                   </div>
                 </>
