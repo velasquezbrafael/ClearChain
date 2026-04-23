@@ -1857,6 +1857,7 @@ export default function HomePage() {
               hopData={hopData}
               onAnalyzeAddress={analyzeAddress}
               containerHeight={isMobile ? 280 : undefined}
+              investigationMode={true}
             />
 
             {/* Col 3: Signal list — full width on tablet/mobile */}
