@@ -90,10 +90,11 @@ export default function ExportButton({ analysis, narrative, sarDraft }: ExportBu
         doc.line(M, 13, W - M, 13);
 
         // Footer
+        const caseId = `CLR-${new Date().toISOString().split('T')[0]}-${analysis.address.slice(2, 8).toUpperCase()}`;
         doc.setFontSize(6.5);
         doc.setTextColor(...DIM);
-        doc.text('Not a filed SAR — for compliance officer review only', M, H - 8);
-        doc.text(`ClearChain v1  ·  ${new Date().toISOString().split('T')[0]}`, W - M, H - 8, { align: 'right' });
+        doc.text('CLEARCHAIN — AI-ASSISTED DRAFT — NOT A FILED SAR', M, H - 8);
+        doc.text(`${caseId}  ·  ${new Date().toISOString().split('T')[0]}`, W - M, H - 8, { align: 'right' });
 
         // Footer rule
         doc.setDrawColor(...DIM);

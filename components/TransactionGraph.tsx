@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 import type { WalletTransaction } from '@/types';
+import InfoTooltip from '@/components/InfoTooltip';
 
 const MIXER_ADDRESSES = new Set([
   '0x722122df12d4e14e13ac3b6895a86e84145b6967',
@@ -461,9 +462,13 @@ export default function TransactionGraph({ transactions, queriedAddress, hopData
                 letterSpacing: '0.15em',
                 color: 'var(--text-dim)',
                 marginBottom: 3,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
               }}
             >
               TRANSACTION GRAPH
+              <InfoTooltip text="Each dot is a unique wallet that transacted with this address. Green = queried wallet. Red = OFAC-sanctioned or known mixer. Orange = high-risk. Drag nodes, scroll to zoom." />
             </div>
             <p
               style={{

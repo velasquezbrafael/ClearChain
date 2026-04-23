@@ -10,6 +10,8 @@ import TransactionBreakdown from '@/components/TransactionBreakdown';
 import TransactionGraph from '@/components/TransactionGraph';
 import SkeletonLoader from '@/components/SkeletonLoader';
 import ExportButton from '@/components/ExportButton';
+import InfoTooltip from '@/components/InfoTooltip';
+import { getLabel } from '@/lib/labels';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -98,6 +100,37 @@ function riskColor(level: RiskLevel): string {
 }
 
 // ---------------------------------------------------------------------------
+// Search history helpers
+// ---------------------------------------------------------------------------
+
+const HISTORY_KEY = 'clearchain_history';
+
+interface HistoryEntry {
+  address: string;
+  level: RiskLevel;
+  timestamp: number;
+}
+
+function loadHistory(): HistoryEntry[] {
+  try {
+    return JSON.parse(localStorage.getItem(HISTORY_KEY) ?? '[]');
+  } catch {
+    return [];
+  }
+}
+
+function saveHistory(entry: HistoryEntry) {
+  const existing = loadHistory().filter(e => e.address !== entry.address);
+  const updated = [entry, ...existing].slice(0, 5);
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
+}
+
+function removeHistory(address: string) {
+  const updated = loadHistory().filter(e => e.address !== address);
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
+}
+
+// ---------------------------------------------------------------------------
 // Signal list — col 3
 // ---------------------------------------------------------------------------
 
@@ -124,9 +157,13 @@ function SignalList({ signals }: { signals: ScoringSignal[] }) {
           letterSpacing: '0.18em',
           color: 'var(--text-dim)',
           marginBottom: 20,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
         }}
       >
         SIGNAL BREAKDOWN
+        <InfoTooltip text="Each signal that contributes to the risk score. Green = triggered (adds points). Gray = clean. The detail column explains exactly why each signal fired." />
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -315,6 +352,8 @@ function HeroContent({
   onQuickFill,
   error,
   analysisCount,
+  history,
+  onRemoveHistory,
 }: {
   address: string;
   setAddress: (v: string) => void;
@@ -325,6 +364,8 @@ function HeroContent({
   onQuickFill: (addr: string) => void;
   error: string | null;
   analysisCount: number;
+  history: HistoryEntry[];
+  onRemoveHistory: (addr: string) => void;
 }) {
   const features = [
     { label: '0–100', title: 'Risk Score', desc: 'OFAC exposure, mixer hops, velocity anomalies, and volume clustering.' },
@@ -560,6 +601,89 @@ function HeroContent({
             </button>
           ))}
         </div>
+
+        {/* Search history */}
+        {history.length > 0 && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              flexWrap: 'wrap',
+              justifyContent: 'center',
+              marginTop: 20,
+              animation: 'fadeSlideUp 0.5s ease-out both',
+              animationDelay: '0.55s',
+            }}
+          >
+            <span
+              style={{
+                fontFamily: 'var(--font-jetbrains-mono)',
+                fontSize: 9,
+                letterSpacing: '0.12em',
+                color: 'var(--text-dim)',
+              }}
+            >
+              RECENT:
+            </span>
+            {history.map(entry => (
+              <span
+                key={entry.address}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '4px 10px',
+                  border: '1px solid rgba(255,255,255,0.06)',
+                  borderRadius: 2,
+                }}
+              >
+                <button
+                  onClick={() => onQuickFill(entry.address)}
+                  disabled={loading}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontFamily: 'var(--font-jetbrains-mono)',
+                    fontSize: 9,
+                    color: 'var(--text-secondary)',
+                    padding: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 5,
+                      height: 5,
+                      borderRadius: '50%',
+                      background: entry.level === 'CRITICAL' ? '#ff3b3b' : entry.level === 'HIGH' ? '#ff8c00' : entry.level === 'MEDIUM' ? '#ffd60a' : '#00ff88',
+                      flexShrink: 0,
+                    }}
+                  />
+                  {`${entry.address.slice(0, 6)}…${entry.address.slice(-4)}`}
+                </button>
+                <button
+                  onClick={() => onRemoveHistory(entry.address)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: 'var(--text-dim)',
+                    fontSize: 10,
+                    padding: 0,
+                    lineHeight: 1,
+                  }}
+                  aria-label="Remove from history"
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Feature grid */}
@@ -685,7 +809,7 @@ function ResultsAddressBar({
       }}
     >
       {/* Analyzed address */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0, flexWrap: 'wrap' }}>
         <span
           style={{
             fontFamily: 'var(--font-jetbrains-mono)',
@@ -710,6 +834,33 @@ function ResultsAddressBar({
         >
           {address}
         </span>
+        {(() => {
+          const lbl = getLabel(address);
+          if (!lbl) return null;
+          const colors = {
+            sanctioned: { bg: 'rgba(255,59,59,0.1)', border: 'rgba(255,59,59,0.3)', text: '#ff3b3b' },
+            exchange:   { bg: 'rgba(59,130,246,0.1)', border: 'rgba(59,130,246,0.3)', text: '#60a5fa' },
+            defi:       { bg: 'rgba(139,92,246,0.1)', border: 'rgba(139,92,246,0.3)', text: '#a78bfa' },
+            notable:    { bg: 'rgba(0,255,136,0.08)', border: 'rgba(0,255,136,0.25)', text: '#00ff88' },
+          }[lbl.category];
+          return (
+            <span
+              style={{
+                padding: '3px 10px',
+                border: `1px solid ${colors.border}`,
+                background: colors.bg,
+                borderRadius: 2,
+                fontFamily: 'var(--font-jetbrains-mono)',
+                fontSize: 9,
+                letterSpacing: '0.1em',
+                color: colors.text,
+                flexShrink: 0,
+              }}
+            >
+              {lbl.label.toUpperCase()}
+            </span>
+          );
+        })()}
       </div>
 
       {/* Timestamp */}
@@ -811,6 +962,10 @@ export default function HomePage() {
     if (typeof window === 'undefined') return 1200;
     return parseInt(localStorage.getItem('cc_analysis_count') ?? '1200', 10);
   });
+  const [history, setHistory] = useState<HistoryEntry[]>(() => {
+    if (typeof window === 'undefined') return [];
+    return loadHistory();
+  });
 
   // Auto-analyze from ?address= on load
   useEffect(() => {
@@ -819,6 +974,26 @@ export default function HomePage() {
       runAnalysis(urlAddr);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Browser back/forward button support
+  useEffect(() => {
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const addr = params.get('address');
+      if (!addr) {
+        setAnalysis(null);
+        setNarrative(null);
+        setSarDraft(null);
+        setHopData(undefined);
+        setError(null);
+        setAddress('');
+      } else {
+        setAddress(addr);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
   // Cmd+Enter / Ctrl+Enter shortcut
@@ -881,6 +1056,10 @@ export default function HomePage() {
       const newCount = analysisCount + 1;
       setAnalysisCount(newCount);
       localStorage.setItem('cc_analysis_count', String(newCount));
+      // Save to search history
+      const historyEntry: HistoryEntry = { address: data.address, level: data.riskScore.level, timestamp: Date.now() };
+      saveHistory(historyEntry);
+      setHistory(loadHistory());
       window.history.pushState({}, '', `?address=${addr}`);
     } catch (err) {
       clearTimeout(timeout);
@@ -910,6 +1089,11 @@ export default function HomePage() {
   function handleQuickFill(addr: string) {
     setAddress(addr);
     runAnalysis(addr);
+  }
+
+  function handleRemoveHistory(addr: string) {
+    removeHistory(addr);
+    setHistory(loadHistory());
   }
 
   function handleNewAnalysis() {
@@ -1057,6 +1241,8 @@ export default function HomePage() {
           onQuickFill={handleQuickFill}
           error={error}
           analysisCount={analysisCount}
+          history={history}
+          onRemoveHistory={handleRemoveHistory}
         />
       </div>
 
@@ -1200,6 +1386,12 @@ export default function HomePage() {
             >
               {TABS.map(tab => {
                 const isActive = activeTab === tab;
+                const tabTooltips: Record<string, string> = {
+                  'TYPOLOGIES': 'FATF and FinCEN-recognized money laundering patterns. Matched against your wallet\'s on-chain behavior. Each match includes the regulatory citation and the specific evidence found.',
+                  'NARRATIVE': 'An AI-generated chain-of-custody summary written for compliance review. Traces fund flow from origin to destination. Generated by Claude — verify before use in official filings.',
+                  'SAR DRAFT': 'A draft Suspicious Activity Report in FinCEN format. This is NOT a filed SAR — it must be reviewed and approved by a qualified BSA/AML compliance officer before submission.',
+                  'TRANSACTIONS': 'Raw on-chain transactions fetched from Alchemy. Includes ETH transfers, ERC-20 token transfers, and internal transactions. Sorted by timestamp.',
+                };
                 return (
                   <button
                     key={tab}
@@ -1217,9 +1409,13 @@ export default function HomePage() {
                       whiteSpace: 'nowrap',
                       transition: 'color 0.2s, border-color 0.2s',
                       marginBottom: -1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
                     }}
                   >
                     {tab}
+                    <InfoTooltip text={tabTooltips[tab] ?? ''} />
                   </button>
                 );
               })}
