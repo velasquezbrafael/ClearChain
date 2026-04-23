@@ -29,9 +29,11 @@ const HIGH_RISK_ADDRS = new Set([
   '0x8576acc5c05d6ce88f4e49bf65bdf0c62f91353c',
 ]);
 
+type BucketMode = 'week' | 'month' | 'quarter' | 'year';
+
 interface Bucket {
-  key: string;       // YYYY-MM
-  label: string;     // "Jan '21"
+  key: string;
+  label: string;
   count: number;
   totalETH: number;
   hasMixer: boolean;
@@ -39,44 +41,88 @@ interface Bucket {
   hasRapid: boolean;
 }
 
-function buildBuckets(txs: WalletTransaction[]): Bucket[] {
+function detectMode(txs: WalletTransaction[]): BucketMode {
+  const minTs = Math.min(...txs.map(t => t.timestamp));
+  const maxTs = Math.max(...txs.map(t => t.timestamp));
+  const spanMonths = (maxTs - minTs) / (30.44 * 24 * 3600);
+  if (spanMonths < 6)  return 'week';
+  if (spanMonths < 18) return 'month';
+  if (spanMonths < 36) return 'quarter';
+  return 'year';
+}
+
+function getBucketKey(ts: number, mode: BucketMode): string {
+  const d = new Date(ts * 1000);
+  const y = d.getFullYear();
+  const m = d.getMonth();
+  if (mode === 'week') {
+    const day = d.getDay();
+    const diff = day === 0 ? -6 : 1 - day; // Monday
+    const monday = new Date(d);
+    monday.setDate(d.getDate() + diff);
+    const my = monday.getFullYear();
+    const mm = String(monday.getMonth() + 1).padStart(2, '0');
+    const md = String(monday.getDate()).padStart(2, '0');
+    return `${my}-${mm}-${md}`;
+  }
+  if (mode === 'month')   return `${y}-${String(m + 1).padStart(2, '0')}`;
+  if (mode === 'quarter') return `${y}-Q${Math.floor(m / 3) + 1}`;
+  return `${y}`;
+}
+
+function getBucketLabel(key: string, mode: BucketMode): string {
+  if (mode === 'week') {
+    const [y, mo, d] = key.split('-').map(Number);
+    return new Date(y, mo - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+  if (mode === 'month') {
+    const [y, mo] = key.split('-').map(Number);
+    const mon = new Date(y, mo - 1).toLocaleString('en-US', { month: 'short' });
+    return `${mon} '${String(y).slice(2)}`;
+  }
+  if (mode === 'quarter') {
+    const [y, q] = key.split('-Q');
+    return `Q${q} '${String(y).slice(2)}`;
+  }
+  return key; // year
+}
+
+function modeLabel(mode: BucketMode): string {
+  return { week: 'BY WEEK', month: 'BY MONTH', quarter: 'BY QUARTER', year: 'BY YEAR' }[mode];
+}
+
+function rapidTimestampSet(txs: WalletTransaction[]): Set<number> {
+  const outbound = txs
+    .filter(tx => tx.isInbound === false)
+    .map(tx => tx.timestamp)
+    .sort((a, b) => a - b);
+  const rapid = new Set<number>();
+  for (let i = 0; i <= outbound.length - 3; i++) {
+    if (outbound[i + 2] - outbound[i] <= 86400) {
+      rapid.add(outbound[i]);
+      rapid.add(outbound[i + 1]);
+      rapid.add(outbound[i + 2]);
+    }
+  }
+  return rapid;
+}
+
+function buildBuckets(txs: WalletTransaction[], mode: BucketMode): Bucket[] {
+  const rapidSet = rapidTimestampSet(txs);
   const map = new Map<string, Bucket>();
 
   for (const tx of txs) {
-    const d = new Date(tx.timestamp * 1000);
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-    const shortMonth = d.toLocaleString('en-US', { month: 'short' });
-    const label = `${shortMonth} '${String(d.getFullYear()).slice(2)}`;
-    const existing = map.get(key) ?? { key, label, count: 0, totalETH: 0, hasMixer: false, hasHighRisk: false, hasRapid: false };
-    existing.count++;
-    existing.totalETH += tx.value;
+    const key   = getBucketKey(tx.timestamp, mode);
+    const label = getBucketLabel(key, mode);
+    const b = map.get(key) ?? { key, label, count: 0, totalETH: 0, hasMixer: false, hasHighRisk: false, hasRapid: false };
+    b.count++;
+    b.totalETH += tx.value;
     const from = tx.from.toLowerCase();
-    const to = tx.to.toLowerCase();
-    if (MIXER_ADDRS.has(from) || MIXER_ADDRS.has(to)) existing.hasMixer = true;
-    if (HIGH_RISK_ADDRS.has(from) || HIGH_RISK_ADDRS.has(to)) existing.hasHighRisk = true;
-    map.set(key, existing);
-  }
-
-  // detect rapid movement: 3+ outbound within any 24h window, per month
-  const outboundByMonth = new Map<string, number[]>();
-  for (const tx of txs) {
-    if (tx.isInbound === false || (!tx.isInbound && tx.isInbound !== undefined)) {
-      const d = new Date(tx.timestamp * 1000);
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-      const arr = outboundByMonth.get(key) ?? [];
-      arr.push(tx.timestamp);
-      outboundByMonth.set(key, arr);
-    }
-  }
-  for (const [key, timestamps] of outboundByMonth) {
-    const sorted = [...timestamps].sort((a, b) => a - b);
-    for (let i = 0; i < sorted.length - 2; i++) {
-      if (sorted[i + 2] - sorted[i] <= 86400) {
-        const b = map.get(key);
-        if (b) b.hasRapid = true;
-        break;
-      }
-    }
+    const to   = tx.to.toLowerCase();
+    if (MIXER_ADDRS.has(from)    || MIXER_ADDRS.has(to))    b.hasMixer    = true;
+    if (HIGH_RISK_ADDRS.has(from) || HIGH_RISK_ADDRS.has(to)) b.hasHighRisk = true;
+    if (rapidSet.has(tx.timestamp)) b.hasRapid = true;
+    map.set(key, b);
   }
 
   return Array.from(map.values()).sort((a, b) => a.key.localeCompare(b.key));
@@ -90,39 +136,36 @@ function barColor(b: Bucket): string {
 
 function formatETHShort(v: number): string {
   if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M ETH`;
-  if (v >= 1_000) return `${(v / 1_000).toFixed(1)}K ETH`;
+  if (v >= 1_000)     return `${(v / 1_000).toFixed(1)}K ETH`;
   return `${v.toFixed(2)} ETH`;
 }
 
-interface TooltipState {
-  bucket: Bucket;
-  x: number;
-  y: number;
-}
+interface TooltipState { bucket: Bucket; x: number; y: number; }
 
-export default function TransactionTimeline({
-  transactions,
-}: {
-  transactions: WalletTransaction[];
-}) {
-  const buckets = buildBuckets(transactions);
+export default function TransactionTimeline({ transactions }: { transactions: WalletTransaction[] }) {
   const [hovered, setHovered] = useState<TooltipState | null>(null);
+
+  if (transactions.length < 3) return null;
+
+  const mode    = detectMode(transactions);
+  const buckets = buildBuckets(transactions, mode);
 
   if (buckets.length < 3) return null;
 
-  const maxCount = Math.max(...buckets.map(b => b.count), 1);
-  const CHART_H = 80;
-  const LABEL_H = 20;
-  const TOTAL_H = CHART_H + LABEL_H;
-  const BAR_W = Math.min(32, Math.max(6, Math.floor(600 / buckets.length) - 3));
-  const GAP = Math.max(2, BAR_W / 4);
+  const maxCount  = Math.max(...buckets.map(b => b.count), 1);
+  const CHART_H   = 80;
+  const LABEL_H   = 20;
+  const TOTAL_H   = CHART_H + LABEL_H;
+  const BAR_W     = Math.min(40, Math.max(6, Math.floor(600 / buckets.length) - 3));
+  const GAP       = Math.max(2, BAR_W / 4);
+  const totalWidth = buckets.length * (BAR_W + GAP);
 
   const firstDate = new Date(Math.min(...transactions.map(t => t.timestamp)) * 1000)
     .toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-  const lastDate = new Date(Math.max(...transactions.map(t => t.timestamp)) * 1000)
+  const lastDate  = new Date(Math.max(...transactions.map(t => t.timestamp)) * 1000)
     .toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 
-  const totalWidth = buckets.length * (BAR_W + GAP);
+  const labelEvery = buckets.length <= 20 ? 1 : Math.ceil(buckets.length / 20);
 
   return (
     <div
@@ -137,9 +180,12 @@ export default function TransactionTimeline({
       }}
     >
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
         <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: 'var(--text-dim)' }}>
           ACTIVITY TIMELINE
+        </span>
+        <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.08em', color: 'rgba(0,255,136,0.4)', padding: '1px 6px', border: '1px solid rgba(0,255,136,0.15)', borderRadius: 2 }}>
+          {modeLabel(mode)}
         </span>
         <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: 'var(--text-dim)', opacity: 0.6 }}>
           {firstDate} — {lastDate}
@@ -161,58 +207,30 @@ export default function TransactionTimeline({
       {/* Chart */}
       <div style={{ overflowX: 'auto', paddingBottom: 2 }}>
         <div style={{ position: 'relative', minWidth: totalWidth }}>
-          <svg
-            width={totalWidth}
-            height={TOTAL_H}
-            style={{ display: 'block', overflow: 'visible' }}
-          >
-            {/* Baseline */}
-            <line
-              x1={0} y1={CHART_H}
-              x2={totalWidth} y2={CHART_H}
-              stroke="rgba(255,255,255,0.06)"
-              strokeWidth={1}
-            />
+          <svg width={totalWidth} height={TOTAL_H} style={{ display: 'block', overflow: 'visible' }}>
+            <line x1={0} y1={CHART_H} x2={totalWidth} y2={CHART_H} stroke="rgba(255,255,255,0.06)" strokeWidth={1} />
 
             {buckets.map((b, i) => {
-              const barH = Math.max(2, (b.count / maxCount) * (CHART_H - 8));
-              const x = i * (BAR_W + GAP);
-              const y = CHART_H - barH;
+              const barH  = Math.max(2, (b.count / maxCount) * (CHART_H - 8));
+              const x     = i * (BAR_W + GAP);
+              const y     = CHART_H - barH;
               const color = barColor(b);
               const isHov = hovered?.bucket.key === b.key;
 
               return (
                 <g key={b.key}>
                   <rect
-                    x={x}
-                    y={y}
-                    width={BAR_W}
-                    height={barH}
-                    fill={color}
-                    opacity={isHov ? 1 : 0.65}
-                    rx={1}
+                    x={x} y={y} width={BAR_W} height={barH}
+                    fill={color} opacity={isHov ? 1 : 0.65} rx={1}
                     style={{ cursor: 'default', transition: 'opacity 0.15s' } as React.CSSProperties}
                     onMouseEnter={e => {
-                      const svgEl = (e.target as SVGElement).closest('svg')!;
-                      const rect = svgEl.getBoundingClientRect();
-                      setHovered({
-                        bucket: b,
-                        x: rect.left + x + BAR_W / 2,
-                        y: rect.top + y,
-                      });
+                      const rect = (e.target as SVGElement).closest('svg')!.getBoundingClientRect();
+                      setHovered({ bucket: b, x: rect.left + x + BAR_W / 2, y: rect.top + y });
                     }}
                     onMouseLeave={() => setHovered(null)}
                   />
-                  {/* X-axis label — show every Nth bar to avoid crowding */}
-                  {(buckets.length <= 18 || i % Math.ceil(buckets.length / 18) === 0) && (
-                    <text
-                      x={x + BAR_W / 2}
-                      y={CHART_H + 14}
-                      textAnchor="middle"
-                      fontSize={7}
-                      fontFamily="monospace"
-                      fill="rgba(61,74,92,0.8)"
-                    >
+                  {i % labelEvery === 0 && (
+                    <text x={x + BAR_W / 2} y={CHART_H + 14} textAnchor="middle" fontSize={7} fontFamily="monospace" fill="rgba(61,74,92,0.8)">
                       {b.label}
                     </text>
                   )}
@@ -221,7 +239,6 @@ export default function TransactionTimeline({
             })}
           </svg>
 
-          {/* Floating tooltip */}
           {hovered && (
             <div
               style={{
@@ -244,9 +261,9 @@ export default function TransactionTimeline({
               <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: 'var(--text-dim)', lineHeight: 1.7 }}>
                 <div>{hovered.bucket.count} transaction{hovered.bucket.count !== 1 ? 's' : ''}</div>
                 <div>{formatETHShort(hovered.bucket.totalETH)}</div>
-                {hovered.bucket.hasMixer && <div style={{ color: '#ff3b3b' }}>OFAC/Mixer interaction</div>}
+                {hovered.bucket.hasMixer    && <div style={{ color: '#ff3b3b' }}>OFAC/Mixer interaction</div>}
                 {hovered.bucket.hasHighRisk && !hovered.bucket.hasMixer && <div style={{ color: '#ff3b3b' }}>High-risk counterparty</div>}
-                {hovered.bucket.hasRapid && <div style={{ color: '#ff8c00' }}>Rapid fund movement</div>}
+                {hovered.bucket.hasRapid    && <div style={{ color: '#ff8c00' }}>Rapid fund movement</div>}
               </div>
             </div>
           )}

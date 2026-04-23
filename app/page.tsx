@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { WalletAnalysis, ScoringSignal, RiskLevel } from '@/types';
 import RiskScoreCard from '@/components/RiskScoreCard';
 import TypologyCard from '@/components/TypologyCard';
@@ -287,7 +287,7 @@ function SignalList({ signals }: { signals: ScoringSignal[] }) {
 // Feature card
 // ---------------------------------------------------------------------------
 
-function FeatureCard({ title, desc }: { title: string; desc: string }) {
+function FeatureCard({ title, desc, icon }: { title: string; desc: string; icon?: React.ReactNode }) {
   const [hovered, setHovered] = useState(false);
 
   return (
@@ -303,6 +303,7 @@ function FeatureCard({ title, desc }: { title: string; desc: string }) {
         cursor: 'default',
       }}
     >
+      {icon && <div style={{ marginBottom: 14, opacity: hovered ? 1 : 0.7, transition: 'opacity 0.2s' }}>{icon}</div>}
       <div
         style={{
           fontFamily: 'var(--font-jetbrains-mono)',
@@ -341,6 +342,7 @@ function HeroContent({
   setInputFocused,
   onSubmit,
   onQuickFill,
+  onSimulatorFill,
   error,
   analysisCount,
   history,
@@ -353,23 +355,88 @@ function HeroContent({
   setInputFocused: (v: boolean) => void;
   onSubmit: (e: React.FormEvent) => void;
   onQuickFill: (addr: string) => void;
+  onSimulatorFill: () => void;
   error: string | null;
   analysisCount: number;
   history: HistoryEntry[];
   onRemoveHistory: (addr: string) => void;
 }) {
   const features = [
-    { title: 'Risk Score',      desc: '0–100 weighted score with full signal breakdown. Every point explained.' },
-    { title: 'AML Typologies',  desc: 'Maps patterns to FATF/FinCEN typologies: smurfing, layering, mixer obfuscation.' },
-    { title: 'Fund Flow Graph', desc: 'Force-directed graph of all counterparties. OFAC entities flagged in red.' },
-    { title: 'SAR Draft',       desc: 'AI-generated FinCEN SAR narrative. Ready for compliance officer review.' },
+    {
+      title: 'Risk Score',
+      desc: '0–100 weighted score with full signal breakdown. Every point explained.',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M3 14 A8 8 0 0 1 17 14" stroke="#00ff88" strokeWidth="1.5" strokeLinecap="round"/>
+          <path d="M10 14 L13 7" stroke="#00ff88" strokeWidth="1.5" strokeLinecap="round"/>
+          <circle cx="10" cy="14" r="1.5" fill="#00ff88"/>
+        </svg>
+      ),
+    },
+    {
+      title: 'AML Typologies',
+      desc: 'Maps patterns to FATF/FinCEN typologies: smurfing, layering, mixer obfuscation.',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <circle cx="10" cy="4" r="2" stroke="#00ff88" strokeWidth="1.5"/>
+          <circle cx="4" cy="16" r="2" stroke="#00ff88" strokeWidth="1.5"/>
+          <circle cx="16" cy="16" r="2" stroke="#00ff88" strokeWidth="1.5"/>
+          <line x1="10" y1="6" x2="4.8" y2="14" stroke="#00ff88" strokeWidth="1.5"/>
+          <line x1="10" y1="6" x2="15.2" y2="14" stroke="#00ff88" strokeWidth="1.5"/>
+        </svg>
+      ),
+    },
+    {
+      title: 'Fund Flow Graph',
+      desc: 'Force-directed graph of all counterparties. OFAC entities flagged in red.',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <circle cx="10" cy="10" r="2" stroke="#00ff88" strokeWidth="1.5"/>
+          <circle cx="3" cy="5" r="1.5" stroke="#00ff88" strokeWidth="1.5"/>
+          <circle cx="17" cy="5" r="1.5" stroke="#00ff88" strokeWidth="1.5"/>
+          <circle cx="3" cy="15" r="1.5" stroke="#00ff88" strokeWidth="1.5"/>
+          <circle cx="17" cy="15" r="1.5" stroke="#00ff88" strokeWidth="1.5"/>
+          <line x1="8.5" y1="8.8" x2="4.2" y2="6.2" stroke="#00ff88" strokeWidth="1"/>
+          <line x1="11.5" y1="8.8" x2="15.8" y2="6.2" stroke="#00ff88" strokeWidth="1"/>
+          <line x1="8.5" y1="11.2" x2="4.2" y2="13.8" stroke="#00ff88" strokeWidth="1"/>
+          <line x1="11.5" y1="11.2" x2="15.8" y2="13.8" stroke="#00ff88" strokeWidth="1"/>
+        </svg>
+      ),
+    },
+    {
+      title: 'SAR Draft',
+      desc: 'AI-generated FinCEN SAR narrative. Ready for compliance officer review.',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <rect x="4" y="2" width="12" height="16" rx="1" stroke="#00ff88" strokeWidth="1.5"/>
+          <line x1="7" y1="7" x2="13" y2="7" stroke="#00ff88" strokeWidth="1.5" strokeLinecap="round"/>
+          <line x1="7" y1="10" x2="13" y2="10" stroke="#00ff88" strokeWidth="1.5" strokeLinecap="round"/>
+          <line x1="7" y1="13" x2="10" y2="13" stroke="#00ff88" strokeWidth="1.5" strokeLinecap="round"/>
+        </svg>
+      ),
+    },
+    {
+      title: 'Simulator',
+      desc: 'Toggle risk signals on/off to model counterfactual scenarios. Generate AML narratives for training.',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <line x1="3" y1="5" x2="17" y2="5" stroke="#00ff88" strokeWidth="1.5" strokeLinecap="round"/>
+          <line x1="3" y1="10" x2="17" y2="10" stroke="#00ff88" strokeWidth="1.5" strokeLinecap="round"/>
+          <line x1="3" y1="15" x2="17" y2="15" stroke="#00ff88" strokeWidth="1.5" strokeLinecap="round"/>
+          <circle cx="8" cy="5" r="2" fill="#03040a" stroke="#00ff88" strokeWidth="1.5"/>
+          <circle cx="13" cy="10" r="2" fill="#03040a" stroke="#00ff88" strokeWidth="1.5"/>
+          <circle cx="7" cy="15" r="2" fill="#03040a" stroke="#00ff88" strokeWidth="1.5"/>
+        </svg>
+      ),
+    },
   ];
 
 
   const quickFills = [
-    { label: 'Tornado Cash', sublabel: 'OFAC SDN · Router', addr: TORNADO_CASH },
-    { label: 'Lazarus Group', sublabel: 'DPRK · OFAC SDN', addr: LAZARUS },
-    { label: 'Vitalik.eth', sublabel: 'Baseline control', addr: VITALIK },
+    { label: 'Tornado Cash', sublabel: 'OFAC SDN · Router', addr: TORNADO_CASH, simulator: false },
+    { label: 'Lazarus Group', sublabel: 'DPRK · OFAC SDN', addr: LAZARUS, simulator: false },
+    { label: 'Vitalik.eth', sublabel: 'Baseline control', addr: VITALIK, simulator: false },
+    { label: 'Try the Simulator', sublabel: 'AML training demo', addr: TORNADO_CASH, simulator: true },
   ];
 
   return (
@@ -559,34 +626,39 @@ function HeroContent({
             animationDelay: '0.5s',
           }}
         >
-          {quickFills.map(({ label, sublabel, addr }) => (
+          {quickFills.map(({ label, sublabel, addr, simulator }) => (
             <button
-              key={addr}
-              onClick={() => onQuickFill(addr)}
+              key={label}
+              onClick={() => simulator ? onSimulatorFill() : onQuickFill(addr)}
               disabled={loading}
               style={{
                 padding: '6px 14px',
-                border: '1px solid rgba(255,255,255,0.06)',
+                border: simulator ? '1px solid rgba(0,255,136,0.2)' : '1px solid rgba(255,255,255,0.06)',
                 borderRadius: 2,
-                background: 'none',
+                background: simulator ? 'rgba(0,255,136,0.04)' : 'none',
                 fontFamily: 'var(--font-jetbrains-mono)',
                 fontSize: 10,
-                color: 'var(--text-secondary)',
+                color: simulator ? 'rgba(0,255,136,0.8)' : 'var(--text-secondary)',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 gap: 8,
-                transition: 'border-color 0.2s, color 0.2s',
+                transition: 'border-color 0.2s, color 0.2s, background 0.2s',
               }}
               onMouseEnter={e => {
-                e.currentTarget.style.borderColor = 'rgba(0,255,136,0.3)';
+                e.currentTarget.style.borderColor = 'rgba(0,255,136,0.4)';
                 e.currentTarget.style.color = '#00ff88';
               }}
               onMouseLeave={e => {
-                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)';
-                e.currentTarget.style.color = 'var(--text-secondary)';
+                e.currentTarget.style.borderColor = simulator ? 'rgba(0,255,136,0.2)' : 'rgba(255,255,255,0.06)';
+                e.currentTarget.style.color = simulator ? 'rgba(0,255,136,0.8)' : 'var(--text-secondary)';
               }}
             >
+              {simulator && (
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0 }}>
+                  <polygon points="2,1 9,5 2,9" fill="#00ff88"/>
+                </svg>
+              )}
               {label}
               <span style={{ color: 'var(--text-dim)', fontSize: 9 }}>{sublabel}</span>
             </button>
@@ -692,14 +764,78 @@ function HeroContent({
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(4, 1fr)',
+            gridTemplateColumns: 'repeat(5, 1fr)',
             gap: 1,
             background: 'rgba(255,255,255,0.04)',
           }}
         >
           {features.map(f => (
             <div key={f.title} style={{ background: '#03040a' }}>
-              <FeatureCard title={f.title} desc={f.desc} />
+              <FeatureCard title={f.title} desc={f.desc} icon={f.icon} />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* How it works */}
+      <div
+        style={{
+          borderTop: '1px solid rgba(255,255,255,0.04)',
+          padding: '56px 24px 64px',
+          maxWidth: 1200,
+          margin: '0 auto',
+          width: '100%',
+        }}
+      >
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: 40,
+          }}
+        >
+          {[
+            { n: '01', title: 'PASTE ANY ETH ADDRESS', body: 'Drop in a wallet address or ENS name. ENS is resolved on-chain automatically.' },
+            { n: '02', title: 'ANALYSIS RUNS AUTOMATICALLY', body: 'On-chain data fetched from Alchemy. OFAC, mixer contacts, and risk signals scored in seconds.' },
+            { n: '03', title: 'GET THE FULL PICTURE', body: 'Risk score, typologies, fund flow graph, and a FinCEN-formatted SAR draft — all in one view.' },
+          ].map(({ n, title, body }) => (
+            <div key={n}>
+              <div
+                style={{
+                  fontFamily: 'var(--font-space-grotesk)',
+                  fontSize: 56,
+                  fontWeight: 700,
+                  color: 'rgba(0,255,136,0.08)',
+                  lineHeight: 1,
+                  marginBottom: 16,
+                  letterSpacing: '-0.02em',
+                }}
+              >
+                {n}
+              </div>
+              <div
+                style={{
+                  fontFamily: 'var(--font-jetbrains-mono)',
+                  fontSize: 10,
+                  letterSpacing: '0.15em',
+                  color: 'var(--text-dim)',
+                  marginBottom: 10,
+                }}
+              >
+                {title}
+              </div>
+              <p
+                style={{
+                  fontFamily: 'var(--font-inter)',
+                  fontSize: 13,
+                  color: 'var(--text-secondary)',
+                  lineHeight: 1.6,
+                  margin: 0,
+                  opacity: 0.7,
+                }}
+              >
+                {body}
+              </p>
             </div>
           ))}
         </div>
@@ -957,6 +1093,8 @@ export default function HomePage() {
     if (typeof window === 'undefined') return [];
     return loadHistory();
   });
+  const pendingTabRef = useRef<Tab | null>(null);
+  const showResults = !!analysis && !loading;
 
   // Auto-analyze from ?address= on load
   useEffect(() => {
@@ -1009,6 +1147,18 @@ export default function HomePage() {
     }, 900);
     return () => clearInterval(timer);
   }, [loading]);
+
+  // Deferred tab activation (e.g. after "Try the Simulator" quick-fill)
+  useEffect(() => {
+    if (!showResults || !pendingTabRef.current) return;
+    const tab = pendingTabRef.current;
+    pendingTabRef.current = null;
+    setActiveTab(tab);
+    setTimeout(() => {
+      document.getElementById('clearchain-tabs')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showResults]);
 
   async function runAnalysis(addr: string) {
     setLoading(true);
@@ -1082,6 +1232,12 @@ export default function HomePage() {
     runAnalysis(addr);
   }
 
+  function handleSimulatorFill() {
+    pendingTabRef.current = 'SIMULATOR';
+    setAddress(TORNADO_CASH);
+    runAnalysis(TORNADO_CASH);
+  }
+
   function handleRemoveHistory(addr: string) {
     removeHistory(addr);
     setHistory(loadHistory());
@@ -1120,8 +1276,6 @@ export default function HomePage() {
   const isTablet = windowWidth >= 640 && windowWidth < 1024;
 
   const gridCols = isMobile ? '1fr' : isTablet ? '1fr 1fr' : '280px 1fr 280px';
-
-  const showResults = !!analysis && !loading;
 
   return (
     <div style={{ minHeight: '100vh', background: '#03040a', position: 'relative', overflow: 'hidden' }}>
@@ -1260,6 +1414,7 @@ export default function HomePage() {
           setInputFocused={setInputFocused}
           onSubmit={handleAnalyze}
           onQuickFill={handleQuickFill}
+          onSimulatorFill={handleSimulatorFill}
           error={error}
           analysisCount={analysisCount}
           history={history}
@@ -1394,6 +1549,7 @@ export default function HomePage() {
 
           {/* Row 3: Tabbed panel */}
           <div
+            id="clearchain-tabs"
             style={{
               border: '1px solid rgba(255,255,255,0.06)',
               borderRadius: 4,
