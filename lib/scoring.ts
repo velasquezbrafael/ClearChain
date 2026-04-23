@@ -212,7 +212,26 @@ function evaluateMixerSignal(transactions: WalletTransaction[], queriedAddress: 
  * layering. Both conditions must be true to suppress — TC routes to a small
  * set of fixed pool contracts, so it is not affected by this gate.
  */
-function evaluateRapidHopSignal(transactions: WalletTransaction[]): ScoringSignal {
+function evaluateRapidHopSignal(
+  transactions: WalletTransaction[],
+  ofacResult: OFACResult,
+  mixerSignalTriggered: boolean,
+): ScoringSignal {
+  // Contextual gate: rapid movement is only meaningful alongside OFAC exposure
+  // or mixer interaction. Alone it is consistent with normal high-frequency
+  // wallet behavior and would produce false positives on active legitimate wallets.
+  if (!ofacResult.matched && !mixerSignalTriggered) {
+    return {
+      name: 'rapid_fund_movement',
+      weight: 15,
+      triggered: false,
+      score: 0,
+      detail:
+        'No rapid layering pattern detected in isolation. Signal requires corroborating ' +
+        'OFAC or mixer exposure to be indicative of AML risk.',
+    };
+  }
+
   const sorted   = [...transactions].sort((a, b) => a.timestamp - b.timestamp);
   const outbound = sorted.filter(tx => !tx.isInbound);
   const inbound  = sorted.filter(tx => tx.isInbound);
@@ -541,11 +560,15 @@ export function computeRiskScore(params: {
 }): RiskScore {
   const { transactions, ofacResult, communityFlags, address } = params;
 
-  // Evaluate all signals
+  // Evaluate OFAC and mixer first — rapid movement gate depends on them
+  const ofacSignal    = evaluateOFACSignal(ofacResult);
+  const mixerSignal   = evaluateMixerSignal(transactions, address);
+  const rapidSignal   = evaluateRapidHopSignal(transactions, ofacResult, mixerSignal.triggered);
+
   const signals: ScoringSignal[] = [
-    evaluateOFACSignal(ofacResult),
-    evaluateMixerSignal(transactions, address),
-    evaluateRapidHopSignal(transactions),
+    ofacSignal,
+    mixerSignal,
+    rapidSignal,
     evaluateCounterpartySignal(transactions),
     evaluateVolumeAnomalySignal(transactions),
     evaluateCommunityFlagsSignal(communityFlags),
