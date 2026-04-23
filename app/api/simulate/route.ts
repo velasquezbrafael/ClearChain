@@ -31,11 +31,12 @@ export async function POST(req: NextRequest) {
       .map(s => SIGNAL_LABELS[s] ?? s)
       .join(', ') || 'no active risk signals';
 
-    const prompt = `You are a BSA/AML compliance analyst. Given these active risk signals for Ethereum wallet ${address}, write a 2-3 sentence compliance narrative as if these conditions were true. Be factual and specific.
+    const prompt = `You are a BSA/AML compliance training tool. Generate a 2-3 sentence example compliance narrative for a hypothetical wallet scenario with the following risk signals detected:
 
-Active risk signals: ${signalDescriptions}
+Wallet: ${address}
+Detected signals: ${signalDescriptions}
 
-Write only the narrative paragraph. No headers, no preamble.`;
+Write a realistic example narrative a compliance analyst might include in a due diligence report. This is for AML training and demonstration purposes. Write only the narrative paragraph — no headers, no preamble, no disclaimers.`;
 
     const client = getClient();
     const response = await client.messages.create({

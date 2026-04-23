@@ -20,6 +20,7 @@
  * Environment variable required: ALCHEMY_API_KEY
  */
 
+import { keccak_256 } from 'js-sha3';
 import type { WalletTransaction } from '@/types';
 
 // ---------------------------------------------------------------------------
@@ -322,6 +323,50 @@ export function getWalletAge(transactions: WalletTransaction[]): number {
  *
  * @throws Error if resolution fails or the name is unregistered
  */
+// ENS registry on Ethereum mainnet
+const ENS_REGISTRY = '0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e';
+
+/** Compute ENS namehash (EIP-137) using keccak256 from js-sha3 */
+function ensNamehash(name: string): string {
+  let node = new Uint8Array(32); // starts as 32 zero bytes
+  if (!name) return '0x' + Buffer.from(node).toString('hex');
+  const labels = name.toLowerCase().split('.').reverse();
+  for (const label of labels) {
+    const labelBytes = Buffer.from(label, 'utf8');
+    const labelHash = Buffer.from(keccak_256.array(labelBytes));
+    const combined = Buffer.concat([Buffer.from(node), labelHash]);
+    node = new Uint8Array(keccak_256.array(combined));
+  }
+  return '0x' + Buffer.from(node).toString('hex');
+}
+
+/** ABI-encode a bytes32 as a full 32-byte padded hex string */
+function encodeBytes32(hex: string): string {
+  return hex.replace(/^0x/, '').padStart(64, '0');
+}
+
+/** Decode a 20-byte address from a 32-byte padded eth_call result */
+function decodeAddress(hex: string): string {
+  const raw = hex.replace(/^0x/, '');
+  return '0x' + raw.slice(raw.length - 40);
+}
+
+async function ethCall(to: string, data: string, apiKey: string): Promise<string> {
+  const url = `${ALCHEMY_BASE_URL}/${apiKey}`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      jsonrpc: '2.0', id: 1, method: 'eth_call',
+      params: [{ to, data }, 'latest'],
+    }),
+  });
+  if (!res.ok) throw new Error(`eth_call HTTP ${res.status}`);
+  const json = await res.json() as { result?: string; error?: { message: string } };
+  if (json.error) throw new Error(json.error.message);
+  return json.result ?? '0x';
+}
+
 export async function resolveENS(input: string): Promise<string> {
   const trimmed = input.trim();
 
@@ -336,42 +381,38 @@ export async function resolveENS(input: string): Promise<string> {
   }
 
   const apiKey = process.env.ALCHEMY_API_KEY;
-  if (!apiKey) {
-    throw new Error('Alchemy API key not configured — cannot resolve ENS');
-  }
+  if (!apiKey) throw new Error('Alchemy API key not configured — cannot resolve ENS');
 
-  const url = `${ALCHEMY_BASE_URL}/${apiKey}`;
-  const body = {
-    jsonrpc: '2.0',
-    id: 1,
-    method: 'alchemy_resolveName',
-    params: [trimmed],
-  };
-
-  let data: { result?: string | null; error?: { message: string } };
   try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
+    const node = ensNamehash(trimmed);
+    const nodeEncoded = encodeBytes32(node);
+
+    // Step 1: get the resolver address from ENS registry — resolver(bytes32)
+    const resolverResult = await ethCall(
+      ENS_REGISTRY,
+      '0x0178b8bf' + nodeEncoded,
+      apiKey
+    );
+    const resolverAddr = decodeAddress(resolverResult);
+    if (/^0x0+$/.test(resolverAddr)) {
+      throw new Error(`ENS name '${trimmed}' has no resolver — may be unregistered or expired`);
     }
-    data = await response.json();
+
+    // Step 2: call addr(bytes32) on the resolver
+    const addrResult = await ethCall(
+      resolverAddr,
+      '0x3b3b57de' + nodeEncoded,
+      apiKey
+    );
+    const address = decodeAddress(addrResult);
+    if (/^0x0+$/.test(address)) {
+      throw new Error(`ENS name '${trimmed}' does not point to an Ethereum address`);
+    }
+
+    return address.toLowerCase();
   } catch (err) {
-    throw new Error(`ENS resolution network error: ${err instanceof Error ? err.message : String(err)}`);
+    throw new Error(err instanceof Error ? err.message : `Could not resolve ENS name '${trimmed}'`);
   }
-
-  if (data.error) {
-    throw new Error(`ENS resolution error: ${data.error.message}`);
-  }
-
-  if (!data.result) {
-    throw new Error(`ENS name '${trimmed}' could not be resolved — name may be unregistered or expired`);
-  }
-
-  return data.result.toLowerCase();
 }
 
 /**
