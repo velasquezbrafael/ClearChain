@@ -63,46 +63,47 @@ export async function generateAll(analysis: WalletAnalysis): Promise<{ narrative
   try {
     const client = getClient();
 
-    const combinedPrompt = `
-You are a senior BSA/AML compliance analyst. Given the wallet analysis below, produce TWO outputs in valid JSON format with keys "narrative" and "sarDraft".
-
-1. "narrative": A 2–4 sentence plain-English chain-of-custody paragraph for compliance review. Trace fund flow, name any mixer/high-risk interactions, and end with the AML stage (placement/layering/integration). Factual, no speculation.
-
-2. "sarDraft": A complete FinCEN-style SAR draft with these exact sections:
-SUSPICIOUS ACTIVITY REPORT — DRAFT NARRATIVE
+    const sarTemplate = `SUSPICIOUS ACTIVITY REPORT — DRAFT NARRATIVE
 [For compliance officer review — not a filed SAR]
 
 SUBJECT INFORMATION:
-- Wallet Address: ${analysis.address}
-- Blockchain: Ethereum (ETH)
-- Analysis Date: ${analysis.analyzedAt}
-- Risk Score: ${analysis.riskScore.total}/100 (${analysis.riskScore.level})
+Wallet Address: ${analysis.address}
+Blockchain: Ethereum (ETH)
+Analysis Date: ${analysis.analyzedAt}
+Risk Score: ${analysis.riskScore.total}/100 (${analysis.riskScore.level})
+OFAC Match: ${analysis.ofacResult.matched ? `YES — ${analysis.ofacResult.matchedEntity}` : 'No'}
 
 SUSPICIOUS ACTIVITY DESCRIPTION:
-[3–5 sentences, past tense, third person, specific dates/amounts]
+[Write 3-5 sentences here in past tense, third person, with specific dates and amounts]
 
 TYPOLOGY:
-[Primary typology name, FATF/FinCEN reference]
+[Primary typology and FATF/FinCEN reference]
 
 SUPPORTING TRANSACTION DETAILS:
-[3–5 key transactions: date, amount, abbreviated addresses]
+[List 3-5 key transactions with date, amount, abbreviated addresses]
 
 RECOMMENDED DISPOSITION:
 [File SAR / Hold pending investigation / Escalate]
 
 ---
-Note: AI-generated draft for compliance officer review. Verify before filing with FinCEN.
+Note: AI-generated draft. Verify all details before filing with FinCEN.`;
+
+    const combinedPrompt = `You are a senior BSA/AML compliance analyst. Return a single JSON object with exactly two string fields: "narrative" and "sarDraft". Both values must be plain text strings — not objects, not arrays.
+
+"narrative": Write 2-4 sentences tracing fund flow for this wallet. Name mixer/high-risk interactions. End with the AML stage (placement/layering/integration). Factual only.
+
+"sarDraft": Fill in the bracketed sections of this template and return the completed text as a single plain string (preserve line breaks with \\n):
+${sarTemplate}
 
 WALLET DATA:
 - Risk Score: ${analysis.riskScore.total}/100 (${analysis.riskScore.level})
 - OFAC Match: ${analysis.ofacResult.matched ? `YES — ${analysis.ofacResult.matchedEntity}` : 'No'}
-- Triggered Signals: ${analysis.riskScore.signals.filter(s => s.triggered).map(s => s.name).join(', ') || 'none'}
+- Signals: ${analysis.riskScore.signals.filter(s => s.triggered).map(s => s.name).join(', ') || 'none'}
 - Top Typology: ${analysis.typologies.filter(t => t.triggered).sort((a, b) => b.confidence - a.confidence)[0]?.name ?? 'none'}
 - Transactions: ${analysis.transactions.length} total
-- Key txs: ${analysis.transactions.slice(0, 5).map(tx => `${new Date(tx.timestamp * 1000).toISOString().split('T')[0]} ${tx.value} ETH ${tx.from.slice(0,8)}→${tx.to.slice(0,8)}`).join(' | ')}
+- Key txs: ${analysis.transactions.slice(0, 5).map(tx => `${new Date(tx.timestamp * 1000).toISOString().split('T')[0]} ${tx.value.toFixed(4)} ETH ${tx.from.slice(0,8)}→${tx.to.slice(0,8)}`).join(' | ')}
 
-Return ONLY valid JSON. No markdown, no explanation outside the JSON.
-`.trim();
+Return ONLY the JSON object. No markdown fences. Both values must be strings.`.trim();
 
     const response = await client.messages.create({
       model: MODEL,
@@ -118,10 +119,19 @@ Return ONLY valid JSON. No markdown, no explanation outside the JSON.
     // Strip markdown code fences Haiku sometimes wraps JSON in
     rawText = rawText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '');
     const parsed = JSON.parse(rawText);
-    return {
-      narrative: parsed.narrative ?? 'Narrative generation failed. Please retry.',
-      sarDraft: parsed.sarDraft ?? 'SAR draft generation failed. Please retry.',
-    };
+
+    // Defensive: if Claude returned sarDraft as an object, flatten it to a string
+    const rawSar = parsed.sarDraft;
+    const sarDraft = typeof rawSar === 'string'
+      ? rawSar
+      : (rawSar != null ? JSON.stringify(rawSar, null, 2) : 'SAR draft generation failed. Please retry.');
+
+    const rawNar = parsed.narrative;
+    const narrative = typeof rawNar === 'string'
+      ? rawNar
+      : (rawNar != null ? String(rawNar) : 'Narrative generation failed. Please retry.');
+
+    return { narrative, sarDraft };
   } catch (err) {
     console.error('[ClearChain] generateAll failed:', err);
     const textBlock = (err as { textBlock?: { text: string } })?.textBlock;
