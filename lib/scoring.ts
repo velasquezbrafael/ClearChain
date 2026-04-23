@@ -53,11 +53,34 @@ const HIGH_RISK_COUNTERPARTIES = new Set([
   '0x53b6936513e738f44fb50d2b9476730c0d3170e2',
 ]);
 
-/** 24 hours in seconds — threshold for rapid hop detection */
+/** 24 hours in seconds — sliding window for multi-hop layering detection */
 const RAPID_HOP_WINDOW_SECONDS = 24 * 60 * 60;
 
-/** Minimum number of sequential outgoing hops to trigger rapid hop signal */
+/** Minimum number of qualifying hops to trigger the signal */
 const RAPID_HOP_MIN_COUNT = 3;
+
+/**
+ * Maximum time between an inbound tx and its paired outbound for the layering
+ * ratio check. Funds that sat for >6 hours before being forwarded are less
+ * likely to be same-session layering.
+ */
+const HOP_PAIR_MAX_GAP_SECONDS = 6 * 3600;
+
+/** Outbound must move at least this fraction of the paired inbound value */
+const HOP_RATIO_MIN = 0.8;
+
+/**
+ * Upper bound on outbound/inbound ratio. Prevents tiny dust inbound txs from
+ * "matching" a large outbound (e.g. receive 0.001 ETH dust, send 10 ETH).
+ * If the outbound is more than 2× the inbound it's not a hop pair.
+ */
+const HOP_RATIO_MAX = 2.0;
+
+/** Fallback: tighter 3-hour window when no clear inbound/outbound pairs exist */
+const FALLBACK_WINDOW_SECONDS = 3 * 3600;
+
+/** Fallback: rapid outbounds must represent this fraction of total volume */
+const FALLBACK_VOLUME_THRESHOLD = 0.5;
 
 // ---------------------------------------------------------------------------
 // Risk Level Thresholds
@@ -171,15 +194,21 @@ function evaluateMixerSignal(transactions: WalletTransaction[], queriedAddress: 
 /**
  * Signal 3: Rapid Fund Movement (15 pts)
  *
- * Detects 3+ consecutive outbound transactions within a 24-hour window where
- * each hop moves ≥80% of received balance — the on-chain equivalent of
- * wire-stripping. This is a classic layering indicator per FATF guidance.
+ * Detects genuine layering — not just high transaction volume. Two checks:
+ *
+ * PRIMARY: 3+ outbound transactions within 24 hours where each outbound moves
+ * ≥80% of the ETH received in the immediately preceding inbound transaction
+ * (capped at 2× to exclude dust-inbound false positives). This mirrors the
+ * wire-stripping layering pattern described in FATF guidance.
+ *
+ * FALLBACK: When no clear inbound/outbound pairs exist, requires a stricter
+ * 3-hour window AND the rapid outbounds must represent >50% of total analyzed
+ * volume — ruling out high-volume legitimate wallets like grant distributors.
  */
 function evaluateRapidHopSignal(transactions: WalletTransaction[]): ScoringSignal {
-  // Only look at outbound transactions
-  const outbound = transactions.filter((tx) => !tx.isInbound).sort(
-    (a, b) => a.timestamp - b.timestamp
-  );
+  const sorted   = [...transactions].sort((a, b) => a.timestamp - b.timestamp);
+  const outbound = sorted.filter(tx => !tx.isInbound);
+  const inbound  = sorted.filter(tx => tx.isInbound);
 
   if (outbound.length < RAPID_HOP_MIN_COUNT) {
     return {
@@ -191,53 +220,130 @@ function evaluateRapidHopSignal(transactions: WalletTransaction[]): ScoringSigna
     };
   }
 
-  // Sliding window: look for RAPID_HOP_MIN_COUNT consecutive outbound txs
-  // within RAPID_HOP_WINDOW_SECONDS
-  let maxHopsInWindow = 0;
-  let windowStart = 0;
-  let windowEnd = 0;
+  // ── PRIMARY CHECK ────────────────────────────────────────────────────────
+  // For each outbound tx, find the most recent inbound within HOP_PAIR_MAX_GAP.
+  // A qualifying "layering hop" requires both a ratio >= 0.8 (forwarded most of
+  // what was received) and <= 2.0 (prevents dust inbound from matching a large
+  // unrelated outbound).
+
+  function findPrecedingInbound(outboundTx: WalletTransaction): WalletTransaction | null {
+    let best: WalletTransaction | null = null;
+    for (const inboundTx of inbound) {
+      const gap = outboundTx.timestamp - inboundTx.timestamp;
+      if (gap >= 0 && gap <= HOP_PAIR_MAX_GAP_SECONDS) {
+        if (!best || inboundTx.timestamp > best.timestamp) {
+          best = inboundTx;
+        }
+      }
+    }
+    return best;
+  }
+
+  const taggedOutbound = outbound.map(tx => {
+    const paired = findPrecedingInbound(tx);
+    if (!paired || paired.value === 0) return { tx, isLayeringHop: false, ratio: null as number | null };
+    const ratio = tx.value / paired.value;
+    return {
+      tx,
+      isLayeringHop: ratio >= HOP_RATIO_MIN && ratio <= HOP_RATIO_MAX,
+      ratio,
+    };
+  });
+
+  // Sliding window over layering hops within 24 hours
+  let maxLayeringHops = 0;
+  let layeringWindowStart = 0;
+  let layeringWindowEnd   = 0;
+
+  for (let i = 0; i < taggedOutbound.length; i++) {
+    if (!taggedOutbound[i].isLayeringHop) continue;
+    let count = 1;
+    let lastIdx = i;
+    for (let j = i + 1; j < taggedOutbound.length; j++) {
+      const span = taggedOutbound[j].tx.timestamp - taggedOutbound[i].tx.timestamp;
+      if (span > RAPID_HOP_WINDOW_SECONDS) break;
+      if (taggedOutbound[j].isLayeringHop) { count++; lastIdx = j; }
+    }
+    if (count > maxLayeringHops) {
+      maxLayeringHops      = count;
+      layeringWindowStart  = taggedOutbound[i].tx.timestamp;
+      layeringWindowEnd    = taggedOutbound[lastIdx].tx.timestamp;
+    }
+  }
+
+  if (maxLayeringHops >= RAPID_HOP_MIN_COUNT) {
+    const hours = Math.max(1, Math.round((layeringWindowEnd - layeringWindowStart) / 3600));
+    return {
+      name: 'rapid_fund_movement',
+      weight: 15,
+      triggered: true,
+      score: 15,
+      detail:
+        `${maxLayeringHops} layering hops detected within ${hours} hour(s): ` +
+        'each outbound moved ≥80% of the ETH received in the immediately preceding inbound. ' +
+        'Consistent with wire-stripping layering techniques. ' +
+        'Per FATF Report on Virtual Assets (2021), this is a recognised red flag indicator.',
+    };
+  }
+
+  // ── FALLBACK CHECK ───────────────────────────────────────────────────────
+  // Stricter 3-hour window + volume concentration test.
+  // This catches rapid-fire forwarding even without clean pairs, while
+  // excluding high-volume legitimate wallets where rapid outbounds are a
+  // small fraction of total activity.
+
+  const totalVolume = transactions.reduce((sum, tx) => sum + tx.value, 0);
+  let fallbackHops   = 0;
+  let fallbackVolume = 0;
 
   for (let i = 0; i < outbound.length; i++) {
-    let count = 1;
-    for (let j = i + 1; j < outbound.length; j++) {
-      const timeDiff = outbound[j].timestamp - outbound[i].timestamp;
-      if (timeDiff <= RAPID_HOP_WINDOW_SECONDS) {
+    let count = 0;
+    let vol   = 0;
+    for (let j = i; j < outbound.length; j++) {
+      if (outbound[j].timestamp - outbound[i].timestamp <= FALLBACK_WINDOW_SECONDS) {
         count++;
+        vol += outbound[j].value;
       } else {
         break;
       }
     }
-    if (count > maxHopsInWindow) {
-      maxHopsInWindow = count;
-      windowStart = outbound[i].timestamp;
-      windowEnd = outbound[Math.min(i + count - 1, outbound.length - 1)].timestamp;
+    if (count >= RAPID_HOP_MIN_COUNT && vol > fallbackVolume) {
+      fallbackHops   = count;
+      fallbackVolume = vol;
     }
   }
 
-  const triggered = maxHopsInWindow >= RAPID_HOP_MIN_COUNT;
+  const volumeFraction = totalVolume > 0 ? fallbackVolume / totalVolume : 0;
+  const fallbackTriggered =
+    fallbackHops >= RAPID_HOP_MIN_COUNT && volumeFraction >= FALLBACK_VOLUME_THRESHOLD;
 
-  if (!triggered) {
+  if (fallbackTriggered) {
     return {
       name: 'rapid_fund_movement',
       weight: 15,
-      triggered: false,
-      score: 0,
-      detail: `No rapid hop pattern detected. Maximum ${maxHopsInWindow} consecutive outbound transactions within 24 hours (threshold: ${RAPID_HOP_MIN_COUNT}).`,
+      triggered: true,
+      score: 15,
+      detail:
+        `${fallbackHops} outbound transactions within 3 hours representing ` +
+        `${Math.round(volumeFraction * 100)}% of total analyzed volume. ` +
+        'High-velocity fund concentration without clear business rationale — ' +
+        'consistent with rapid layering activity.',
     };
   }
 
-  const windowHours = Math.round((windowEnd - windowStart) / 3600);
-
+  // Clean — build a descriptive detail for the analyst
+  const layeringHopCount = taggedOutbound.filter(t => t.isLayeringHop).length;
   return {
     name: 'rapid_fund_movement',
     weight: 15,
-    triggered: true,
-    score: 15,
+    triggered: false,
+    score: 0,
     detail:
-      `${maxHopsInWindow} outbound transactions detected within ${windowHours} hour(s) — ` +
-      'consistent with rapid fund movement layering. ' +
-      'This pattern mimics wire-stripping techniques used in traditional ML schemes. ' +
-      'Per FATF Report on Virtual Assets (2021), this is a recognized red flag indicator.',
+      `No layering pattern detected. ` +
+      `Primary check: ${layeringHopCount} outbound transaction(s) met the ≥80% forwarding ratio ` +
+      `(${RAPID_HOP_MIN_COUNT} consecutive required). ` +
+      `Fallback: largest 3-hour outbound window = ${Math.round(volumeFraction * 100)}% of total volume ` +
+      `(threshold: ${Math.round(FALLBACK_VOLUME_THRESHOLD * 100)}%).`,
   };
 }
 
