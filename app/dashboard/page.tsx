@@ -90,8 +90,8 @@ export default async function DashboardPage() {
       </nav>
 
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '48px 32px' }}>
-        <div style={{ fontSize: 11, letterSpacing: '0.2em', color: '#3d4a5c', marginBottom: 8 }}>OVERVIEW</div>
-        <h1 style={{ fontSize: 28, fontWeight: 700, color: '#f0f4ff', margin: '0 0 40px' }}>Dashboard</h1>
+        <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, letterSpacing: '0.2em', color: '#3d4a5c', marginBottom: 8, textTransform: 'uppercase' }}>Overview</div>
+        <h1 style={{ fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif', fontSize: 32, fontWeight: 700, color: '#f0f4ff', margin: '0 0 40px', letterSpacing: '-0.01em' }}>Dashboard</h1>
 
         {/* Stats row */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 48 }}>
@@ -101,15 +101,15 @@ export default async function DashboardPage() {
             { label: 'Critical Findings', value: criticalFindings },
           ].map(({ label, value }) => (
             <div key={label} style={{ background: '#080b14', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, padding: '24px 28px' }}>
-              <div style={{ fontSize: 11, letterSpacing: '0.12em', color: '#8892a4', marginBottom: 12 }}>{label.toUpperCase()}</div>
-              <div style={{ fontSize: 36, fontWeight: 700, color: '#00ff88', fontFamily: 'var(--font-jetbrains-mono)' }}>{value}</div>
+              <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: '#8892a4', marginBottom: 14, textTransform: 'uppercase' }}>{label}</div>
+              <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 40, fontWeight: 700, color: '#00ff88', lineHeight: 1, letterSpacing: '-0.02em' }}>{String(value)}</div>
             </div>
           ))}
         </div>
 
         {/* Recent Analyses */}
         <div style={{ marginBottom: 48 }}>
-          <div style={{ fontSize: 11, letterSpacing: '0.15em', color: '#8892a4', marginBottom: 16 }}>RECENT ANALYSES</div>
+          <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.2em', color: '#8892a4', marginBottom: 16, textTransform: 'uppercase' }}>Recent Analyses</div>
           {!analyses || analyses.length === 0 ? (
             <div style={{ padding: '32px', textAlign: 'center', color: '#3d4a5c', fontSize: 13, background: '#080b14', borderRadius: 8, border: '1px solid rgba(255,255,255,0.06)' }}>
               No analyses yet.{' '}
@@ -153,7 +153,7 @@ export default async function DashboardPage() {
         {/* Active Cases */}
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-            <div style={{ fontSize: 11, letterSpacing: '0.15em', color: '#8892a4' }}>ACTIVE CASES</div>
+            <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.2em', color: '#8892a4', textTransform: 'uppercase' }}>Active Cases</div>
             <a href="/dashboard/cases" style={{ fontSize: 11, color: '#00ff88', textDecoration: 'none', letterSpacing: '0.08em' }}>+ New Case →</a>
           </div>
           {!cases || cases.length === 0 ? (

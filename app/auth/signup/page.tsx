@@ -1,5 +1,9 @@
 'use client'
 
+// Email template configured in Supabase dashboard → Auth → Email Templates
+// Subject: "Confirm your ClearChain account"
+// Template: dark branded HTML with green CTA button (see handoff notes)
+
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 

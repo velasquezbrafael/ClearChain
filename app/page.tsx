@@ -538,9 +538,9 @@ function HeroContent({
 
         {/* Headline */}
         <h1
+          className="hero-headline"
           style={{
             fontFamily: 'var(--font-space-grotesk)',
-            fontSize: 'clamp(64px, 10vw, 96px)',
             fontWeight: 700,
             lineHeight: 1.0,
             color: 'var(--text-primary)',
@@ -563,7 +563,7 @@ function HeroContent({
             margin: '0 0 48px',
             maxWidth: 560,
             animation: 'fadeSlideUp 0.5s ease-out both',
-            animationDelay: '0.2s',
+            animationDelay: '0.25s',
           }}
         >
           Know in 10 seconds whether a wallet is clean, connected to a mixer, or
@@ -576,7 +576,7 @@ function HeroContent({
           style={{
             width: '100%',
             animation: 'fadeSlideUp 0.5s ease-out both',
-            animationDelay: '0.3s',
+            animationDelay: '0.4s',
           }}
         >
           <div
@@ -645,7 +645,7 @@ function HeroContent({
             justifyContent: 'center',
             marginTop: 28,
             animation: 'fadeSlideUp 0.5s ease-out both',
-            animationDelay: '0.4s',
+            animationDelay: '0.55s',
           }}
         >
           {['OFAC SDN Database', 'FATF Typologies', 'AI-Powered SAR Drafts'].map(label => (
@@ -691,7 +691,7 @@ function HeroContent({
             justifyContent: 'center',
             marginTop: 16,
             animation: 'fadeSlideUp 0.5s ease-out both',
-            animationDelay: '0.5s',
+            animationDelay: '0.65s',
           }}
         >
           {quickFills.map(({ label, sublabel, addr, simulator, clean }) => {
@@ -943,7 +943,8 @@ function AnalyzeButton({ loading, compact }: { loading: boolean; compact?: boole
           color: '#00ff88',
           padding: '0 4px',
           textShadow: hovered && !loading ? '0 0 20px rgba(0,255,136,0.8), 0 0 40px rgba(0,255,136,0.4)' : 'none',
-          transition: 'text-shadow 0.2s',
+          transform: hovered && !loading ? 'translateX(3px)' : 'translateX(0)',
+          transition: 'text-shadow 0.2s, transform 0.15s',
           opacity: loading ? 0.5 : 1,
         }}
       >
@@ -1008,6 +1009,138 @@ function ShareButton() {
   );
 }
 
+function SaveToCaseButton({ address, analysisId }: { address: string; analysisId?: string }) {
+  const [open, setOpen] = useState(false);
+  const [cases, setCases] = useState<{ id: string; title: string }[]>([]);
+  const [selectedCase, setSelectedCase] = useState('');
+  const [newTitle, setNewTitle] = useState('');
+  const [mode, setMode] = useState<'existing' | 'new'>('existing');
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState('');
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => setIsLoggedIn(!!user));
+  }, []);
+
+  async function handleOpen() {
+    if (!open) {
+      const res = await fetch('/api/cases');
+      if (res.ok) { const j = await res.json(); setCases(j.cases ?? []); }
+    }
+    setOpen(v => !v);
+  }
+
+  async function handleSave() {
+    setSaving(true);
+    let caseId = selectedCase;
+    if (mode === 'new') {
+      const res = await fetch('/api/cases', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: newTitle }) });
+      const j = await res.json();
+      caseId = j.case?.id;
+    }
+    if (!caseId) { setSaving(false); return; }
+
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setSaving(false); return; }
+
+    // Save analysis if not already saved
+    let finalAnalysisId = analysisId;
+    if (!finalAnalysisId) {
+      const { data: a } = await supabase.from('analyses').select('id').eq('address', address).eq('user_id', user.id).order('created_at', { ascending: false }).limit(1).single();
+      finalAnalysisId = a?.id;
+    }
+
+    await supabase.from('case_addresses').insert({ case_id: caseId, address, chain: 'ETH', analysis_id: finalAnalysisId ?? null });
+    await supabase.from('cases').update({ updated_at: new Date().toISOString() }).eq('id', caseId);
+
+    const caseName = mode === 'new' ? newTitle : (cases.find(c => c.id === caseId)?.title ?? 'case');
+    setSaved(caseName);
+    setSaving(false);
+    setOpen(false);
+    setTimeout(() => setSaved(''), 2500);
+  }
+
+  if (isLoggedIn === null) return null;
+  if (!isLoggedIn) {
+    return (
+      <a href="/auth/login" style={{ padding: '6px 14px', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 2, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.1em', color: 'var(--text-dim)', textDecoration: 'none', flexShrink: 0 }}>
+        Sign in to save →
+      </a>
+    );
+  }
+
+  return (
+    <div style={{ position: 'relative', flexShrink: 0 }}>
+      <button
+        onClick={handleOpen}
+        style={{
+          padding: '6px 14px',
+          border: `1px solid ${saved ? 'rgba(0,255,136,0.4)' : open ? 'rgba(0,255,136,0.3)' : 'rgba(255,255,255,0.06)'}`,
+          borderRadius: 2,
+          background: saved ? 'rgba(0,255,136,0.08)' : open ? 'rgba(0,255,136,0.05)' : 'none',
+          fontFamily: 'var(--font-jetbrains-mono)',
+          fontSize: 10,
+          letterSpacing: '0.1em',
+          color: saved ? '#00ff88' : open ? '#00ff88' : 'var(--text-secondary)',
+          cursor: 'pointer',
+          transition: 'all 0.2s',
+        }}
+      >
+        {saved ? `Saved to ${saved} ✓` : '+ Save to Case'}
+      </button>
+
+      {open && (
+        <div style={{
+          position: 'absolute', top: '100%', right: 0, marginTop: 8, zIndex: 100,
+          background: '#080b14', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6,
+          padding: 16, minWidth: 260,
+          boxShadow: '0 16px 40px rgba(0,0,0,0.6)',
+        }}>
+          <div style={{ fontSize: 11, letterSpacing: '0.15em', color: '#3d4a5c', marginBottom: 12, fontFamily: 'var(--font-jetbrains-mono)' }}>+ SAVE TO CASE</div>
+
+          <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+            {(['existing', 'new'] as const).map(m => (
+              <button key={m} onClick={() => setMode(m)} style={{ flex: 1, padding: '6px', border: `1px solid ${mode === m ? 'rgba(0,255,136,0.3)' : 'rgba(255,255,255,0.08)'}`, borderRadius: 3, background: mode === m ? 'rgba(0,255,136,0.08)' : 'transparent', color: mode === m ? '#00ff88' : '#8892a4', fontSize: 10, letterSpacing: '0.1em', cursor: 'pointer', fontFamily: 'var(--font-jetbrains-mono)' }}>
+                {m === 'existing' ? 'EXISTING' : 'NEW CASE'}
+              </button>
+            ))}
+          </div>
+
+          {mode === 'existing' ? (
+            <select
+              value={selectedCase}
+              onChange={e => setSelectedCase(e.target.value)}
+              style={{ width: '100%', background: '#03040a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 3, color: '#f0f4ff', fontSize: 12, padding: '8px 10px', fontFamily: 'var(--font-jetbrains-mono)', marginBottom: 12 }}
+            >
+              <option value="">Select a case...</option>
+              {cases.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
+            </select>
+          ) : (
+            <input
+              type="text"
+              value={newTitle}
+              onChange={e => setNewTitle(e.target.value)}
+              placeholder="Case title..."
+              style={{ width: '100%', background: 'transparent', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.12)', color: '#f0f4ff', fontSize: 13, padding: '6px 0', outline: 'none', fontFamily: 'var(--font-jetbrains-mono)', marginBottom: 12 }}
+            />
+          )}
+
+          <button
+            onClick={handleSave}
+            disabled={saving || (mode === 'existing' ? !selectedCase : !newTitle.trim())}
+            style={{ width: '100%', padding: '8px', background: 'rgba(0,255,136,0.1)', border: '1px solid rgba(0,255,136,0.3)', borderRadius: 3, color: '#00ff88', fontSize: 11, letterSpacing: '0.12em', cursor: saving ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-jetbrains-mono)' }}
+          >
+            {saving ? 'SAVING...' : 'SAVE →'}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ResultsAddressBar({
   address,
   analyzedAt,
@@ -1019,6 +1152,7 @@ function ResultsAddressBar({
   setInputFocused,
   onSubmit,
   exportButton,
+  saveButton,
 }: {
   address: string;
   analyzedAt: string;
@@ -1030,6 +1164,7 @@ function ResultsAddressBar({
   setInputFocused: (v: boolean) => void;
   onSubmit: (e: React.FormEvent) => void;
   exportButton?: React.ReactNode;
+  saveButton?: React.ReactNode;
 }) {
   return (
     <div
@@ -1149,8 +1284,9 @@ function ResultsAddressBar({
         <AnalyzeButton loading={loading} compact />
       </form>
 
-      {/* Share + Export */}
+      {/* Share + Save + Export */}
       <ShareButton />
+      {saveButton}
       {exportButton}
 
       {/* New Analysis link */}
@@ -1647,6 +1783,7 @@ export default function HomePage() {
             setInputFocused={setInputFocused}
             onSubmit={handleAnalyze}
             exportButton={<ExportButton analysis={analysis} narrative={narrative} sarDraft={sarDraft} />}
+            saveButton={<SaveToCaseButton address={analysis.address} />}
           />
 
           {/* Row 2: 3-col layout */}
