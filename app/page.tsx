@@ -135,8 +135,9 @@ function removeHistory(address: string) {
 }
 
 function useWindowWidth() {
-  const [width, setWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1280);
+  const [width, setWidth] = useState(1280);
   useEffect(() => {
+    setWidth(window.innerWidth);
     function onResize() { setWidth(window.innerWidth); }
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
@@ -1381,10 +1382,8 @@ export default function HomePage() {
   const [hopData, setHopData]       = useState<HopEntry[] | undefined>(undefined);
   const [activeTab, setActiveTab]   = useState<Tab>('TYPOLOGIES');
   const [inputFocused, setInputFocused] = useState(false);
-  const [history, setHistory] = useState<HistoryEntry[]>(() => {
-    if (typeof window === 'undefined') return [];
-    return loadHistory();
-  });
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  useEffect(() => { setHistory(loadHistory()); }, []);
   const [navUser, setNavUser] = useState<{ email: string } | null>(null);
   const pendingTabRef = useRef<Tab | null>(null);
   const showResults = !!analysis && !loading;

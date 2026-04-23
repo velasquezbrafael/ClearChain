@@ -134,8 +134,6 @@ Return ONLY the JSON object. No markdown fences. Both values must be strings.`.t
     return { narrative, sarDraft };
   } catch (err) {
     console.error('[ClearChain] generateAll failed:', err);
-    const textBlock = (err as { textBlock?: { text: string } })?.textBlock;
-    if (textBlock) console.error('[ClearChain] Raw response:', textBlock.text.slice(0, 500));
     return {
       narrative: 'Narrative generation failed. Please retry.',
       sarDraft: 'SAR draft generation failed. Please retry.',
