@@ -23,12 +23,6 @@ import type { OFACResult } from '@/types';
 // Constants
 // ---------------------------------------------------------------------------
 
-const SDN_XML_URL =
-  'https://www.treasury.gov/ofac/downloads/sanctions/1.0/sdn_advanced.xml';
-
-/** ETH address identifier type string as it appears in the OFAC XML */
-const ETH_ID_TYPE = 'Digital Currency Address - ETH';
-
 /**
  * Hardcoded fallback list of known OFAC-sanctioned Ethereum addresses.
  *
@@ -78,71 +72,6 @@ const FALLBACK_SANCTIONED_ADDRESSES: Record<string, string> = {
 let sdnAddressCache: Map<string, string> | null = null;
 let cacheLoadedAt: Date | null = null;
 let cacheLoadAttempted = false;
-
-// ---------------------------------------------------------------------------
-// XML Parsing
-// ---------------------------------------------------------------------------
-
-/**
- * Extract ETH digital currency addresses from the OFAC sdn_advanced.xml.
- *
- * The relevant XML structure we're targeting:
- * <sdnEntry>
- *   <lastName>LAZARUS GROUP</lastName>
- *   ...
- *   <idList>
- *     <id>
- *       <idType>Digital Currency Address - ETH</idType>
- *       <idNumber>0x...</idNumber>
- *     </id>
- *   </idList>
- * </sdnEntry>
- *
- * We do a regex-based parse here to avoid a full XML parser dependency.
- * This is safe because we're parsing a well-structured, government-maintained
- * XML file with predictable schema.
- *
- * @param xml Raw XML string from the OFAC endpoint
- * @returns Map of lowercase ETH address → entity name
- */
-function parseSDNXml(xml: string): Map<string, string> {
-  const result = new Map<string, string>();
-
-  // Match each sdnEntry block
-  const entryRegex = /<sdnEntry>([\s\S]*?)<\/sdnEntry>/g;
-  let entryMatch: RegExpExecArray | null;
-
-  while ((entryMatch = entryRegex.exec(xml)) !== null) {
-    const entryXml = entryMatch[1];
-
-    // Extract entity name — prefer lastName, fall back to firstName
-    const lastNameMatch = entryXml.match(/<lastName>(.*?)<\/lastName>/);
-    const firstNameMatch = entryXml.match(/<firstName>(.*?)<\/firstName>/);
-    const entityName = lastNameMatch?.[1]?.trim() ?? firstNameMatch?.[1]?.trim() ?? 'Unknown Entity';
-
-    // Find all <id> blocks within this entry
-    const idBlockRegex = /<id>([\s\S]*?)<\/id>/g;
-    let idMatch: RegExpExecArray | null;
-
-    while ((idMatch = idBlockRegex.exec(entryXml)) !== null) {
-      const idBlock = idMatch[1];
-
-      // Check if this is an ETH address entry
-      if (idBlock.includes(ETH_ID_TYPE)) {
-        const idNumberMatch = idBlock.match(/<idNumber>(.*?)<\/idNumber>/);
-        if (idNumberMatch?.[1]) {
-          const address = idNumberMatch[1].trim().toLowerCase();
-          // Validate it looks like an ETH address before storing
-          if (/^0x[0-9a-f]{40}$/i.test(address)) {
-            result.set(address, entityName);
-          }
-        }
-      }
-    }
-  }
-
-  return result;
-}
 
 // ---------------------------------------------------------------------------
 // Core Functions

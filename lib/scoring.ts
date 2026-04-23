@@ -59,9 +59,6 @@ const RAPID_HOP_WINDOW_SECONDS = 24 * 60 * 60;
 /** Minimum number of sequential outgoing hops to trigger rapid hop signal */
 const RAPID_HOP_MIN_COUNT = 3;
 
-/** Percentage of received balance that must move to count as a "hop" (80%) */
-const RAPID_HOP_MIN_BALANCE_RATIO = 0.8;
-
 // ---------------------------------------------------------------------------
 // Risk Level Thresholds
 // ---------------------------------------------------------------------------

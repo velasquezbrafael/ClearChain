@@ -4,11 +4,10 @@ import { useState } from 'react';
 
 interface SARDraftCardProps {
   sarDraft: string | null;
-  address: string;
   onDownload?: () => void;
 }
 
-export default function SARDraftCard({ sarDraft, address: _address, onDownload }: SARDraftCardProps) {
+export default function SARDraftCard({ sarDraft, onDownload }: SARDraftCardProps) {
   const [copied, setCopied] = useState(false);
 
   async function handleCopy() {

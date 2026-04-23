@@ -102,6 +102,7 @@ export default function TransactionGraph({ transactions, queriedAddress }: Trans
   const containerRef = useRef<HTMLDivElement>(null);
   const simRef = useRef<d3.Simulation<GraphNode, GraphLink> | null>(null);
   const [tooltip, setTooltip] = useState<TooltipData>(null);
+  const [containerWidth, setContainerWidth] = useState(0);
 
   useEffect(() => {
     if (!svgRef.current || !containerRef.current) return;
@@ -114,6 +115,7 @@ export default function TransactionGraph({ transactions, queriedAddress }: Trans
 
     const container = containerRef.current;
     const W = container.clientWidth;
+    setContainerWidth(W);
     const H = 480;
 
     const queried = queriedAddress.toLowerCase();
@@ -376,7 +378,7 @@ export default function TransactionGraph({ transactions, queriedAddress }: Trans
           <div
             className="absolute pointer-events-none z-20 bg-[#111118] border border-[#1a1a24] rounded-lg px-3 py-2.5 shadow-2xl text-xs font-mono min-w-[200px]"
             style={{
-              left: Math.min(tooltip.x + 14, (containerRef.current?.clientWidth ?? 9999) - 220),
+              left: Math.min(tooltip.x + 14, (containerWidth || 9999) - 220),
               top: Math.max(tooltip.y - 48, 8),
             }}
           >

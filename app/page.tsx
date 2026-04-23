@@ -163,7 +163,12 @@ function HeroState({ onQuickFill }: { onQuickFill: (addr: string) => void }) {
 // ---------------------------------------------------------------------------
 
 export default function HomePage() {
-  const [address, setAddress] = useState('');
+  const [address, setAddress] = useState<string>(() => {
+    if (typeof window === 'undefined') return '';
+    const params = new URLSearchParams(window.location.search);
+    const urlAddr = params.get('address') ?? '';
+    return /^0x[a-fA-F0-9]{40}$/.test(urlAddr) ? urlAddr : '';
+  });
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -176,17 +181,12 @@ export default function HomePage() {
     const params = new URLSearchParams(window.location.search);
     const urlAddr = params.get('address');
     if (urlAddr && /^0x[a-fA-F0-9]{40}$/.test(urlAddr)) {
-      setAddress(urlAddr);
       runAnalysis(urlAddr);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    if (!loading) {
-      setLoadingStep(0);
-      return;
-    }
+    if (!loading) return;
     const timer = setInterval(() => {
       setLoadingStep(prev => Math.min(prev + 1, LOADING_STEPS.length - 1));
     }, 900);
@@ -195,6 +195,7 @@ export default function HomePage() {
 
   async function runAnalysis(addr: string) {
     setLoading(true);
+    setLoadingStep(0);
     setError(null);
     setAnalysis(null);
     setNarrative(null);
@@ -383,7 +384,6 @@ export default function HomePage() {
           {/* SAR Draft */}
           <SARDraftCard
             sarDraft={sarDraft}
-            address={analysis.address}
             onDownload={handleSARDownload}
           />
 
