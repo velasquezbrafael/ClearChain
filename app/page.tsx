@@ -394,7 +394,7 @@ function HeroContent({
   onQuickFill,
   onSimulatorFill,
   error,
-  analysisCount,
+
   history,
   onRemoveHistory,
 }: {
@@ -407,7 +407,6 @@ function HeroContent({
   onQuickFill: (addr: string) => void;
   onSimulatorFill: () => void;
   error: string | null;
-  analysisCount: number;
   history: HistoryEntry[];
   onRemoveHistory: (addr: string) => void;
 }) {
@@ -518,7 +517,22 @@ function HeroContent({
             animationDelay: '0s',
           }}
         >
-          OPEN SOURCE · ETHEREUM MAINNET
+          <a
+            href="https://github.com/velasquezbrafael-source/ClearChain"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              color: 'inherit',
+              textDecoration: 'none',
+              borderBottom: '1px solid transparent',
+              transition: 'border-color 0.2s',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(0,255,136,0.4)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = 'transparent'; }}
+          >
+            OPEN SOURCE
+          </a>
+          {' · ETHEREUM MAINNET'}
         </div>
 
         {/* Headline */}
@@ -649,19 +663,22 @@ function HeroContent({
               {label}
             </span>
           ))}
-          <span
-            style={{
-              padding: '6px 14px',
-              border: '1px solid rgba(0,255,136,0.12)',
-              borderRadius: 2,
-              fontFamily: 'var(--font-jetbrains-mono)',
-              fontSize: 10,
-              letterSpacing: '0.1em',
-              color: 'rgba(0,255,136,0.6)',
-            }}
-          >
-            {analysisCount.toLocaleString()} Analyses Run
-          </span>
+          {(['Free · No API key required', 'Open source · MIT'] as const).map(label => (
+            <span
+              key={label}
+              style={{
+                padding: '6px 14px',
+                border: '1px solid rgba(0,255,136,0.12)',
+                borderRadius: 2,
+                fontFamily: 'var(--font-jetbrains-mono)',
+                fontSize: 10,
+                letterSpacing: '0.1em',
+                color: 'rgba(0,255,136,0.6)',
+              }}
+            >
+              {label}
+            </span>
+          ))}
         </div>
 
         {/* Quick fills */}
@@ -955,6 +972,41 @@ function AnalyzeButton({ loading, compact }: { loading: boolean; compact?: boole
 // Results address bar — row 1
 // ---------------------------------------------------------------------------
 
+function ShareButton() {
+  const [copied, setCopied] = useState(false);
+  const [hovered, setHovered] = useState(false);
+
+  function handleShare() {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  }
+
+  return (
+    <button
+      onClick={handleShare}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        padding: '6px 14px',
+        border: `1px solid ${copied ? 'rgba(0,255,136,0.4)' : hovered ? 'rgba(0,255,136,0.3)' : 'rgba(255,255,255,0.06)'}`,
+        borderRadius: 2,
+        background: copied ? 'rgba(0,255,136,0.08)' : hovered ? 'rgba(0,255,136,0.05)' : 'none',
+        fontFamily: 'var(--font-jetbrains-mono)',
+        fontSize: 10,
+        letterSpacing: '0.1em',
+        color: copied ? '#00ff88' : hovered ? '#00ff88' : 'var(--text-secondary)',
+        cursor: 'pointer',
+        flexShrink: 0,
+        transition: 'all 0.2s',
+      }}
+    >
+      {copied ? 'COPIED!' : 'SHARE →'}
+    </button>
+  );
+}
+
 function ResultsAddressBar({
   address,
   analyzedAt,
@@ -1096,7 +1148,8 @@ function ResultsAddressBar({
         <AnalyzeButton loading={loading} compact />
       </form>
 
-      {/* Export PDF */}
+      {/* Share + Export */}
+      <ShareButton />
       {exportButton}
 
       {/* New Analysis link */}
@@ -1142,10 +1195,6 @@ export default function HomePage() {
   const [hopData, setHopData]       = useState<HopEntry[] | undefined>(undefined);
   const [activeTab, setActiveTab]   = useState<Tab>('TYPOLOGIES');
   const [inputFocused, setInputFocused] = useState(false);
-  const [analysisCount, setAnalysisCount] = useState<number>(() => {
-    if (typeof window === 'undefined') return 1200;
-    return parseInt(localStorage.getItem('cc_analysis_count') ?? '1200', 10);
-  });
   const [history, setHistory] = useState<HistoryEntry[]>(() => {
     if (typeof window === 'undefined') return [];
     return loadHistory();
@@ -1251,9 +1300,6 @@ export default function HomePage() {
       setNarrative(nar ?? null);
       setSarDraft(sar ?? null);
       setHopData(hops);
-      const newCount = analysisCount + 1;
-      setAnalysisCount(newCount);
-      localStorage.setItem('cc_analysis_count', String(newCount));
       // Save to search history
       const historyEntry: HistoryEntry = { address: data.address, level: data.riskScore.level, timestamp: Date.now() };
       saveHistory(historyEntry);
@@ -1473,7 +1519,7 @@ export default function HomePage() {
           onQuickFill={handleQuickFill}
           onSimulatorFill={handleSimulatorFill}
           error={error}
-          analysisCount={analysisCount}
+
           history={history}
           onRemoveHistory={handleRemoveHistory}
         />
@@ -1602,6 +1648,63 @@ export default function HomePage() {
               <SignalList signals={analysis.riskScore.signals} isMobile={isMobile} riskLevel={analysis.riskScore.level} />
             </div>
           </div>
+
+          {/* Comparable cases */}
+          {(() => {
+            const comparableCases: Record<string, { name: string; score: number; note: string }[]> = {
+              CRITICAL: [
+                { name: 'Blender.io', score: 85, note: 'OFAC SDN · mixer' },
+                { name: 'Ronin exploiter', score: 90, note: 'OFAC SDN · hack' },
+              ],
+              HIGH: [
+                { name: 'Sinbad mixer', score: 70, note: 'OFAC SDN · mixer' },
+                { name: 'BTC-e exchange', score: 68, note: 'sanctioned exchange' },
+              ],
+              MEDIUM: [
+                { name: 'Typical DEX trader', score: 35, note: 'normal activity' },
+                { name: 'Active DeFi wallet', score: 28, note: 'protocol usage' },
+              ],
+              LOW: [
+                { name: 'Vitalik.eth', score: 0, note: 'clean baseline' },
+                { name: 'Typical holder', score: 8, note: 'minimal activity' },
+              ],
+            };
+            const cases = comparableCases[analysis.riskScore.level] ?? [];
+            if (cases.length === 0) return null;
+            return (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  marginBottom: 16,
+                  flexWrap: 'wrap',
+                  animation: 'fadeSlideUp 0.4s ease-out both',
+                  animationDelay: '0.15s',
+                }}
+              >
+                <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.15em', color: 'var(--text-dim)', flexShrink: 0 }}>
+                  SIMILAR RISK PROFILES:
+                </span>
+                {cases.map(c => (
+                  <span
+                    key={c.name}
+                    style={{
+                      padding: '3px 10px',
+                      border: '1px solid rgba(255,255,255,0.06)',
+                      borderRadius: 2,
+                      fontFamily: 'var(--font-jetbrains-mono)',
+                      fontSize: 9,
+                      color: 'var(--text-dim)',
+                      letterSpacing: '0.05em',
+                    }}
+                  >
+                    {c.name} · <span style={{ color: 'var(--text-secondary)' }}>{c.score}</span> · <span style={{ opacity: 0.6 }}>{c.note}</span>
+                  </span>
+                ))}
+              </div>
+            );
+          })()}
 
           {/* Timeline chart */}
           <TransactionTimeline transactions={analysis.transactions} />
@@ -1754,16 +1857,35 @@ export default function HomePage() {
             >
               CLEARCHAIN v1 — AI-assisted analysis only. Not legal advice.
             </span>
-            <span
-              style={{
-                fontFamily: 'var(--font-jetbrains-mono)',
-                fontSize: 10,
-                letterSpacing: '0.1em',
-                color: 'var(--text-dim)',
-              }}
-            >
-              Data refreshes after 5 min cache window
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <a
+                href="https://github.com/velasquezbrafael-source/ClearChain"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  fontFamily: 'var(--font-jetbrains-mono)',
+                  fontSize: 10,
+                  letterSpacing: '0.1em',
+                  color: 'var(--text-dim)',
+                  textDecoration: 'none',
+                  transition: 'color 0.15s',
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-secondary)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-dim)'; }}
+              >
+                github.com/velasquezbrafael-source/ClearChain
+              </a>
+              <span
+                style={{
+                  fontFamily: 'var(--font-jetbrains-mono)',
+                  fontSize: 10,
+                  letterSpacing: '0.1em',
+                  color: 'var(--text-dim)',
+                }}
+              >
+                Data refreshes after 5 min cache window
+              </span>
+            </div>
           </div>
         </div>
       )}
