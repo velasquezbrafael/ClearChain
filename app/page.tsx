@@ -146,12 +146,24 @@ function useWindowWidth() {
 // Signal list — col 3
 // ---------------------------------------------------------------------------
 
-function SignalList({ signals }: { signals: ScoringSignal[] }) {
+function SignalList({ signals, isMobile, riskLevel }: { signals: ScoringSignal[]; isMobile?: boolean; riskLevel?: RiskLevel }) {
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+
   const sorted = [...signals].sort((a, b) => {
     if (a.triggered && !b.triggered) return -1;
     if (!a.triggered && b.triggered) return 1;
     return b.weight - a.weight;
   });
+
+  function toggle(name: string) {
+    setExpanded(prev => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name); else next.add(name);
+      return next;
+    });
+  }
+
+  const isClean = riskLevel === 'LOW';
 
   return (
     <div
@@ -178,69 +190,107 @@ function SignalList({ signals }: { signals: ScoringSignal[] }) {
         <InfoTooltip text="Each signal that contributes to the risk score. Green = triggered (adds points). Gray = clean. The detail column explains exactly why each signal fired." />
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {sorted.map(signal => (
-          <div
-            key={signal.name}
-            style={{ display: 'flex', alignItems: 'center', gap: 0 }}
-          >
-            {/* Dot */}
-            <span
-              style={{
-                fontSize: 7,
-                color: signal.triggered ? '#00ff88' : '#3d4a5c',
-                marginRight: 10,
-                flexShrink: 0,
-                lineHeight: 1,
-              }}
-            >
-              {signal.triggered ? '●' : '○'}
-            </span>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? 2 : 12 }}>
+        {sorted.map(signal => {
+          const canExpand = isMobile && signal.triggered && !!signal.detail;
+          const isExpanded = expanded.has(signal.name);
+          const showCleanTint = isClean && !signal.triggered;
+          return (
+            <div key={signal.name}>
+              <div
+                onClick={canExpand ? () => toggle(signal.name) : undefined}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0,
+                  padding: isMobile ? '8px 6px' : '0',
+                  borderRadius: 2,
+                  background: showCleanTint ? 'rgba(0,255,136,0.03)' : 'transparent',
+                  cursor: canExpand ? 'pointer' : 'default',
+                  transition: 'background 0.15s',
+                }}
+              >
+                {/* Dot */}
+                <span
+                  style={{
+                    fontSize: 7,
+                    color: signal.triggered ? '#00ff88' : (isClean ? 'rgba(0,255,136,0.3)' : '#3d4a5c'),
+                    marginRight: 10,
+                    flexShrink: 0,
+                    lineHeight: 1,
+                  }}
+                >
+                  {signal.triggered ? '●' : '○'}
+                </span>
 
-            {/* Name */}
-            <span
-              style={{
-                fontFamily: 'var(--font-jetbrains-mono)',
-                fontSize: 10,
-                letterSpacing: '0.05em',
-                color: signal.triggered ? 'var(--text-primary)' : 'var(--text-dim)',
-                flex: 1,
-                overflow: 'hidden',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {formatSignalName(signal.name)}
-            </span>
+                {/* Name */}
+                <span
+                  style={{
+                    fontFamily: 'var(--font-jetbrains-mono)',
+                    fontSize: 10,
+                    letterSpacing: '0.05em',
+                    color: signal.triggered ? 'var(--text-primary)' : (isClean ? 'rgba(0,255,136,0.35)' : 'var(--text-dim)'),
+                    flex: 1,
+                    overflow: 'hidden',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {formatSignalName(signal.name)}
+                </span>
 
-            {/* Dot fill */}
-            <div
-              style={{
-                flex: '0 0 20px',
-                height: 0,
-                borderBottom: '1px dotted rgba(61,74,92,0.4)',
-                margin: '0 6px 3px',
-              }}
-            />
+                {/* Dot fill */}
+                <div
+                  style={{
+                    flex: '0 0 20px',
+                    height: 0,
+                    borderBottom: '1px dotted rgba(61,74,92,0.4)',
+                    margin: '0 6px 3px',
+                  }}
+                />
 
-            {/* Score */}
-            <span
-              style={{
-                fontFamily: 'var(--font-jetbrains-mono)',
-                fontSize: 12,
-                color: signal.triggered ? '#ff8c00' : '#3d4a5c',
-                flexShrink: 0,
-                minWidth: 30,
-                textAlign: 'right',
-              }}
-            >
-              +{signal.triggered ? signal.score : 0}
-            </span>
-          </div>
-        ))}
+                {/* Score */}
+                <span
+                  style={{
+                    fontFamily: 'var(--font-jetbrains-mono)',
+                    fontSize: 12,
+                    color: signal.triggered ? '#ff8c00' : (isClean ? 'rgba(0,255,136,0.25)' : '#3d4a5c'),
+                    flexShrink: 0,
+                    minWidth: 30,
+                    textAlign: 'right',
+                  }}
+                >
+                  +{signal.triggered ? signal.score : 0}
+                </span>
+
+                {/* Expand chevron on mobile */}
+                {canExpand && (
+                  <span style={{ marginLeft: 8, color: 'var(--text-dim)', fontSize: 9, flexShrink: 0 }}>
+                    {isExpanded ? '▲' : '▼'}
+                  </span>
+                )}
+              </div>
+
+              {/* Inline detail (mobile accordion) */}
+              {canExpand && isExpanded && (
+                <div
+                  style={{
+                    padding: '6px 6px 8px 23px',
+                    fontFamily: 'var(--font-inter)',
+                    fontSize: 12,
+                    color: 'var(--text-secondary)',
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {signal.detail}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
-      {/* Detail on triggered signals */}
-      {sorted.filter(s => s.triggered && s.detail).length > 0 && (
+      {/* Detail section — desktop only */}
+      {!isMobile && sorted.filter(s => s.triggered && s.detail).length > 0 && (
         <div
           style={{
             marginTop: 20,
@@ -433,10 +483,10 @@ function HeroContent({
 
 
   const quickFills = [
-    { label: 'Tornado Cash', sublabel: 'OFAC SDN · Router', addr: TORNADO_CASH, simulator: false },
-    { label: 'Lazarus Group', sublabel: 'DPRK · OFAC SDN', addr: LAZARUS, simulator: false },
-    { label: 'Vitalik.eth', sublabel: 'Baseline control', addr: VITALIK, simulator: false },
-    { label: 'Try the Simulator', sublabel: 'AML training demo', addr: TORNADO_CASH, simulator: true },
+    { label: 'Tornado Cash', sublabel: 'OFAC SDN · Router', addr: TORNADO_CASH, simulator: false, clean: false },
+    { label: 'Lazarus Group', sublabel: 'DPRK · OFAC SDN', addr: LAZARUS, simulator: false, clean: false },
+    { label: 'Vitalik.eth', sublabel: 'Clean baseline', addr: VITALIK, simulator: false, clean: true },
+    { label: 'Try the Simulator', sublabel: '', addr: TORNADO_CASH, simulator: true, clean: false },
   ];
 
   return (
@@ -468,7 +518,7 @@ function HeroContent({
             animationDelay: '0s',
           }}
         >
-          BLOCKCHAIN FORENSICS PLATFORM
+          OPEN SOURCE · ETHEREUM MAINNET
         </div>
 
         {/* Headline */}
@@ -626,43 +676,48 @@ function HeroContent({
             animationDelay: '0.5s',
           }}
         >
-          {quickFills.map(({ label, sublabel, addr, simulator }) => (
-            <button
-              key={label}
-              onClick={() => simulator ? onSimulatorFill() : onQuickFill(addr)}
-              disabled={loading}
-              style={{
-                padding: '6px 14px',
-                border: simulator ? '1px solid rgba(0,255,136,0.2)' : '1px solid rgba(255,255,255,0.06)',
-                borderRadius: 2,
-                background: simulator ? 'rgba(0,255,136,0.04)' : 'none',
-                fontFamily: 'var(--font-jetbrains-mono)',
-                fontSize: 10,
-                color: simulator ? 'rgba(0,255,136,0.8)' : 'var(--text-secondary)',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                transition: 'border-color 0.2s, color 0.2s, background 0.2s',
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.borderColor = 'rgba(0,255,136,0.4)';
-                e.currentTarget.style.color = '#00ff88';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.borderColor = simulator ? 'rgba(0,255,136,0.2)' : 'rgba(255,255,255,0.06)';
-                e.currentTarget.style.color = simulator ? 'rgba(0,255,136,0.8)' : 'var(--text-secondary)';
-              }}
-            >
-              {simulator && (
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0 }}>
-                  <polygon points="2,1 9,5 2,9" fill="#00ff88"/>
-                </svg>
-              )}
-              {label}
-              <span style={{ color: 'var(--text-dim)', fontSize: 9 }}>{sublabel}</span>
-            </button>
-          ))}
+          {quickFills.map(({ label, sublabel, addr, simulator, clean }) => {
+            const borderDefault = simulator || clean ? 'rgba(0,255,136,0.2)' : 'rgba(255,255,255,0.06)';
+            const colorDefault  = simulator || clean ? 'rgba(0,255,136,0.8)' : 'var(--text-secondary)';
+            const bgDefault     = simulator || clean ? 'rgba(0,255,136,0.04)' : 'none';
+            return (
+              <button
+                key={label}
+                onClick={() => simulator ? onSimulatorFill() : onQuickFill(addr)}
+                disabled={loading}
+                style={{
+                  padding: '6px 14px',
+                  border: `1px solid ${borderDefault}`,
+                  borderRadius: 2,
+                  background: bgDefault,
+                  fontFamily: 'var(--font-jetbrains-mono)',
+                  fontSize: 10,
+                  color: colorDefault,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  transition: 'border-color 0.2s, color 0.2s, background 0.2s',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.borderColor = 'rgba(0,255,136,0.4)';
+                  e.currentTarget.style.color = '#00ff88';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.borderColor = borderDefault;
+                  e.currentTarget.style.color = colorDefault;
+                }}
+              >
+                {simulator && (
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0 }}>
+                    <polygon points="2,1 9,5 2,9" fill="#00ff88"/>
+                  </svg>
+                )}
+                {label}
+                {sublabel && <span style={{ color: 'var(--text-dim)', fontSize: 9 }}>{sublabel}</span>}
+              </button>
+            );
+          })}
         </div>
 
         {/* Search history */}
@@ -762,6 +817,7 @@ function HeroContent({
         }}
       >
         <div
+          className="feature-grid"
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(5, 1fr)',
@@ -788,6 +844,7 @@ function HeroContent({
         }}
       >
         <div
+          className="how-it-works-grid"
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(3, 1fr)',
@@ -1517,6 +1574,7 @@ export default function HomePage() {
 
           {/* Row 2: 3-col layout */}
           <div
+            className="results-grid"
             style={{
               display: 'grid',
               gridTemplateColumns: gridCols,
@@ -1536,11 +1594,12 @@ export default function HomePage() {
               queriedAddress={analysis.address}
               hopData={hopData}
               onAnalyzeAddress={analyzeAddress}
+              containerHeight={isMobile ? 280 : undefined}
             />
 
             {/* Col 3: Signal list — full width on tablet/mobile */}
             <div style={isTablet ? { gridColumn: '1 / -1' } : {}}>
-              <SignalList signals={analysis.riskScore.signals} />
+              <SignalList signals={analysis.riskScore.signals} isMobile={isMobile} riskLevel={analysis.riskScore.level} />
             </div>
           </div>
 
@@ -1565,7 +1624,9 @@ export default function HomePage() {
                 display: 'flex',
                 borderBottom: '1px solid rgba(255,255,255,0.06)',
                 overflowX: 'auto',
-              }}
+                WebkitOverflowScrolling: 'touch',
+                scrollbarWidth: 'none',
+              } as React.CSSProperties}
             >
               {TABS.map(tab => {
                 const isActive = activeTab === tab;

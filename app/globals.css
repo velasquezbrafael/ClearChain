@@ -86,6 +86,19 @@ body {
   }
 }
 
+/* Tab bar — hide scrollbar while keeping scroll */
+#clearchain-tabs > div:first-child::-webkit-scrollbar { display: none; }
+
+/* Responsive grids */
+@media (max-width: 640px) {
+  .results-grid { display: flex !important; flex-direction: column !important; }
+  .feature-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .how-it-works-grid { grid-template-columns: 1fr !important; }
+}
+@media (min-width: 641px) and (max-width: 900px) {
+  .feature-grid { grid-template-columns: repeat(3, 1fr) !important; }
+}
+
 ::-webkit-scrollbar {
   width: 4px;
   height: 4px;

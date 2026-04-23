@@ -402,9 +402,10 @@ interface TransactionGraphProps {
   queriedAddress: string;
   hopData?: HopEntry[];
   onAnalyzeAddress?: (addr: string) => void;
+  containerHeight?: number;
 }
 
-export default function TransactionGraph({ transactions, queriedAddress, hopData, onAnalyzeAddress }: TransactionGraphProps) {
+export default function TransactionGraph({ transactions, queriedAddress, hopData, onAnalyzeAddress, containerHeight }: TransactionGraphProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const simRef = useRef<(() => void) | null>(null);
@@ -1014,7 +1015,7 @@ export default function TransactionGraph({ transactions, queriedAddress, hopData
         </div>
 
         {/* Graph canvas */}
-        <div ref={containerRef} style={{ position: 'relative', flex: 1, minHeight: 500 }}>
+        <div ref={containerRef} style={{ position: 'relative', flex: 1, minHeight: containerHeight ?? 500 }}>
           {transactions.length === 0 ? (
             <div
               style={{

@@ -27,6 +27,7 @@ function cardGlow(level: RiskLevel): string {
   switch (level) {
     case 'CRITICAL': return '0 0 40px rgba(255,59,59,0.12), inset 0 0 40px rgba(255,59,59,0.03)';
     case 'HIGH':     return '0 0 30px rgba(255,140,0,0.08)';
+    case 'LOW':      return '0 0 30px rgba(0,255,136,0.07)';
     default:         return 'none';
   }
 }
@@ -35,7 +36,7 @@ const DESCRIPTIONS: Record<RiskLevel, string> = {
   CRITICAL: 'Immediate escalation required. Strong indicators of sanctions exposure. SAR filing should be considered.',
   HIGH:     'Significant red flags detected. Enhanced due diligence and source-of-funds inquiry required.',
   MEDIUM:   'Elevated risk indicators present. EDD warranted. Monitor for continued activity.',
-  LOW:      'No significant risk indicators detected. Routine monitoring applies.',
+  LOW:      'No significant risk indicators detected. Standard monitoring applies.',
 };
 
 function CountUp({ to, duration = 900 }: { to: number; duration?: number }) {
@@ -174,7 +175,7 @@ export default function RiskScoreCard({ riskScore }: RiskScoreCardProps) {
                 borderRadius: 2,
               }}
             >
-              {level} RISK
+              {level === 'LOW' ? 'CLEAN' : `${level} RISK`}
             </span>
             <span
               style={{
