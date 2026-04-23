@@ -194,7 +194,7 @@ function evaluateMixerSignal(transactions: WalletTransaction[], queriedAddress: 
 /**
  * Signal 3: Rapid Fund Movement (15 pts)
  *
- * Detects genuine layering — not just high transaction volume. Two checks:
+ * Detects genuine layering — not just high transaction volume. Three gates:
  *
  * PRIMARY: 3+ outbound transactions within 24 hours where each outbound moves
  * ≥80% of the ETH received in the immediately preceding inbound transaction
@@ -204,6 +204,13 @@ function evaluateMixerSignal(transactions: WalletTransaction[], queriedAddress: 
  * FALLBACK: When no clear inbound/outbound pairs exist, requires a stricter
  * 3-hour window AND the rapid outbounds must represent >50% of total analyzed
  * volume — ruling out high-volume legitimate wallets like grant distributors.
+ *
+ * DIVERSITY GATE: Applied after primary or fallback passes. Real layering uses
+ * a small ring of intermediaries. If the wallet has >30 unique counterparties
+ * overall AND the hop cluster targets >5 different recipients, this is
+ * redistribution behavior (charitable grants, protocol distributions), not
+ * layering. Both conditions must be true to suppress — TC routes to a small
+ * set of fixed pool contracts, so it is not affected by this gate.
  */
 function evaluateRapidHopSignal(transactions: WalletTransaction[]): ScoringSignal {
   const sorted   = [...transactions].sort((a, b) => a.timestamp - b.timestamp);
@@ -250,28 +257,53 @@ function evaluateRapidHopSignal(transactions: WalletTransaction[]): ScoringSigna
     };
   });
 
-  // Sliding window over layering hops within 24 hours
-  let maxLayeringHops = 0;
+  // Pre-compute counterparty diversity once — used by the diversity gate below
+  const uniqueCounterparties = new Set(
+    transactions.map(tx => tx.isInbound ? tx.from.toLowerCase() : tx.to.toLowerCase())
+  ).size;
+
+  // ── SLIDING WINDOW (primary) ─────────────────────────────────────────────
+  // Track the actual transactions in the best window so the diversity gate
+  // can inspect their recipients.
+  let maxLayeringHops  = 0;
   let layeringWindowStart = 0;
   let layeringWindowEnd   = 0;
+  let bestLayeringTxs: WalletTransaction[] = [];
 
   for (let i = 0; i < taggedOutbound.length; i++) {
     if (!taggedOutbound[i].isLayeringHop) continue;
     let count = 1;
     let lastIdx = i;
+    const windowTxs: WalletTransaction[] = [taggedOutbound[i].tx];
     for (let j = i + 1; j < taggedOutbound.length; j++) {
       const span = taggedOutbound[j].tx.timestamp - taggedOutbound[i].tx.timestamp;
       if (span > RAPID_HOP_WINDOW_SECONDS) break;
-      if (taggedOutbound[j].isLayeringHop) { count++; lastIdx = j; }
+      if (taggedOutbound[j].isLayeringHop) { count++; lastIdx = j; windowTxs.push(taggedOutbound[j].tx); }
     }
     if (count > maxLayeringHops) {
-      maxLayeringHops      = count;
-      layeringWindowStart  = taggedOutbound[i].tx.timestamp;
-      layeringWindowEnd    = taggedOutbound[lastIdx].tx.timestamp;
+      maxLayeringHops     = count;
+      layeringWindowStart = taggedOutbound[i].tx.timestamp;
+      layeringWindowEnd   = taggedOutbound[lastIdx].tx.timestamp;
+      bestLayeringTxs     = windowTxs;
     }
   }
 
   if (maxLayeringHops >= RAPID_HOP_MIN_COUNT) {
+    // ── DIVERSITY GATE ───────────────────────────────────────────────────
+    const hopRecipients = new Set(bestLayeringTxs.map(tx => tx.to.toLowerCase())).size;
+    if (uniqueCounterparties > 30 && hopRecipients > 5) {
+      return {
+        name: 'rapid_fund_movement',
+        weight: 15,
+        triggered: false,
+        score: 0,
+        detail:
+          `High counterparty diversity (${uniqueCounterparties} unique counterparties overall, ` +
+          `${hopRecipients} unique recipients in hop cluster) — consistent with redistribution ` +
+          'or donation behavior rather than layering. Gate: >30 counterparties AND >5 hop recipients.',
+      };
+    }
+
     const hours = Math.max(1, Math.round((layeringWindowEnd - layeringWindowStart) / 3600));
     return {
       name: 'rapid_fund_movement',
@@ -287,22 +319,20 @@ function evaluateRapidHopSignal(transactions: WalletTransaction[]): ScoringSigna
   }
 
   // ── FALLBACK CHECK ───────────────────────────────────────────────────────
-  // Stricter 3-hour window + volume concentration test.
-  // This catches rapid-fire forwarding even without clean pairs, while
-  // excluding high-volume legitimate wallets where rapid outbounds are a
-  // small fraction of total activity.
-
   const totalVolume = transactions.reduce((sum, tx) => sum + tx.value, 0);
   let fallbackHops   = 0;
   let fallbackVolume = 0;
+  let fallbackTxs: WalletTransaction[] = [];
 
   for (let i = 0; i < outbound.length; i++) {
     let count = 0;
     let vol   = 0;
+    const windowTxs: WalletTransaction[] = [];
     for (let j = i; j < outbound.length; j++) {
       if (outbound[j].timestamp - outbound[i].timestamp <= FALLBACK_WINDOW_SECONDS) {
         count++;
         vol += outbound[j].value;
+        windowTxs.push(outbound[j]);
       } else {
         break;
       }
@@ -310,6 +340,7 @@ function evaluateRapidHopSignal(transactions: WalletTransaction[]): ScoringSigna
     if (count >= RAPID_HOP_MIN_COUNT && vol > fallbackVolume) {
       fallbackHops   = count;
       fallbackVolume = vol;
+      fallbackTxs    = windowTxs;
     }
   }
 
@@ -318,6 +349,20 @@ function evaluateRapidHopSignal(transactions: WalletTransaction[]): ScoringSigna
     fallbackHops >= RAPID_HOP_MIN_COUNT && volumeFraction >= FALLBACK_VOLUME_THRESHOLD;
 
   if (fallbackTriggered) {
+    // ── DIVERSITY GATE (fallback) ────────────────────────────────────────
+    const hopRecipients = new Set(fallbackTxs.map(tx => tx.to.toLowerCase())).size;
+    if (uniqueCounterparties > 30 && hopRecipients > 5) {
+      return {
+        name: 'rapid_fund_movement',
+        weight: 15,
+        triggered: false,
+        score: 0,
+        detail:
+          `High counterparty diversity (${uniqueCounterparties} unique counterparties, ` +
+          `${hopRecipients} unique hop recipients) — consistent with redistribution behavior rather than layering.`,
+      };
+    }
+
     return {
       name: 'rapid_fund_movement',
       weight: 15,
