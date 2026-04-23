@@ -1,177 +1,163 @@
-# ClearChain — Project Spec
-_Locked: 2026-04-22_
+# ClearChain — Product Spec v2
+_Updated: 2026-04-23 — Rescoped from lookup tool to compliance workflow platform_
 
 ---
 
 ## Positioning
 
-> **"Chainalysis tells you the score. ClearChain tells you what to do about it."**
+> **"The compliance operating system for crypto businesses that can't afford Chainalysis."**
 
-An open-source, AI-powered crypto wallet risk analysis tool that goes beyond a number. Built for developers, compliance teams, and financial crimes professionals who need explainable, actionable intelligence — not a black box.
+ClearChain is a multi-chain AML intelligence and case management platform. Built for compliance teams, fintechs, VASPs, and developers who need real workflow tooling — not just a risk score.
+
+**Two layers:**
+- **Public tool** — free wallet lookup, open API, no account required. Drives awareness and developer adoption.
+- **Compliance platform** — authenticated, persistent, team-based. Case management, saved analyses, multi-chain, API key management. This is where revenue comes from.
 
 ---
 
-## Problem
+## The Problem (Expanded)
 
-Enterprise AML tools (Chainalysis, Elliptic, TRM Labs) cost $10K–$100K/year, operate as black boxes, and are designed for institutional compliance teams. They tell you the risk score. They don't:
-- Explain *why* in plain English
-- Name the actual AML typology
-- Write the SAR narrative for you
-- Let you simulate what-if scenarios
-- Give developers a clean, affordable API
+Enterprise AML tools (Chainalysis, Elliptic, TRM Labs) cost $10K–$100K/year and serve institutional compliance teams at large banks and exchanges. Below that price point, the market is completely underserved:
 
-The result: small fintechs, crypto startups, independent compliance analysts, and developers are shut out.
+- **Small fintechs and crypto startups** need compliance tooling to meet regulatory requirements but can't justify a six-figure contract
+- **VASP compliance teams** (exchanges, wallets, DeFi protocols) screen hundreds of wallets daily but have no affordable workflow tool
+- **Independent compliance analysts** need to build cases, document findings, and generate SAR drafts without enterprise infrastructure
+- **Developers** building crypto products need AML screening APIs with clean docs and pay-as-you-go pricing
+
+None of these segments have a good solution. ClearChain fills that gap.
 
 ---
 
 ## What Makes ClearChain Different
 
-| Feature | Enterprise tools | ClearChain |
+| Feature | Chainalysis/Elliptic | ClearChain |
 |---|---|---|
 | Risk score | ✅ | ✅ |
 | OFAC/Sanctions check | ✅ | ✅ |
 | Transaction graph | ✅ | ✅ |
+| Multi-chain support | ✅ | ✅ (ETH now, BTC/SOL/TRX roadmap) |
 | Plain-English narrative | ❌ | ✅ |
 | AML Typology match | ❌ | ✅ |
 | SAR Draft Generator | ❌ | ✅ |
 | Counterfactual Simulator | ❌ | ✅ |
-| Crowdsourced context layer | ❌ | ✅ |
-| Developer API | 💰 Expensive | ✅ Open |
+| Case management | ✅ (enterprise only) | ✅ |
+| Developer API | 💰 $50K+/year | ✅ Free tier + paid |
 | Open source | ❌ | ✅ |
+| Price | $10K–$100K/year | Free → $99/seat/month |
 
 ---
 
-## Core Features (MVP v1)
+## Product Architecture (v2)
 
-### 1. Risk Score (0–100)
-Weighted composite score with full breakdown. Every number comes with an explanation.
+### Layer 1 — Public Lookup Tool (live)
+- Single wallet analysis: risk score, OFAC check, typology matching, transaction graph, AI narrative, SAR draft
+- Counterfactual simulator
+- Public API (`POST /api/analyze`) — free, no auth required, rate-limited
+- No account required
 
-**Scoring weights:**
-| Signal | Weight |
-|---|---|
-| OFAC/SDN match | 40 pts |
-| Mixer/tumbler interaction | 25 pts |
-| Rapid fund movement (<24hr hops) | 15 pts |
-| High-risk counterparty exposure | 10 pts |
-| Transaction volume anomaly | 5 pts |
-| Community red-flag tags | 5 pts |
+### Layer 2 — Compliance Platform (building)
+- **User accounts** — email/password + Google OAuth via Supabase
+- **Case management** — group addresses into investigations, track status, add notes, assign to team members
+- **Saved analyses** — every analysis persists to the user's account
+- **API key management** — issue keys, track usage, enable billing tiers
+- **Team workspaces** — multiple analysts on one account
+- **Consolidated case reports** — generate a full investigation report across all addresses in a case
 
----
-
-### 2. AML Typology Matching
-Maps the wallet's transaction patterns to real FATF/FinCEN-recognized typologies:
-- **Smurfing** — structuring deposits below reporting thresholds
-- **Layering via DEX** — using decentralized exchanges to obscure fund origin
-- **Mixer-based obfuscation** — Tornado Cash, Wasabi Wallet patterns
-- **Rapid hop layering** — funds moved across 3+ wallets in <24 hours
-- **Convergence pattern** — multiple wallets funding a single destination
-
-Each typology tag includes a one-sentence rationale and a reference to the corresponding FATF/FinCEN guidance.
+### Layer 3 — Multi-Chain (roadmap)
+- Bitcoin (UTXO model, different scoring engine)
+- Tron (major sanctions evasion chain)
+- Solana (high fraud activity)
+- Base, Polygon, Arbitrum (L2 expansion)
 
 ---
 
-### 3. AI Narrative Chain
-Claude generates a plain-English summary of the wallet's transaction history:
+## Case Management — Core Workflow
 
-> "Funds originated at Binance (known exchange) → transferred to an unhosted wallet → passed through a Tornado Cash deposit address → split into 4 wallets over 6 hours → converged at the queried address. This pattern is consistent with the layering stage of money laundering."
-
-Written for a compliance audience. No jargon, no raw hex.
-
----
-
-### 4. SAR Draft Generator
-Auto-generates a draft Suspicious Activity Report in FinCEN format:
-- Subject information (wallet address, chain, date range)
-- Suspicious activity description (narrative generated by Claude)
-- Supporting transaction details
-- Recommended filing disposition
-
-Output: downloadable `.txt` or `.docx`. Not a filed SAR — a first draft a compliance officer can review and submit.
-
----
-
-### 5. Counterfactual Simulator
-Interactive what-if tool:
-- "What if this wallet had interacted with Tornado Cash?"
-- "What if 3 of the counterparties were OFAC-listed?"
-- Adjusts the score and narrative in real time
-
-Use case: compliance training, risk model stress testing, client scenario analysis.
-
----
-
-### 6. Crowdsourced Context Layer
-Community-maintained wallet labels:
-- Known exchange cold wallets
-- Confirmed scammer addresses (with linked evidence)
-- Known protocol/DAO treasury wallets
-- Red-flagged deployers
-
-Labels are weighted into the score (5 pts) and surfaced in the narrative. Anyone can submit; labels are reviewed and versioned.
-
----
-
-## Technical Architecture
+A "case" represents one investigation:
 
 ```
-User Input (wallet address)
-        │
-        ▼
-┌─────────────────────────────────┐
-│       Etherscan API             │  ← Transaction history, token transfers
-│       OFAC SDN List             │  ← Sanctions match
-│       Community Label DB        │  ← Crowdsourced wallet tags
-└─────────────────────────────────┘
-        │
-        ▼
-┌─────────────────────────────────┐
-│       Risk Scoring Engine       │  ← Weighted signal calculation
-│       Typology Matcher          │  ← Pattern → FATF typology mapping
-└─────────────────────────────────┘
-        │
-        ▼
-┌─────────────────────────────────┐
-│       Claude Sonnet 4.6         │  ← Narrative, SAR draft, counterfactuals
-└─────────────────────────────────┘
-        │
-        ▼
-     Output: Score + Breakdown + Narrative + SAR Draft + Typology Tag
+Case: Suspicious Deposit #2847
+├── Status: Under Review
+├── Analyst: Raf Velasquez
+├── Created: 2026-04-23
+├── Addresses (3):
+│   ├── 0x722122... (ETH) — CRITICAL 65 — Tornado Cash Router
+│   ├── 0xd90e2f... (ETH) — HIGH 50 — TC 10 ETH Pool
+│   └── 0x098b71... (ETH) — HIGH 55 — Lazarus Group
+├── Notes: "Customer deposited $45K from flagged mixer. Escalated to AML team."
+├── SAR Status: Draft generated, pending review
+└── Report: [Download consolidated PDF]
 ```
 
-**Stack:**
-- Frontend: Next.js 14, Tailwind CSS, TypeScript
-- Backend: Next.js API routes (Vercel serverless)
-- Database: Supabase (query history, community labels)
-- AI: Claude Sonnet 4.6 via direct API (no SDK)
-- Data: Etherscan API, OFAC SDN XML (public), community label DB
-- Deployment: Vercel
+**Case statuses:** Open → Under Review → Escalated → SAR Filed → Closed
 
 ---
 
-## Out of Scope (v1)
-- Bitcoin / Solana chain support
-- Real-time transaction streaming / webhooks
-- Automated SAR filing (FinCEN API integration)
-- Institutional API pricing tiers
-- KYC/identity layer
+## Monetization
+
+| Tier | Price | Limits |
+|---|---|---|
+| Free | $0 | 20 analyses/month, public API, no case management |
+| Analyst | $29/month | 500 analyses, case management, saved analyses, API key |
+| Team | $99/seat/month | Unlimited analyses, team workspace, priority support |
+| Enterprise | Custom | SLA, dedicated support, custom chain support |
 
 ---
 
-## GitHub README Positioning
+## Technical Stack
 
-> **ClearChain** — Open-source crypto AML analysis with AI-generated SAR drafts and typology matching.
->
-> Built by a financial crimes consultant who got tired of black-box scores. Enter a wallet. Get a risk score, the AML typology, a plain-English narrative, and a draft SAR — in seconds.
+- **Frontend:** Next.js 16, Tailwind CSS, TypeScript
+- **Backend:** Next.js API routes (Vercel serverless)
+- **Database:** Supabase (PostgreSQL) — auth, cases, analyses, API keys, users
+- **Auth:** Supabase Auth (email/password + Google OAuth)
+- **AI:** Claude Haiku via Anthropic SDK
+- **Chain data:** Alchemy (ETH mainnet + multi-chain roadmap)
+- **OFAC:** In-house curated address list + background refresh
+- **Deployment:** Vercel
 
 ---
 
-## Milestones
+## Database Schema (Supabase)
 
-| # | Milestone | Target |
-|---|-----------|--------|
-| M1 | Core scoring engine + OFAC check | TBD |
-| M2 | AI Narrative + Typology Matching | TBD |
-| M3 | SAR Draft Generator | TBD |
-| M4 | Counterfactual Simulator | TBD |
-| M5 | Crowdsourced Label Layer | TBD |
-| M6 | Public launch + GitHub README | TBD |
+```sql
+users           — id, email, name, created_at (managed by Supabase Auth)
+workspaces      — id, name, owner_id, plan, created_at
+workspace_members — workspace_id, user_id, role
+cases           — id, workspace_id, title, status, created_by, created_at, updated_at
+case_addresses  — id, case_id, address, chain, analysis_id, added_at
+analyses        — id, address, chain, risk_score, risk_level, signals, typologies, narrative, sar_draft, analyzed_at, user_id
+case_notes      — id, case_id, user_id, content, created_at
+api_keys        — id, workspace_id, key_hash, label, usage_count, last_used, created_at
+```
+
+---
+
+## Build Roadmap
+
+| Phase | What | Status |
+|---|---|---|
+| v1.0 | Public lookup tool — ETH analysis, OFAC, typologies, narrative, SAR, simulator | ✅ Live |
+| v2.0 | Supabase auth + user accounts + dashboard | 🔨 Next |
+| v2.1 | Case management — create cases, attach addresses, notes, status tracking | 🔨 Next |
+| v2.2 | API key system — issue keys, track usage, rate limiting per tier | Planned |
+| v3.0 | Bitcoin support — UTXO scoring engine, blockchain.info/mempool API | Planned |
+| v3.1 | Tron support | Planned |
+| v3.2 | Solana support | Planned |
+| v4.0 | Monetization — Stripe integration, tier enforcement | Planned |
+| v4.1 | Team workspaces — multi-user, role-based access | Planned |
+
+---
+
+## Target Customers
+
+**Primary:** VASP compliance teams — crypto exchanges, wallet providers, DeFi protocols required to maintain AML programs under FinCEN/FATF guidance. Currently using spreadsheets and Chainalysis lite plans. Need affordable workflow tooling.
+
+**Secondary:** Fintech compliance analysts — early-stage fintechs building crypto products who need to demonstrate AML controls to regulators and banking partners.
+
+**Developer:** Builders adding AML screening to crypto products. Need clean API, good docs, pay-as-you-go pricing.
+
+---
+
+## Key Insight
+
+The compliance workflow is the moat. Anyone can build a risk score. Nobody has built an affordable, usable case management tool for the compliance teams that Chainalysis ignores. That's the product.

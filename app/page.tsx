@@ -14,6 +14,7 @@ import SkeletonLoader from '@/components/SkeletonLoader';
 import ExportButton from '@/components/ExportButton';
 import InfoTooltip from '@/components/InfoTooltip';
 import { getLabel } from '@/lib/labels';
+import { createClient } from '@/lib/supabase/client';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -1199,8 +1200,17 @@ export default function HomePage() {
     if (typeof window === 'undefined') return [];
     return loadHistory();
   });
+  const [navUser, setNavUser] = useState<{ email: string } | null>(null);
   const pendingTabRef = useRef<Tab | null>(null);
   const showResults = !!analysis && !loading;
+
+  // Check auth state for nav
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) setNavUser({ email: user.email ?? '' });
+    });
+  }, []);
 
   // Auto-analyze from ?address= on load
   useEffect(() => {
@@ -1495,6 +1505,27 @@ export default function HomePage() {
             ETH MAINNET
           </span>
         </div>
+
+          {/* Auth nav */}
+          {navUser ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, paddingLeft: 12, borderLeft: '1px solid rgba(255,255,255,0.06)' }}>
+              <a
+                href="/dashboard"
+                style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.1em', color: 'var(--accent-green)', textDecoration: 'none' }}
+              >
+                DASHBOARD →
+              </a>
+            </div>
+          ) : (
+            <a
+              href="/auth/login"
+              style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.1em', color: 'var(--text-dim)', textDecoration: 'none', paddingLeft: 12, borderLeft: '1px solid rgba(255,255,255,0.06)' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-secondary)'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-dim)'; }}
+            >
+              SIGN IN →
+            </a>
+          )}
         </div>
       </nav>
 

@@ -14,6 +14,7 @@ import { checkAddress } from '@/lib/ofac';
 import { computeRiskScore } from '@/lib/scoring';
 import { matchTypologies } from '@/lib/typology';
 import { generateAll } from '@/lib/claude';
+import { createClient } from '@/lib/supabase/server';
 
 import type { WalletTransaction, WalletAnalysis } from '@/types';
 
@@ -208,7 +209,28 @@ export async function POST(request: NextRequest) {
       : [],
   }));
 
-  // ── 11. Cache ─────────────────────────────────────────────────────────────
+  // ── 11. Save to Supabase for authenticated users ─────────────────────────
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      await supabase.from('analyses').insert({
+        user_id: user.id,
+        address,
+        chain: 'ETH',
+        risk_score: analysis.riskScore.total,
+        risk_level: analysis.riskScore.level,
+        signals: analysis.riskScore.signals,
+        typologies: analysis.typologies,
+        narrative,
+        sar_draft: sarDraftRaw,
+      });
+    }
+  } catch (err) {
+    console.error('[ClearChain/analyze] Supabase save failed (non-blocking):', err);
+  }
+
+  // ── 12. Cache ─────────────────────────────────────────────────────────────
   analysisCache.set(address, {
     data: analysis,
     narrative,
@@ -217,7 +239,7 @@ export async function POST(request: NextRequest) {
     cachedAt: Date.now(),
   });
 
-  // ── 12. Respond ───────────────────────────────────────────────────────────
+  // ── 13. Respond ───────────────────────────────────────────────────────────
   return NextResponse.json(
     {
       success: true,
