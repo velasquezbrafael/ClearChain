@@ -114,13 +114,18 @@ Return ONLY valid JSON. No markdown, no explanation outside the JSON.
     const textBlock = response.content.find((block) => block.type === 'text');
     if (!textBlock || textBlock.type !== 'text') throw new Error('No text in response');
 
-    const parsed = JSON.parse(textBlock.text.trim());
+    let rawText = textBlock.text.trim();
+    // Strip markdown code fences Haiku sometimes wraps JSON in
+    rawText = rawText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '');
+    const parsed = JSON.parse(rawText);
     return {
       narrative: parsed.narrative ?? 'Narrative generation failed. Please retry.',
       sarDraft: parsed.sarDraft ?? 'SAR draft generation failed. Please retry.',
     };
   } catch (err) {
     console.error('[ClearChain] generateAll failed:', err);
+    const textBlock = (err as { textBlock?: { text: string } })?.textBlock;
+    if (textBlock) console.error('[ClearChain] Raw response:', textBlock.text.slice(0, 500));
     return {
       narrative: 'Narrative generation failed. Please retry.',
       sarDraft: 'SAR draft generation failed. Please retry.',

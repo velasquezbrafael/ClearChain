@@ -192,7 +192,7 @@ export async function POST(request: NextRequest) {
   });
 
   // ── 6. Typology matching ───────────────────────────────────────────────────
-  const typologies = matchTypologies(transactions, riskScore);
+  const typologies = matchTypologies(transactions, riskScore, address);
 
   // ── 7. Build WalletAnalysis object ────────────────────────────────────────
   const analysis: WalletAnalysis = {

@@ -183,8 +183,23 @@ function detectRapidHopLayering(
  * is a critical indicator — confidence is set to 1.0 for exact contract matches.
  */
 function detectMixerObfuscation(
-  transactions: WalletTransaction[]
+  transactions: WalletTransaction[],
+  queriedAddress: string
 ): { triggered: boolean; confidence: number; rationale: string } {
+  const isMixer = KNOWN_MIXER_ADDRESSES.has(queriedAddress.toLowerCase());
+
+  if (isMixer) {
+    return {
+      triggered: true,
+      confidence: 1.0,
+      rationale:
+        'The queried address IS a known OFAC-designated Tornado Cash mixer contract. ' +
+        'Tornado Cash was designated by OFAC on 08/08/2022 under E.O. 13694 as a mixer ' +
+        'used to launder proceeds from cybercrime including the Ronin Bridge hack. ' +
+        'This address itself constitutes a sanctioned entity — mandatory SAR trigger for covered institutions.',
+    };
+  }
+
   const mixerTxs = transactions.filter(
     (tx) =>
       KNOWN_MIXER_ADDRESSES.has(tx.to.toLowerCase()) ||
@@ -202,7 +217,6 @@ function detectMixerObfuscation(
     )
   );
 
-  // Format oldest mixer tx date for SAR-style narrative
   const oldestMixerTx = mixerTxs.reduce((earliest, tx) =>
     tx.timestamp < earliest.timestamp ? tx : earliest
   );
@@ -210,7 +224,7 @@ function detectMixerObfuscation(
 
   return {
     triggered: true,
-    confidence: 1.0, // Exact contract match = maximum confidence
+    confidence: 1.0,
     rationale:
       `Wallet directly interacted with ${mixerTxs.length} Tornado Cash transaction(s) ` +
       `(first interaction: ${mixerDate}), involving ${uniqueContracts.size} distinct mixer contract(s). ` +
@@ -329,18 +343,14 @@ function detectHighVolumeAnomaly(
 
 type DetectorFn = (
   transactions: WalletTransaction[],
-  riskScore: RiskScore
+  riskScore: RiskScore,
+  queriedAddress: string
 ) => { triggered: boolean; confidence: number; rationale: string };
 
-/**
- * Maps each typology ID to its detector function.
- * Only typologies in this registry will be evaluated — unregistered typologies
- * from the JSON will be returned as clean (not triggered, confidence 0).
- */
 const DETECTORS: Record<string, DetectorFn> = {
   smurfing: (txs) => detectSmurfing(txs),
   rapid_hop_layering: (txs) => detectRapidHopLayering(txs),
-  mixer_obfuscation: (txs) => detectMixerObfuscation(txs),
+  mixer_obfuscation: (txs, _score, addr) => detectMixerObfuscation(txs, addr),
   convergence_pattern: (txs) => detectConvergencePattern(txs),
   high_volume_anomaly: (txs) => detectHighVolumeAnomaly(txs),
 
@@ -411,13 +421,13 @@ const DETECTORS: Record<string, DetectorFn> = {
  */
 export function matchTypologies(
   transactions: WalletTransaction[],
-  riskScore: RiskScore
+  riskScore: RiskScore,
+  queriedAddress: string
 ): AMLTypology[] {
   const results: AMLTypology[] = TYPOLOGIES.map((def) => {
     const detector = DETECTORS[def.id];
 
     if (!detector) {
-      // Typology exists in JSON but has no detector — return as clean
       return {
         id: def.id,
         name: def.name,
@@ -429,7 +439,7 @@ export function matchTypologies(
       };
     }
 
-    const { triggered, confidence, rationale } = detector(transactions, riskScore);
+    const { triggered, confidence, rationale } = detector(transactions, riskScore, queriedAddress);
 
     return {
       id: def.id,

@@ -11,8 +11,17 @@ function riskPalette(level: RiskLevel) {
   }
 }
 
+const SIGNAL_LABELS: Record<string, string> = {
+  ofac_match: 'OFAC Match',
+  mixer_interaction: 'Mixer Interaction',
+  rapid_fund_movement: 'Rapid Fund Movement',
+  high_risk_counterparty: 'High-Risk Counterparty',
+  volume_anomaly: 'Volume Anomaly',
+  community_red_flags: 'Community Red Flags',
+};
+
 function formatSignalName(name: string): string {
-  return name.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  return SIGNAL_LABELS[name] ?? name.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 }
 
 function ScoreGauge({ total, level }: { total: number; level: RiskLevel }) {

@@ -161,7 +161,7 @@ function normalizeTransfer(transfer: AlchemyTransfer, address: string): WalletTr
 async function fetchDirectional(
   address: string,
   direction: 'from' | 'to',
-  category: 'external' | 'erc20',
+  category: 'external' | 'internal' | 'erc20',
 ): Promise<AlchemyTransfer[]> {
   const apiKey = process.env.ALCHEMY_API_KEY;
   if (!apiKey) {
@@ -239,16 +239,18 @@ async function fetchDirectional(
 export async function getTransactions(address: string): Promise<WalletTransaction[]> {
   const normalizedAddress = address.toLowerCase();
 
-  const [outbound, inbound] = await Promise.all([
+  const [outbound, inbound, internalOut, internalIn] = await Promise.all([
     fetchDirectional(normalizedAddress, 'from', 'external'),
     fetchDirectional(normalizedAddress, 'to', 'external'),
+    fetchDirectional(normalizedAddress, 'from', 'internal'),
+    fetchDirectional(normalizedAddress, 'to', 'internal'),
   ]);
 
   // Merge and deduplicate by transaction hash
   const seen = new Set<string>();
   const merged: AlchemyTransfer[] = [];
 
-  for (const tx of [...outbound, ...inbound]) {
+  for (const tx of [...outbound, ...inbound, ...internalOut, ...internalIn]) {
     if (!seen.has(tx.hash)) {
       seen.add(tx.hash);
       merged.push(tx);
@@ -257,7 +259,7 @@ export async function getTransactions(address: string): Promise<WalletTransactio
 
   return merged
     .map((tx) => normalizeTransfer(tx, normalizedAddress))
-    .sort((a, b) => a.timestamp - b.timestamp); // Ascending chronological order
+    .sort((a, b) => a.timestamp - b.timestamp);
 }
 
 /**

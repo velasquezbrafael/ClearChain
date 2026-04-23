@@ -40,7 +40,7 @@ export default function NarrativeCard({ narrative, address, analyzedAt }: Narrat
           <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
           </svg>
-          Claude Sonnet 4.6
+          Claude Haiku
         </div>
       </div>
 
