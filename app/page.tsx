@@ -1026,7 +1026,7 @@ function SaveToCaseButton({ address, analysisId }: { address: string; analysisId
 
   async function handleOpen() {
     if (!open) {
-      const res = await fetch('/api/cases');
+      const res = await fetch('/api/cases', { credentials: 'include' });
       if (res.ok) { const j = await res.json(); setCases(j.cases ?? []); }
     }
     setOpen(v => !v);
@@ -1036,7 +1036,7 @@ function SaveToCaseButton({ address, analysisId }: { address: string; analysisId
     setSaving(true);
     let caseId = selectedCase;
     if (mode === 'new') {
-      const res = await fetch('/api/cases', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: newTitle }) });
+      const res = await fetch('/api/cases', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: newTitle }) });
       const j = await res.json();
       caseId = j.case?.id;
     }

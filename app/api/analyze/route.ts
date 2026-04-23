@@ -14,7 +14,8 @@ import { checkAddress } from '@/lib/ofac';
 import { computeRiskScore } from '@/lib/scoring';
 import { matchTypologies } from '@/lib/typology';
 import { generateAll } from '@/lib/claude';
-import { createClient } from '@/lib/supabase/server';
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 
 import type { WalletTransaction, WalletAnalysis } from '@/types';
 
@@ -211,8 +212,24 @@ export async function POST(request: NextRequest) {
 
   // ── 11. Save to Supabase for authenticated users ─────────────────────────
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const cookieStore = await cookies();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() { return cookieStore.getAll() },
+          setAll(cookiesToSet) {
+            try {
+              cookiesToSet.forEach(({ name, value, options }) =>
+                cookieStore.set(name, value, options))
+            } catch {}
+          },
+        },
+      }
+    );
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError) throw authError;
     if (user) {
       await supabase.from('analyses').insert({
         user_id: user.id,
