@@ -5,25 +5,11 @@ import { useState } from 'react';
 interface SARDraftCardProps {
   sarDraft: string | null;
   address: string;
+  onDownload?: () => void;
 }
 
-export default function SARDraftCard({ sarDraft, address }: SARDraftCardProps) {
+export default function SARDraftCard({ sarDraft, address: _address, onDownload }: SARDraftCardProps) {
   const [copied, setCopied] = useState(false);
-
-  function handleDownload() {
-    if (!sarDraft) return;
-    const filename = `clearchain-sar-${address.slice(0, 8)}-${new Date().toISOString().slice(0, 10)}.txt`
-      .replace(/[^a-zA-Z0-9.\-_]/g, '_');
-    const blob = new Blob([sarDraft], { type: 'text/plain; charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }
 
   async function handleCopy() {
     if (!sarDraft) return;
@@ -78,7 +64,7 @@ export default function SARDraftCard({ sarDraft, address }: SARDraftCardProps) {
           </button>
 
           <button
-            onClick={handleDownload}
+            onClick={onDownload}
             disabled={!isReady}
             className="flex items-center gap-1.5 text-xs font-mono font-semibold px-4 py-2 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90"
             style={{ background: '#00ff88', color: '#000' }}

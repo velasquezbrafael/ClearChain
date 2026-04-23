@@ -10,7 +10,9 @@ import TransactionBreakdown from '@/components/TransactionBreakdown';
 import TransactionGraph from '@/components/TransactionGraph';
 import SkeletonLoader from '@/components/SkeletonLoader';
 
-const TORNADO_CASH = '0x722122df12d4e14e13ac3b6895a86e84145b6967';
+const TORNADO_CASH = '0x722122dF12D4e14e13Ac3b6895a86e84145b6967';
+const LAZARUS = '0x098B716B8Aaf21512996dC57eb0615e2383E2f96';
+const VITALIK = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045';
 
 const LOADING_STEPS = [
   'Fetching transactions...',
@@ -34,11 +36,22 @@ interface ErrorAPIResponse {
 
 type APIResponse = AnalysisAPIResponse | ErrorAPIResponse;
 
+function formatTimestamp(iso: string): string {
+  try {
+    return new Date(iso).toLocaleString('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric',
+      hour: '2-digit', minute: '2-digit', timeZoneName: 'short',
+    });
+  } catch {
+    return iso;
+  }
+}
+
 // ---------------------------------------------------------------------------
-// Hero state — shown before any search
+// Hero state
 // ---------------------------------------------------------------------------
 
-function HeroState({ onQuickFill }: { onQuickFill: () => void }) {
+function HeroState({ onQuickFill }: { onQuickFill: (addr: string) => void }) {
   const features = [
     {
       title: 'Risk Score 0–100',
@@ -79,9 +92,14 @@ function HeroState({ onQuickFill }: { onQuickFill: () => void }) {
     },
   ];
 
+  const quickFills = [
+    { label: 'Tornado Cash', sublabel: 'OFAC SDN Router', addr: TORNADO_CASH },
+    { label: 'Lazarus Group', sublabel: 'DPRK / OFAC SDN', addr: LAZARUS },
+    { label: 'Vitalik.eth', sublabel: 'Baseline control', addr: VITALIK },
+  ];
+
   return (
     <div className="space-y-12 pt-4 fade-in">
-      {/* Tagline block */}
       <div className="text-center space-y-5 pt-4">
         <div
           className="inline-flex items-center gap-2 text-xs font-mono rounded-full px-4 py-1.5"
@@ -102,27 +120,24 @@ function HeroState({ onQuickFill }: { onQuickFill: () => void }) {
           Paste any Ethereum address. Get a risk score, AML typology match,
           transaction graph, and FinCEN-style SAR draft — in under 10 seconds.
         </p>
-        <p
-          className="text-sm font-mono max-w-lg mx-auto"
-          style={{ color: '#374151' }}
-        >
+        <p className="text-sm font-mono max-w-lg mx-auto" style={{ color: '#374151' }}>
           Chainalysis tells you the score. ClearChain tells you what to do about it.
         </p>
       </div>
 
-      {/* Quick-fill */}
-      <div className="flex justify-center">
-        <button
-          onClick={onQuickFill}
-          className="group flex items-center gap-2.5 text-sm font-mono rounded-lg px-5 py-3 transition-all hover:border-[#00ff88] hover:text-[#00ff88]"
-          style={{ background: '#111118', border: '1px solid #1a1a24', color: '#6b7280' }}
-        >
-          <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4" aria-hidden="true">
-            <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
-          </svg>
-          Try Tornado Cash router (known OFAC SDN)
-          <span className="font-mono text-xs opacity-60">0x7221...6967</span>
-        </button>
+      {/* Quick-fill buttons */}
+      <div className="flex flex-wrap justify-center gap-2">
+        {quickFills.map(({ label, sublabel, addr }) => (
+          <button
+            key={addr}
+            onClick={() => onQuickFill(addr)}
+            className="flex items-center gap-2 text-xs font-mono rounded-full px-4 py-2 transition-all hover:border-[#00ff88] hover:text-[#00ff88]"
+            style={{ background: '#111118', border: '1px solid #1a1a24', color: '#6b7280' }}
+          >
+            <span>{label}</span>
+            <span style={{ color: '#374151' }}>{sublabel}</span>
+          </button>
+        ))}
       </div>
 
       {/* Feature grid */}
@@ -156,6 +171,17 @@ export default function HomePage() {
   const [narrative, setNarrative] = useState<string | null>(null);
   const [sarDraft, setSarDraft] = useState<string | null>(null);
 
+  // Auto-analyze from ?address= on page load
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const urlAddr = params.get('address');
+    if (urlAddr && /^0x[a-fA-F0-9]{40}$/.test(urlAddr)) {
+      setAddress(urlAddr);
+      runAnalysis(urlAddr);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     if (!loading) {
       setLoadingStep(0);
@@ -167,31 +193,24 @@ export default function HomePage() {
     return () => clearInterval(timer);
   }, [loading]);
 
-  async function handleAnalyze(e: React.FormEvent) {
-    e.preventDefault();
-
-    const trimmed = address.trim();
-    if (!trimmed) {
-      setError('Please enter an Ethereum wallet address.');
-      return;
-    }
-    if (!/^0x[a-fA-F0-9]{40}$/.test(trimmed)) {
-      setError('Invalid address format. Must start with 0x followed by 40 hex characters.');
-      return;
-    }
-
+  async function runAnalysis(addr: string) {
     setLoading(true);
     setError(null);
     setAnalysis(null);
     setNarrative(null);
     setSarDraft(null);
 
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 35000);
+
     try {
       const res = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address: trimmed }),
+        body: JSON.stringify({ address: addr }),
+        signal: controller.signal,
       });
+      clearTimeout(timeout);
 
       const json: APIResponse = await res.json();
 
@@ -204,11 +223,51 @@ export default function HomePage() {
       setAnalysis(data);
       setNarrative(nar ?? null);
       setSarDraft(sar ?? null);
-    } catch {
-      setError('Network error — could not reach the ClearChain API. Please try again.');
+
+      // Push shareable URL
+      window.history.pushState({}, '', `?address=${addr}`);
+    } catch (err) {
+      clearTimeout(timeout);
+      if (err instanceof Error && err.name === 'AbortError') {
+        setError('Analysis is taking longer than expected — the server may be warming up. Please try again.');
+      } else {
+        setError('Network error — could not reach the ClearChain API. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleAnalyze(e: React.FormEvent) {
+    e.preventDefault();
+    const trimmed = address.trim();
+    if (!trimmed) {
+      setError('Please enter an Ethereum wallet address.');
+      return;
+    }
+    if (!/^0x[a-fA-F0-9]{40}$/.test(trimmed)) {
+      setError('Invalid address format. Must start with 0x followed by 40 hex characters.');
+      return;
+    }
+    await runAnalysis(trimmed);
+  }
+
+  function handleQuickFill(addr: string) {
+    setAddress(addr);
+    runAnalysis(addr);
+  }
+
+  function handleSARDownload() {
+    if (!sarDraft || !analysis) return;
+    const blob = new Blob([sarDraft], { type: 'text/plain; charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `clearchain-sar-${analysis.address.slice(0, 8)}-${new Date().toISOString().split('T')[0]}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 
   return (
@@ -276,16 +335,13 @@ export default function HomePage() {
       {/* Results */}
       {analysis && !loading && (
         <section className="space-y-6 fade-in">
-          {/* OFAC pulse banner — full width */}
+          {/* OFAC pulse banner */}
           {analysis.ofacResult.matched && (
             <div
               className="flex items-center gap-3 rounded-xl px-5 py-3.5"
               style={{ background: 'rgba(220,38,38,0.12)', border: '1px solid rgba(220,38,38,0.4)' }}
             >
-              <span
-                className="flex-shrink-0 w-2.5 h-2.5 rounded-full animate-pulse"
-                style={{ background: '#ef4444' }}
-              />
+              <span className="flex-shrink-0 w-2.5 h-2.5 rounded-full animate-pulse" style={{ background: '#ef4444' }} />
               <span className="font-mono font-bold text-sm" style={{ color: '#ef4444' }}>
                 OFAC SDN MATCH
               </span>
@@ -300,9 +356,14 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* Two-column: score (left) + graph (right) */}
+          {/* Two-column: score + graph */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-            <RiskScoreCard riskScore={analysis.riskScore} ofacResult={analysis.ofacResult} />
+            <div className="space-y-2">
+              <RiskScoreCard riskScore={analysis.riskScore} ofacResult={analysis.ofacResult} />
+              <p className="text-[10px] font-mono text-center" style={{ color: '#374151' }}>
+                Analyzed at {formatTimestamp(analysis.analyzedAt)} &middot; Data refreshes after 5 min
+              </p>
+            </div>
             <TransactionGraph
               transactions={analysis.transactions}
               queriedAddress={analysis.address}
@@ -319,10 +380,14 @@ export default function HomePage() {
             />
           </div>
 
-          {/* SAR Draft — full width */}
-          <SARDraftCard sarDraft={sarDraft} address={analysis.address} />
+          {/* SAR Draft */}
+          <SARDraftCard
+            sarDraft={sarDraft}
+            address={analysis.address}
+            onDownload={handleSARDownload}
+          />
 
-          {/* Transaction table — full width */}
+          {/* Transaction table */}
           <TransactionBreakdown
             transactions={analysis.transactions}
             queriedAddress={analysis.address}
@@ -332,7 +397,7 @@ export default function HomePage() {
 
       {/* Hero / empty state */}
       {!analysis && !loading && (
-        <HeroState onQuickFill={() => setAddress(TORNADO_CASH)} />
+        <HeroState onQuickFill={handleQuickFill} />
       )}
     </div>
   );

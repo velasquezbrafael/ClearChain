@@ -167,30 +167,9 @@ export async function loadSDNList(): Promise<void> {
 
   cacheLoadAttempted = true;
 
-  // v1: Use hardcoded fallback list immediately for fast cold starts.
-  // The live OFAC XML (~20MB) is fetched in the background and swapped in
-  // once loaded. This keeps p50 latency low while still getting the full list.
   sdnAddressCache = new Map(Object.entries(FALLBACK_SANCTIONED_ADDRESSES));
   cacheLoadedAt = new Date();
-  console.info(`[ClearChain/ofac] Fallback SDN cache loaded: ${sdnAddressCache.size} addresses.`);
-
-  // Background refresh — don't await, don't block the request
-  fetch(SDN_XML_URL, {
-    signal: AbortSignal.timeout(30_000),
-    headers: { 'User-Agent': 'ClearChain-AML-Tool/1.0' },
-  })
-    .then((r) => r.ok ? r.text() : Promise.reject(r.status))
-    .then((xml) => {
-      const live = parseSDNXml(xml);
-      if (live.size > 0) {
-        sdnAddressCache = live;
-        cacheLoadedAt = new Date();
-        console.info(`[ClearChain/ofac] Live SDN list swapped in: ${live.size} ETH addresses.`);
-      }
-    })
-    .catch((err) => {
-      console.warn('[ClearChain/ofac] Background SDN fetch failed — using fallback:', err);
-    });
+  console.info(`[ClearChain/ofac] SDN cache loaded: ${sdnAddressCache.size} addresses.`);
 }
 
 /**

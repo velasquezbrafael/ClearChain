@@ -116,14 +116,15 @@ function evaluateOFACSignal(ofacResult: OFACResult): ScoringSignal {
  * Even post-designation, interacting with these contracts carries significant
  * legal and reputational risk.
  */
-function evaluateMixerSignal(transactions: WalletTransaction[]): ScoringSignal {
+function evaluateMixerSignal(transactions: WalletTransaction[], queriedAddress: string): ScoringSignal {
+  const isMixer = KNOWN_MIXER_ADDRESSES.has(queriedAddress.toLowerCase());
   const mixerTxs = transactions.filter(
     (tx) =>
       KNOWN_MIXER_ADDRESSES.has(tx.to.toLowerCase()) ||
       KNOWN_MIXER_ADDRESSES.has(tx.from.toLowerCase())
   );
 
-  const triggered = mixerTxs.length > 0;
+  const triggered = isMixer || mixerTxs.length > 0;
 
   if (!triggered) {
     return {
@@ -135,7 +136,20 @@ function evaluateMixerSignal(transactions: WalletTransaction[]): ScoringSignal {
     };
   }
 
-  // Build a specific detail string naming the mixer contracts involved
+  if (isMixer) {
+    return {
+      name: 'mixer_interaction',
+      weight: 25,
+      triggered: true,
+      score: 25,
+      detail:
+        'Queried address IS a known OFAC-designated mixer contract (Tornado Cash). ' +
+        'Direct interaction — not a counterparty exposure. ' +
+        'Tornado Cash was designated by OFAC on 08/08/2022 (SDN). ' +
+        'Mandatory SAR filing required for covered financial institutions.',
+    };
+  }
+
   const uniqueMixerAddresses = [
     ...new Set(
       mixerTxs.map((tx) =>
@@ -375,13 +389,14 @@ export function computeRiskScore(params: {
   transactions: WalletTransaction[];
   ofacResult: OFACResult;
   communityFlags: number;
+  address: string;
 }): RiskScore {
-  const { transactions, ofacResult, communityFlags } = params;
+  const { transactions, ofacResult, communityFlags, address } = params;
 
   // Evaluate all signals
   const signals: ScoringSignal[] = [
     evaluateOFACSignal(ofacResult),
-    evaluateMixerSignal(transactions),
+    evaluateMixerSignal(transactions, address),
     evaluateRapidHopSignal(transactions),
     evaluateCounterpartySignal(transactions),
     evaluateVolumeAnomalySignal(transactions),

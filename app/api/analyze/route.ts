@@ -16,7 +16,6 @@ import { checkAddress } from '@/lib/ofac';
 import { computeRiskScore } from '@/lib/scoring';
 import { matchTypologies } from '@/lib/typology';
 import { generateAll } from '@/lib/claude';
-import { formatSARForDownload, getSARFilename } from '@/lib/sar';
 
 import type { WalletTransaction, WalletAnalysis } from '@/types';
 
@@ -29,14 +28,6 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
-
-// ---------------------------------------------------------------------------
-// Module-level SAR cache
-// Keyed by lowercase address → formatted SAR download text.
-// Lives for the process lifetime — serverless will reset it between cold starts.
-// ---------------------------------------------------------------------------
-
-const sarCache = new Map<string, string>();
 
 // ---------------------------------------------------------------------------
 // Analysis result cache — 5 minute TTL
@@ -98,52 +89,6 @@ function mergeAndDedup(
 
 export async function OPTIONS() {
   return new NextResponse(null, { status: 204, headers: CORS_HEADERS });
-}
-
-// ---------------------------------------------------------------------------
-// GET — SAR download
-// ---------------------------------------------------------------------------
-
-export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const address = searchParams.get('address')?.toLowerCase().trim();
-
-  if (!address) {
-    return NextResponse.json(
-      { success: false, error: 'address query parameter is required', code: 'MISSING_ADDRESS' },
-      { status: 400, headers: CORS_HEADERS }
-    );
-  }
-
-  if (!/^0x[a-f0-9]{40}$/i.test(address)) {
-    return NextResponse.json(
-      { success: false, error: 'Invalid Ethereum address format', code: 'INVALID_ADDRESS' },
-      { status: 400, headers: CORS_HEADERS }
-    );
-  }
-
-  const sarText = sarCache.get(address);
-  if (!sarText) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'No SAR draft available for this address. Run a POST /api/analyze first.',
-        code: 'SAR_NOT_FOUND',
-      },
-      { status: 404, headers: CORS_HEADERS }
-    );
-  }
-
-  const filename = getSARFilename(address);
-
-  return new NextResponse(sarText, {
-    status: 200,
-    headers: {
-      ...CORS_HEADERS,
-      'Content-Type': 'text/plain; charset=utf-8',
-      'Content-Disposition': `attachment; filename="${filename}"`,
-    },
-  });
 }
 
 // ---------------------------------------------------------------------------
@@ -242,7 +187,8 @@ export async function POST(request: NextRequest) {
   const riskScore = computeRiskScore({
     transactions,
     ofacResult,
-    communityFlags: 0, // v1: community layer not yet wired
+    communityFlags: 0,
+    address,
   });
 
   // ── 6. Typology matching ───────────────────────────────────────────────────
@@ -261,10 +207,6 @@ export async function POST(request: NextRequest) {
 
   // ── 8. Generate narrative + SAR draft in a single Claude call ────────────
   const { narrative, sarDraft: sarDraftRaw } = await generateAll(analysis);
-
-  // Format SAR for download and cache by address
-  const sarDownloadText = formatSARForDownload(sarDraftRaw, address);
-  sarCache.set(address, sarDownloadText);
 
   // Cache full result for 5 minutes — ensures score consistency on repeat queries
   analysisCache.set(address, {
