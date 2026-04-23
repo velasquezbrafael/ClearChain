@@ -48,13 +48,13 @@ export async function GET() {
   return NextResponse.json({ cases: data }, { headers: CORS })
 }
 
-// POST — create a new case
+// POST — create a new case, optionally linking an address + analysis
 export async function POST(request: NextRequest) {
   const supabase = await getSupabase()
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: CORS })
 
-  let body: { title?: string; description?: string }
+  let body: { title?: string; description?: string; address?: string; analysisId?: string }
   try { body = await request.json() } catch {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400, headers: CORS })
   }
@@ -63,13 +63,25 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'title is required' }, { status: 400, headers: CORS })
   }
 
-  const { data, error } = await supabase.from('cases').insert({
+  const { data: newCase, error: caseError } = await supabase.from('cases').insert({
     user_id: user.id,
     title: body.title.trim(),
     description: body.description?.trim() || null,
     status: 'open',
   }).select().single()
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500, headers: CORS })
-  return NextResponse.json({ case: data }, { status: 201, headers: CORS })
+  if (caseError || !newCase) {
+    return NextResponse.json({ error: caseError?.message }, { status: 500, headers: CORS })
+  }
+
+  if (body.address) {
+    await supabase.from('case_addresses').insert({
+      case_id: newCase.id,
+      address: body.address,
+      chain: 'ETH',
+      analysis_id: body.analysisId ?? null,
+    })
+  }
+
+  return NextResponse.json({ case: newCase }, { status: 201, headers: CORS })
 }
