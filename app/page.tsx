@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import type { WalletAnalysis, ScoringSignal, RiskLevel } from '@/types';
 import RiskScoreCard from '@/components/RiskScoreCard';
 import TypologyCard from '@/components/TypologyCard';
@@ -1018,17 +1019,34 @@ function SaveToCaseButton({ address, analysisId }: { address: string; analysisId
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
-  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, right: 0 });
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getUser().then(({ data: { user } }) => setIsLoggedIn(!!user));
   }, []);
 
-  // Close on outside click
+  // Recalculate portal position whenever dropdown opens
+  useEffect(() => {
+    if (open && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setDropdownPos({
+        top: rect.bottom + window.scrollY + 8,
+        right: window.innerWidth - rect.right,
+      });
+    }
+  }, [open]);
+
+  // Close on outside click — checks both button and portal div
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      if (
+        buttonRef.current && !buttonRef.current.contains(target) &&
+        dropdownRef.current && !dropdownRef.current.contains(target)
+      ) {
         setOpen(false);
       }
     }
@@ -1060,7 +1078,6 @@ function SaveToCaseButton({ address, analysisId }: { address: string; analysisId
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setSaving(false); return; }
-
       let finalAnalysisId = analysisId;
       if (!finalAnalysisId) {
         const { data: a } = await supabase.from('analyses').select('id').eq('address', address).eq('user_id', user.id).order('created_at', { ascending: false }).limit(1).single();
@@ -1069,7 +1086,6 @@ function SaveToCaseButton({ address, analysisId }: { address: string; analysisId
       await supabase.from('case_addresses').insert({ case_id: caseId, address, chain: 'ETH', analysis_id: finalAnalysisId ?? null });
       await supabase.from('cases').update({ updated_at: new Date().toISOString() }).eq('id', caseId);
     }
-
     if (!caseId) { setSaving(false); return; }
     const caseName = mode === 'new' ? newTitle : (cases.find(c => c.id === caseId)?.title ?? 'case');
     setSaved(caseName);
@@ -1077,6 +1093,8 @@ function SaveToCaseButton({ address, analysisId }: { address: string; analysisId
     setOpen(false);
     setTimeout(() => setSaved(''), 2500);
   }
+
+  const canSave = mode === 'existing' ? !!selectedCase : !!newTitle.trim();
 
   if (isLoggedIn === null) return null;
   if (!isLoggedIn) {
@@ -1087,9 +1105,70 @@ function SaveToCaseButton({ address, analysisId }: { address: string; analysisId
     );
   }
 
-  return (
-    <div ref={wrapperRef} style={{ position: 'relative', flexShrink: 0, overflow: 'visible' }}>
+  const dropdown = open && typeof document !== 'undefined' ? createPortal(
+    <div
+      ref={dropdownRef}
+      style={{
+        position: 'absolute',
+        top: dropdownPos.top,
+        right: dropdownPos.right,
+        zIndex: 9999,
+        background: '#080b14',
+        border: '1px solid rgba(255,255,255,0.1)',
+        borderRadius: 6,
+        padding: 16,
+        minWidth: 280,
+        boxShadow: '0 16px 40px rgba(0,0,0,0.8)',
+        boxSizing: 'border-box',
+      }}
+    >
+      <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, letterSpacing: '0.15em', color: '#3d4a5c', marginBottom: 12 }}>+ SAVE TO CASE</div>
+
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+        {(['existing', 'new'] as const).map(m => (
+          <button key={m} onClick={() => setMode(m)} style={{ flex: 1, padding: '6px', border: `1px solid ${mode === m ? 'rgba(0,255,136,0.3)' : 'rgba(255,255,255,0.08)'}`, borderRadius: 3, background: mode === m ? 'rgba(0,255,136,0.08)' : 'transparent', color: mode === m ? '#00ff88' : '#8892a4', fontSize: 10, letterSpacing: '0.1em', cursor: 'pointer', fontFamily: 'var(--font-jetbrains-mono)' }}>
+            {m === 'existing' ? 'EXISTING' : 'NEW CASE'}
+          </button>
+        ))}
+      </div>
+
+      <div style={{ marginBottom: 14 }}>
+        {mode === 'existing' ? (
+          <select
+            value={selectedCase}
+            onChange={e => setSelectedCase(e.target.value)}
+            style={{ width: '100%', background: '#03040a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 3, color: '#f0f4ff', fontSize: 12, padding: '8px 10px', fontFamily: 'var(--font-jetbrains-mono)' }}
+          >
+            <option value="">Select a case...</option>
+            {cases.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
+          </select>
+        ) : (
+          <input
+            type="text"
+            value={newTitle}
+            onChange={e => setNewTitle(e.target.value)}
+            placeholder="Case name..."
+            autoFocus
+            style={{ width: '100%', boxSizing: 'border-box', background: 'transparent', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.15)', color: '#f0f4ff', fontSize: 13, padding: '6px 0', outline: 'none', fontFamily: 'var(--font-jetbrains-mono)' }}
+          />
+        )}
+      </div>
+
       <button
+        onClick={handleSave}
+        disabled={saving || !canSave}
+        style={{ width: '100%', padding: '9px', background: 'rgba(0,255,136,0.1)', border: '1px solid rgba(0,255,136,0.3)', borderRadius: 3, color: '#00ff88', fontSize: 11, letterSpacing: '0.12em', cursor: saving || !canSave ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-jetbrains-mono)', opacity: saving || !canSave ? 0.5 : 1 }}
+      >
+        {saving ? 'SAVING...' : '→ SAVE TO CASE'}
+      </button>
+    </div>,
+    document.body
+  ) : null;
+
+  return (
+    <div style={{ position: 'relative', flexShrink: 0 }}>
+      <button
+        ref={buttonRef}
         onClick={handleOpen}
         style={{
           padding: '6px 14px',
@@ -1106,62 +1185,7 @@ function SaveToCaseButton({ address, analysisId }: { address: string; analysisId
       >
         {saved ? `Saved to ${saved} ✓` : '+ Save to Case'}
       </button>
-
-      {open && (
-        <div style={{
-          position: 'absolute',
-          top: 'calc(100% + 8px)',
-          right: 0,
-          zIndex: 50,
-          background: '#080b14',
-          border: '1px solid rgba(255,255,255,0.1)',
-          borderRadius: 6,
-          padding: '16px',
-          minWidth: 280,
-          boxShadow: '0 16px 40px rgba(0,0,0,0.7)',
-          boxSizing: 'border-box' as const,
-        }}>
-          <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, letterSpacing: '0.15em', color: '#3d4a5c', marginBottom: 12 }}>+ SAVE TO CASE</div>
-
-          <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-            {(['existing', 'new'] as const).map(m => (
-              <button key={m} onClick={() => setMode(m)} style={{ flex: 1, padding: '6px', border: `1px solid ${mode === m ? 'rgba(0,255,136,0.3)' : 'rgba(255,255,255,0.08)'}`, borderRadius: 3, background: mode === m ? 'rgba(0,255,136,0.08)' : 'transparent', color: mode === m ? '#00ff88' : '#8892a4', fontSize: 10, letterSpacing: '0.1em', cursor: 'pointer', fontFamily: 'var(--font-jetbrains-mono)' }}>
-                {m === 'existing' ? 'EXISTING' : 'NEW CASE'}
-              </button>
-            ))}
-          </div>
-
-          <div style={{ marginBottom: 14 }}>
-            {mode === 'existing' ? (
-              <select
-                value={selectedCase}
-                onChange={e => setSelectedCase(e.target.value)}
-                style={{ width: '100%', background: '#03040a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 3, color: '#f0f4ff', fontSize: 12, padding: '8px 10px', fontFamily: 'var(--font-jetbrains-mono)' }}
-              >
-                <option value="">Select a case...</option>
-                {cases.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
-              </select>
-            ) : (
-              <input
-                type="text"
-                value={newTitle}
-                onChange={e => setNewTitle(e.target.value)}
-                placeholder="Case name..."
-                autoFocus
-                style={{ width: '100%', boxSizing: 'border-box', background: 'transparent', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.15)', color: '#f0f4ff', fontSize: 13, padding: '6px 0', outline: 'none', fontFamily: 'var(--font-jetbrains-mono)' }}
-              />
-            )}
-          </div>
-
-          <button
-            onClick={handleSave}
-            disabled={saving || (mode === 'existing' ? !selectedCase : !newTitle.trim())}
-            style={{ width: '100%', padding: '9px', background: 'rgba(0,255,136,0.1)', border: '1px solid rgba(0,255,136,0.3)', borderRadius: 3, color: '#00ff88', fontSize: 11, letterSpacing: '0.12em', cursor: saving || (mode === 'existing' ? !selectedCase : !newTitle.trim()) ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-jetbrains-mono)', opacity: saving || (mode === 'existing' ? !selectedCase : !newTitle.trim()) ? 0.5 : 1 }}
-          >
-            {saving ? 'SAVING...' : '→ SAVE TO NEW CASE'}
-          </button>
-        </div>
-      )}
+      {dropdown}
     </div>
   );
 }
