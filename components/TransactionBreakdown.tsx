@@ -45,16 +45,16 @@ function formatDate(ts: number): string {
   }
 }
 
-function isRiskyAddress(addr: string): { risky: boolean; reason: string } {
+function riskTag(addr: string): { label: string; color: string } | null {
   const lower = addr.toLowerCase();
-  if (MIXER_ADDRESSES.has(lower)) return { risky: true, reason: 'Tornado Cash (OFAC SDN)' };
-  if (HIGH_RISK_ADDRESSES.has(lower)) return { risky: true, reason: 'High-risk counterparty' };
-  return { risky: false, reason: '' };
+  if (MIXER_ADDRESSES.has(lower)) return { label: 'OFAC SDN', color: '#ff3b3b' };
+  if (HIGH_RISK_ADDRESSES.has(lower)) return { label: 'HIGH RISK', color: '#ff8c00' };
+  return null;
 }
 
 function AddressCell({ addr }: { addr: string }) {
   const [copied, setCopied] = useState(false);
-  const { risky, reason } = isRiskyAddress(addr);
+  const tag = riskTag(addr);
 
   async function copy() {
     try {
@@ -67,54 +67,56 @@ function AddressCell({ addr }: { addr: string }) {
   }
 
   return (
-    <span className="inline-flex items-center gap-1 group">
+    <span className="group" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
       <span
-        className="font-mono text-xs"
-        style={{ color: risky ? '#ef4444' : '#6b7280' }}
+        style={{
+          fontFamily: 'var(--font-jetbrains-mono)',
+          fontSize: 12,
+          color: tag ? tag.color : 'var(--text-secondary)',
+        }}
         title={addr}
       >
         {truncateAddr(addr)}
       </span>
-      {risky && (
-        <span title={reason} aria-label={reason} style={{ color: '#f97316' }} className="text-xs">
-          ⚠
+      {tag && (
+        <span
+          style={{
+            fontFamily: 'var(--font-jetbrains-mono)',
+            fontSize: 9,
+            letterSpacing: '0.08em',
+            padding: '2px 6px',
+            border: `1px solid ${tag.color}33`,
+            background: `${tag.color}0d`,
+            color: tag.color,
+            borderRadius: 2,
+          }}
+        >
+          {tag.label}
         </span>
       )}
       <button
         onClick={copy}
-        className="opacity-0 group-hover:opacity-100 transition-opacity hover:text-gray-400"
-        style={{ color: '#374151' }}
+        style={{
+          opacity: 0,
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          padding: 0,
+          color: copied ? '#00ff88' : 'var(--text-dim)',
+          fontSize: 10,
+          lineHeight: 1,
+          transition: 'opacity 0.15s',
+        }}
+        className="group-hover:opacity-100"
         aria-label={`Copy ${addr}`}
       >
-        {copied ? (
-          <svg className="w-3 h-3" viewBox="0 0 20 20" fill="#00ff88" aria-hidden="true">
-            <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
-          </svg>
-        ) : (
-          <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-            <path d="M7 3.5A1.5 1.5 0 018.5 2h3.879a1.5 1.5 0 011.06.44l3.122 3.12A1.5 1.5 0 0117 6.622V12.5a1.5 1.5 0 01-1.5 1.5h-1v-3.379a3 3 0 00-.879-2.121L10.5 5.379A3 3 0 008.379 4.5H7v-1z" />
-            <path d="M4.5 6A1.5 1.5 0 003 7.5v9A1.5 1.5 0 004.5 18h7a1.5 1.5 0 001.5-1.5v-5.879a1.5 1.5 0 00-.44-1.06L9.44 6.439A1.5 1.5 0 008.378 6H4.5z" />
-          </svg>
-        )}
+        {copied ? '✓' : '⊕'}
       </button>
     </span>
   );
 }
 
-function RiskFlag({ tx }: { tx: WalletTransaction }) {
-  const toRisky = isRiskyAddress(tx.to);
-  const fromRisky = isRiskyAddress(tx.from);
-  if (!toRisky.risky && !fromRisky.risky) return <span style={{ color: '#1f2937' }}>—</span>;
-  const reason = toRisky.risky ? toRisky.reason : fromRisky.reason;
-  return (
-    <span className="inline-flex items-center gap-1 text-xs font-mono" style={{ color: '#f97316' }} title={reason}>
-      <span aria-hidden="true">⚠</span>
-      <span className="hidden sm:inline">{reason}</span>
-    </span>
-  );
-}
-
-const MAX_DISPLAY = 20;
+const MAX_DISPLAY = 25;
 
 export default function TransactionBreakdown({
   transactions,
@@ -126,94 +128,174 @@ export default function TransactionBreakdown({
   const sorted = [...transactions].sort((a, b) => b.timestamp - a.timestamp);
   const display = sorted.slice(0, MAX_DISPLAY);
 
-  return (
-    <div className="rounded-2xl overflow-hidden" style={{ background: '#0d0d14', border: '1px solid #1a1a24' }}>
+  if (transactions.length === 0) {
+    return (
       <div
-        className="px-6 py-4 flex items-center justify-between"
-        style={{ borderBottom: '1px solid #1a1a24' }}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '64px 32px',
+          fontFamily: 'var(--font-jetbrains-mono)',
+          fontSize: 11,
+          color: 'var(--text-dim)',
+          letterSpacing: '0.12em',
+        }}
+      >
+        NO TRANSACTIONS FOUND
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {/* Stats row */}
+      <div
+        style={{
+          display: 'flex',
+          gap: 32,
+          marginBottom: 24,
+          paddingBottom: 20,
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+        }}
       >
         <div>
-          <h2 className="font-semibold text-sm font-mono" style={{ color: '#e2e8f0' }}>Transaction Breakdown</h2>
-          <p className="text-[10px] font-mono mt-0.5" style={{ color: '#4b5563' }}>
-            Showing {display.length} of {transactions.length} transactions
-          </p>
+          <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: 'var(--text-dim)', marginBottom: 4 }}>
+            TOTAL
+          </div>
+          <div style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 24, fontWeight: 700, color: 'var(--text-primary)' }}>
+            {transactions.length}
+          </div>
         </div>
-        <span
-          className="text-[10px] font-mono rounded-full px-3 py-1"
-          style={{ background: '#111118', border: '1px solid #1a1a24', color: '#4b5563' }}
-        >
-          {truncateAddr(queriedAddress)}
-        </span>
+        <div>
+          <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: 'var(--text-dim)', marginBottom: 4 }}>
+            SHOWING
+          </div>
+          <div style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 24, fontWeight: 700, color: 'var(--text-primary)' }}>
+            {display.length}
+          </div>
+        </div>
+        <div>
+          <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: 'var(--text-dim)', marginBottom: 4 }}>
+            FLAGGED
+          </div>
+          <div style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 24, fontWeight: 700, color: '#ff3b3b' }}>
+            {transactions.filter(tx => riskTag(tx.from) || riskTag(tx.to)).length}
+          </div>
+        </div>
       </div>
 
-      {transactions.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12 text-center space-y-2">
-          <p className="text-sm font-mono" style={{ color: '#374151' }}>No transactions found</p>
-        </div>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr
-                className="text-[10px] font-mono font-semibold tracking-wider uppercase"
-                style={{ background: '#111118', borderBottom: '1px solid #1a1a24', color: '#4b5563' }}
-              >
-                <th className="px-4 py-3 text-left whitespace-nowrap">Date / Time</th>
-                <th className="px-4 py-3 text-left">Type</th>
-                <th className="px-4 py-3 text-right whitespace-nowrap">Amount</th>
-                <th className="px-4 py-3 text-left whitespace-nowrap">From</th>
-                <th className="px-4 py-3 text-left whitespace-nowrap">To</th>
-                <th className="px-4 py-3 text-left">Risk</th>
-              </tr>
-            </thead>
-            <tbody>
-              {display.map((tx, idx) => {
-                const isInbound = tx.isInbound ?? tx.to.toLowerCase() === queriedAddress.toLowerCase();
-                return (
-                  <tr
-                    key={`${tx.hash}-${idx}`}
+      {/* Table */}
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+              {['DATE', 'DIR', 'AMOUNT', 'FROM', 'TO'].map(col => (
+                <th
+                  key={col}
+                  style={{
+                    padding: '8px 16px',
+                    textAlign: col === 'AMOUNT' ? 'right' : 'left',
+                    fontFamily: 'var(--font-jetbrains-mono)',
+                    fontSize: 9,
+                    letterSpacing: '0.15em',
+                    color: 'var(--text-dim)',
+                    fontWeight: 400,
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {col}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {display.map((tx, idx) => {
+              const isInbound = tx.isInbound ?? tx.to.toLowerCase() === queriedAddress.toLowerCase();
+              const fromTag = riskTag(tx.from);
+              const toTag = riskTag(tx.to);
+              const isFlagged = !!(fromTag || toTag);
+
+              return (
+                <tr
+                  key={`${tx.hash}-${idx}`}
+                  style={{
+                    borderBottom: '1px solid rgba(255,255,255,0.03)',
+                    background: isFlagged ? 'rgba(255,59,59,0.03)' : 'transparent',
+                    transition: 'background 0.15s',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = isFlagged ? 'rgba(255,59,59,0.06)' : 'rgba(255,255,255,0.02)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = isFlagged ? 'rgba(255,59,59,0.03)' : 'transparent'; }}
+                >
+                  <td
                     style={{
-                      borderBottom: '1px solid #111118',
-                      background: idx % 2 === 0 ? '#0d0d14' : '#0a0a0f',
+                      padding: '11px 16px',
+                      fontFamily: 'var(--font-jetbrains-mono)',
+                      fontSize: 11,
+                      color: 'var(--text-dim)',
+                      whiteSpace: 'nowrap',
                     }}
                   >
-                    <td className="px-4 py-3 text-xs font-mono whitespace-nowrap" style={{ color: '#4b5563' }}>
-                      {formatDate(tx.timestamp)}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className="inline-flex items-center text-[10px] font-bold font-mono px-2 py-0.5 rounded-full"
-                        style={
-                          isInbound
-                            ? { background: 'rgba(6,78,59,0.4)', color: '#6ee7b7', border: '1px solid #064e3b' }
-                            : { background: 'rgba(127,29,29,0.3)', color: '#fca5a5', border: '1px solid #7f1d1d' }
-                        }
-                      >
-                        {isInbound ? '↓ IN' : '↑ OUT'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-right whitespace-nowrap">
-                      <span className="font-mono text-xs" style={{ color: '#e2e8f0' }}>{tx.value.toFixed(4)}</span>
-                      <span className="text-xs ml-1" style={{ color: '#4b5563' }}>{tx.tokenSymbol ?? 'ETH'}</span>
-                    </td>
-                    <td className="px-4 py-3"><AddressCell addr={tx.from} /></td>
-                    <td className="px-4 py-3"><AddressCell addr={tx.to} /></td>
-                    <td className="px-4 py-3 whitespace-nowrap"><RiskFlag tx={tx} /></td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
+                    {formatDate(tx.timestamp)}
+                  </td>
+                  <td style={{ padding: '11px 16px' }}>
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-jetbrains-mono)',
+                        fontSize: 10,
+                        letterSpacing: '0.08em',
+                        fontWeight: 700,
+                        padding: '3px 8px',
+                        borderRadius: 2,
+                        ...(isInbound
+                          ? { background: 'rgba(0,255,136,0.08)', color: '#00ff88', border: '1px solid rgba(0,255,136,0.2)' }
+                          : { background: 'rgba(255,59,59,0.08)', color: '#ff6b6b', border: '1px solid rgba(255,59,59,0.2)' }),
+                      }}
+                    >
+                      {isInbound ? 'IN' : 'OUT'}
+                    </span>
+                  </td>
+                  <td
+                    style={{
+                      padding: '11px 16px',
+                      textAlign: 'right',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: 'var(--text-primary)' }}>
+                      {tx.value.toFixed(4)}
+                    </span>
+                    <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: 'var(--text-dim)', marginLeft: 5 }}>
+                      {tx.tokenSymbol ?? 'ETH'}
+                    </span>
+                  </td>
+                  <td style={{ padding: '11px 16px' }}>
+                    <AddressCell addr={tx.from} />
+                  </td>
+                  <td style={{ padding: '11px 16px' }}>
+                    <AddressCell addr={tx.to} />
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
 
       {transactions.length > MAX_DISPLAY && (
         <div
-          className="px-6 py-3 text-center text-[10px] font-mono"
-          style={{ borderTop: '1px solid #1a1a24', color: '#374151' }}
+          style={{
+            marginTop: 16,
+            paddingTop: 16,
+            borderTop: '1px solid rgba(255,255,255,0.04)',
+            fontFamily: 'var(--font-jetbrains-mono)',
+            fontSize: 10,
+            color: 'var(--text-dim)',
+            letterSpacing: '0.1em',
+            textAlign: 'center',
+          }}
         >
-          {transactions.length - MAX_DISPLAY} additional transactions not shown.
-          Full history available via the Etherscan API.
+          {transactions.length - MAX_DISPLAY} additional transactions not shown — full history via Alchemy API
         </div>
       )}
     </div>

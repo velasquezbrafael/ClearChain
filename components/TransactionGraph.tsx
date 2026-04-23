@@ -348,63 +348,158 @@ export default function TransactionGraph({ transactions, queriedAddress }: Trans
   }, [transactions, queriedAddress]);
 
   return (
-    <div className="bg-[#0d0d14] border border-[#1a1a24] rounded-2xl overflow-hidden flex flex-col">
+    <div
+      style={{
+        border: '1px solid rgba(255,255,255,0.06)',
+        borderRadius: 4,
+        background: '#080b14',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
       {/* Header */}
-      <div className="px-5 py-3.5 border-b border-[#1a1a24] flex items-center justify-between">
+      <div
+        style={{
+          padding: '14px 20px',
+          borderBottom: '1px solid rgba(255,255,255,0.04)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 16,
+          flexWrap: 'wrap',
+        }}
+      >
         <div>
-          <h2 className="text-sm font-semibold text-gray-200 font-mono">Transaction Graph</h2>
-          <p className="text-xs text-gray-600 mt-0.5">Force-directed — drag nodes, scroll to zoom</p>
+          <div
+            style={{
+              fontFamily: 'var(--font-jetbrains-mono)',
+              fontSize: 10,
+              letterSpacing: '0.15em',
+              color: 'var(--text-dim)',
+              marginBottom: 3,
+            }}
+          >
+            TRANSACTION GRAPH
+          </div>
+          <p
+            style={{
+              fontFamily: 'var(--font-inter)',
+              fontSize: 12,
+              color: 'var(--text-secondary)',
+              margin: 0,
+            }}
+          >
+            Force-directed — drag nodes, scroll to zoom
+          </p>
         </div>
-        <div className="flex items-center gap-3 text-[10px] text-gray-600 font-mono">
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#00ff88] inline-block" />Queried</span>
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500 inline-block" />OFAC/Mixer</span>
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-orange-500 inline-block" />High-risk</span>
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-gray-600 inline-block" />Unknown</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          {[
+            { color: '#00ff88', label: 'QUERIED' },
+            { color: '#ff3b3b', label: 'OFAC/MIXER' },
+            { color: '#ff8c00', label: 'HIGH RISK' },
+            { color: '#3d4a5c', label: 'UNKNOWN' },
+          ].map(({ color, label }) => (
+            <span
+              key={label}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                fontFamily: 'var(--font-jetbrains-mono)',
+                fontSize: 9,
+                letterSpacing: '0.1em',
+                color: 'var(--text-dim)',
+              }}
+            >
+              <span
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: '50%',
+                  background: color,
+                  boxShadow: `0 0 6px ${color}88`,
+                  flexShrink: 0,
+                }}
+              />
+              {label}
+            </span>
+          ))}
         </div>
       </div>
 
       {/* Graph canvas */}
-      <div ref={containerRef} className="relative flex-1" style={{ minHeight: 480 }}>
+      <div ref={containerRef} style={{ position: 'relative', flex: 1, minHeight: 500 }}>
         {transactions.length === 0 ? (
-          <div className="absolute inset-0 flex items-center justify-center text-gray-600 text-sm font-mono">
-            No transactions to graph
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontFamily: 'var(--font-jetbrains-mono)',
+              fontSize: 11,
+              letterSpacing: '0.12em',
+              color: 'var(--text-dim)',
+            }}
+          >
+            NO TRANSACTIONS TO GRAPH
           </div>
         ) : (
-          <svg ref={svgRef} className="w-full h-full block" />
+          <svg ref={svgRef} style={{ width: '100%', height: '100%', display: 'block' }} />
         )}
 
         {/* Tooltip */}
         {tooltip && (
           <div
-            className="absolute pointer-events-none z-20 bg-[#111118] border border-[#1a1a24] rounded-lg px-3 py-2.5 shadow-2xl text-xs font-mono min-w-[200px]"
             style={{
-              left: Math.min(tooltip.x + 14, (containerWidth || 9999) - 220),
+              position: 'absolute',
+              pointerEvents: 'none',
+              zIndex: 20,
+              background: '#0d1220',
+              border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: 4,
+              padding: '10px 14px',
+              left: Math.min(tooltip.x + 14, (containerWidth || 9999) - 230),
               top: Math.max(tooltip.y - 48, 8),
+              minWidth: 210,
             }}
           >
             {tooltip.content.kind === 'node' ? (
-              <div className="space-y-1">
-                <div className="text-[#00ff88] font-semibold">
-                  {tooltip.content.address.toLowerCase() === queriedAddress.toLowerCase() ? 'Queried Wallet' : 'Counterparty'}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.08em', color: '#00ff88' }}>
+                  {tooltip.content.address.toLowerCase() === queriedAddress.toLowerCase()
+                    ? 'QUERIED WALLET'
+                    : 'COUNTERPARTY'}
                 </div>
-                <div className="text-gray-400 break-all">{tooltip.content.address}</div>
-                <div className="text-gray-300">
-                  Volume: <span className="text-white">{tooltip.content.volume.toFixed(4)} ETH</span>
+                <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: 'var(--text-secondary)', wordBreak: 'break-all' }}>
+                  {tooltip.content.address}
                 </div>
-                {tooltip.content.flags.length > 0 && (
-                  <div className="text-red-400 pt-0.5">
-                    {tooltip.content.flags.map(f => (
-                      <div key={f}>⚠ {f}</div>
-                    ))}
-                  </div>
-                )}
+                <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: 'var(--text-primary)' }}>
+                  {tooltip.content.volume.toFixed(4)} ETH
+                </div>
+                {tooltip.content.flags.length > 0 &&
+                  tooltip.content.flags.map(f => (
+                    <div key={f} style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#ff3b3b' }}>
+                      {f}
+                    </div>
+                  ))}
               </div>
             ) : (
-              <div className="space-y-1">
-                <div className="text-gray-400 font-semibold">Transaction{tooltip.content.count > 1 ? `s (${tooltip.content.count})` : ''}</div>
-                <div className="text-gray-500 break-all">{tooltip.content.hash.slice(0, 20)}…</div>
-                <div className="text-gray-300">Value: <span className="text-white">{tooltip.content.value.toFixed(4)} ETH</span></div>
-                <div className="text-gray-500">{tooltip.content.date}</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: 'var(--text-dim)' }}>
+                  TXN{tooltip.content.count > 1 ? `S (${tooltip.content.count})` : ''}
+                </div>
+                <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: 'var(--text-secondary)', wordBreak: 'break-all' }}>
+                  {tooltip.content.hash.slice(0, 20)}...
+                </div>
+                <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: 'var(--text-primary)' }}>
+                  {tooltip.content.value.toFixed(4)} ETH
+                </div>
+                <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: 'var(--text-dim)' }}>
+                  {tooltip.content.date}
+                </div>
               </div>
             )}
           </div>

@@ -1,24 +1,44 @@
 @import "tailwindcss";
 
 :root {
-  --bg-base: #0a0a0f;
-  --bg-card: #0d0d14;
-  --bg-surface: #111118;
-  --border-subtle: #1a1a24;
+  --bg-primary: #03040a;
+  --bg-secondary: #080b14;
+  --bg-tertiary: #0d1220;
+  --border: rgba(255, 255, 255, 0.06);
+  --border-accent: rgba(0, 255, 136, 0.2);
+  --text-primary: #f0f4ff;
+  --text-secondary: #8892a4;
+  --text-dim: #3d4a5c;
   --accent-green: #00ff88;
-  --text-primary: #e2e8f0;
-  --text-muted: #6b7280;
+  --accent-green-dim: rgba(0, 255, 136, 0.1);
+  --critical: #ff3b3b;
+  --high: #ff8c00;
+  --medium: #ffd60a;
+  --low: #00ff88;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--bg-base);
+  background: var(--bg-primary);
   color: var(--text-primary);
+  font-family: var(--font-inter), 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-@keyframes fadeSlideIn {
+@keyframes fadeSlideUp {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(16px);
   }
   to {
     opacity: 1;
@@ -26,11 +46,67 @@ body {
   }
 }
 
-.fade-in {
-  animation: fadeSlideIn 0.45s ease-out forwards;
+@keyframes scanline {
+  0% {
+    transform: translateY(-100vh);
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.6;
+  }
+  92% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(200vh);
+    opacity: 0;
+  }
 }
 
-@keyframes scanline {
-  0% { transform: translateY(-100%); }
-  100% { transform: translateY(100vh); }
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--text-dim);
+  border-radius: 2px;
+}
+
+::selection {
+  background: rgba(0, 255, 136, 0.15);
+  color: var(--text-primary);
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--bg-tertiary) 25%,
+    rgba(255, 255, 255, 0.04) 50%,
+    var(--bg-tertiary) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
 }

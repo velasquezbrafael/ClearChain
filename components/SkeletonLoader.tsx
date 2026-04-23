@@ -5,89 +5,244 @@ interface SkeletonLoaderProps {
   steps: string[];
 }
 
-function Shimmer({ className }: { className: string }) {
+function Skel({ w, h = 16 }: { w: number | string; h?: number }) {
   return (
-    <div className={`bg-[#1a1a24] animate-pulse rounded-lg ${className}`} />
+    <div
+      className="skeleton"
+      style={{
+        width: typeof w === 'number' ? w : w,
+        height: h,
+        borderRadius: 2,
+        flexShrink: 0,
+      }}
+    />
   );
 }
 
 export default function SkeletonLoader({ step, steps }: SkeletonLoaderProps) {
   return (
-    <div className="space-y-6">
+    <div
+      style={{
+        padding: '32px 0',
+        animation: 'fadeSlideUp 0.3s ease-out both',
+      }}
+    >
       {/* Progress steps */}
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+      <div
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '8px 32px',
+          marginBottom: 40,
+          padding: '16px 24px',
+          border: '1px solid rgba(255,255,255,0.04)',
+          borderRadius: 4,
+          background: '#080b14',
+        }}
+      >
         {steps.map((label, i) => (
           <div
             key={label}
-            className={`flex items-center gap-2 text-xs font-mono transition-colors duration-300 ${
-              i < step ? 'text-[#00ff88]' : i === step ? 'text-gray-300' : 'text-gray-700'
-            }`}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              fontFamily: 'var(--font-jetbrains-mono)',
+              fontSize: 11,
+              letterSpacing: '0.05em',
+              color:
+                i < step
+                  ? '#00ff88'
+                  : i === step
+                  ? 'var(--text-primary)'
+                  : 'var(--text-dim)',
+              transition: 'color 0.3s',
+            }}
           >
             {i < step ? (
-              <span className="w-4 h-4 rounded-full bg-[#00ff88] flex items-center justify-center text-black text-[9px] font-black flex-shrink-0">
+              <span
+                style={{
+                  width: 16,
+                  height: 16,
+                  borderRadius: '50%',
+                  background: '#00ff88',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontFamily: 'var(--font-jetbrains-mono)',
+                  fontSize: 9,
+                  color: '#000',
+                  fontWeight: 700,
+                  flexShrink: 0,
+                }}
+              >
                 ✓
               </span>
             ) : i === step ? (
-              <span className="w-4 h-4 rounded-full border-2 border-[#00ff88] border-t-transparent animate-spin flex-shrink-0" />
+              <span
+                style={{
+                  width: 16,
+                  height: 16,
+                  borderRadius: '50%',
+                  border: '1.5px solid rgba(255,255,255,0.08)',
+                  borderTopColor: '#00ff88',
+                  animation: 'spin 0.9s linear infinite',
+                  flexShrink: 0,
+                }}
+              />
             ) : (
-              <span className="w-4 h-4 rounded-full border border-gray-700 flex-shrink-0" />
+              <span
+                style={{
+                  width: 16,
+                  height: 16,
+                  borderRadius: '50%',
+                  border: '1px solid var(--text-dim)',
+                  flexShrink: 0,
+                }}
+              />
             )}
             {label}
           </div>
         ))}
       </div>
 
-      {/* Two-column skeleton: score card + graph */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Score card skeleton */}
-        <div className="bg-[#0d0d14] border border-[#1a1a24] rounded-2xl p-6 space-y-5">
-          <Shimmer className="h-3 w-24" />
-          <div className="flex items-center gap-6">
-            <Shimmer className="w-36 h-36 rounded-full flex-shrink-0" />
-            <div className="space-y-3 flex-1">
-              <Shimmer className="h-7 w-32" />
-              <Shimmer className="h-4 w-full" />
-              <Shimmer className="h-4 w-4/5" />
-              <Shimmer className="h-4 w-3/5" />
-            </div>
-          </div>
-          <Shimmer className="h-3 w-28 mt-2" />
-          <div className="space-y-2">
-            <Shimmer className="h-9 w-full" />
-            <Shimmer className="h-9 w-full" />
-            <Shimmer className="h-9 w-full" />
-            <Shimmer className="h-9 w-full" />
-          </div>
-        </div>
-
-        {/* Graph skeleton */}
-        <div className="bg-[#0d0d14] border border-[#1a1a24] rounded-2xl overflow-hidden">
-          <div className="px-5 py-3.5 border-b border-[#1a1a24] flex items-center gap-3">
-            <Shimmer className="h-4 w-36" />
-          </div>
-          <div className="relative" style={{ minHeight: 420 }}>
-            <Shimmer className="absolute inset-0 rounded-none" />
-            {/* Fake nodes */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="relative w-64 h-64">
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-[#00ff88]/10 border border-[#00ff88]/20 animate-pulse" />
-                <div className="absolute top-4 left-4 w-8 h-8 rounded-full bg-[#1a1a24] animate-pulse" />
-                <div className="absolute top-4 right-4 w-6 h-6 rounded-full bg-[#1a1a24] animate-pulse" style={{ animationDelay: '0.2s' }} />
-                <div className="absolute bottom-4 left-8 w-7 h-7 rounded-full bg-[#1a1a24] animate-pulse" style={{ animationDelay: '0.4s' }} />
-                <div className="absolute bottom-4 right-8 w-5 h-5 rounded-full bg-[#1a1a24] animate-pulse" style={{ animationDelay: '0.6s' }} />
-              </div>
-            </div>
-          </div>
+      {/* Row 1: address bar placeholder */}
+      <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 32 }}>
+        <Skel w={320} h={14} />
+        <Skel w={160} h={14} />
+        <div style={{ marginLeft: 'auto' }}>
+          <Skel w={100} h={14} />
         </div>
       </div>
 
-      {/* Below-fold skeleton */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Shimmer className="h-52" />
-        <Shimmer className="h-52" />
+      {/* Row 2: 3-col layout */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '280px 1fr 280px',
+          gap: 24,
+          marginBottom: 24,
+          alignItems: 'start',
+        }}
+      >
+        {/* Col 1: Risk score skeleton */}
+        <div
+          style={{
+            border: '1px solid rgba(255,255,255,0.06)',
+            borderRadius: 4,
+            background: '#080b14',
+            padding: 32,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 20,
+          }}
+        >
+          <Skel w={80} h={10} />
+          <Skel w={120} h={100} />
+          <Skel w={40} h={1} />
+          <Skel w={100} h={28} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <Skel w="100%" h={12} />
+            <Skel w="85%" h={12} />
+            <Skel w="70%" h={12} />
+          </div>
+        </div>
+
+        {/* Col 2: Graph skeleton */}
+        <div
+          style={{
+            border: '1px solid rgba(255,255,255,0.06)',
+            borderRadius: 4,
+            background: '#080b14',
+            overflow: 'hidden',
+            minHeight: 500,
+            position: 'relative',
+          }}
+        >
+          <div
+            style={{
+              padding: '16px 20px',
+              borderBottom: '1px solid rgba(255,255,255,0.04)',
+              display: 'flex',
+              gap: 16,
+            }}
+          >
+            <Skel w={140} h={12} />
+          </div>
+          <div
+            className="skeleton"
+            style={{
+              position: 'absolute',
+              inset: 0,
+              top: 48,
+              borderRadius: 0,
+            }}
+          />
+          {/* Ghost nodes */}
+          <div style={{ position: 'absolute', inset: 0, top: 48, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ position: 'relative', width: 200, height: 200 }}>
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 40, height: 40, borderRadius: '50%', border: '1px solid rgba(0,255,136,0.15)', animation: 'pulseGlow 2s infinite' }} />
+              <div style={{ position: 'absolute', top: 10, left: 10, width: 24, height: 24, borderRadius: '50%', background: '#0d1220', animation: 'pulseGlow 2s infinite 0.3s' }} />
+              <div style={{ position: 'absolute', top: 10, right: 10, width: 18, height: 18, borderRadius: '50%', background: '#0d1220', animation: 'pulseGlow 2s infinite 0.6s' }} />
+              <div style={{ position: 'absolute', bottom: 10, left: 20, width: 20, height: 20, borderRadius: '50%', background: '#0d1220', animation: 'pulseGlow 2s infinite 0.9s' }} />
+              <div style={{ position: 'absolute', bottom: 10, right: 20, width: 16, height: 16, borderRadius: '50%', background: '#0d1220', animation: 'pulseGlow 2s infinite 1.2s' }} />
+            </div>
+          </div>
+        </div>
+
+        {/* Col 3: Signal list skeleton */}
+        <div
+          style={{
+            border: '1px solid rgba(255,255,255,0.06)',
+            borderRadius: 4,
+            background: '#080b14',
+            padding: 24,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 16,
+          }}
+        >
+          <Skel w={80} h={10} />
+          {[100, 85, 95, 70, 80, 65].map((w, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <Skel w={8} h={8} />
+              <Skel w={`${w}%`} h={11} />
+              <Skel w={28} h={11} />
+            </div>
+          ))}
+        </div>
       </div>
-      <Shimmer className="h-48" />
-      <Shimmer className="h-56" />
+
+      {/* Row 3: Tab panel skeleton */}
+      <div
+        style={{
+          border: '1px solid rgba(255,255,255,0.06)',
+          borderRadius: 4,
+          background: '#080b14',
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          style={{
+            padding: '0 8px',
+            borderBottom: '1px solid rgba(255,255,255,0.06)',
+            display: 'flex',
+            gap: 4,
+          }}
+        >
+          {[120, 100, 110, 130].map((w, i) => (
+            <div key={i} style={{ padding: '14px 16px' }}>
+              <Skel w={w} h={10} />
+            </div>
+          ))}
+        </div>
+        <div style={{ padding: 32, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <Skel w="100%" h={14} />
+          <Skel w="90%" h={14} />
+          <Skel w="95%" h={14} />
+          <Skel w="75%" h={14} />
+        </div>
+      </div>
     </div>
   );
 }
