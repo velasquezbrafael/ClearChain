@@ -9,6 +9,7 @@ import SARDraftCard from '@/components/SARDraftCard';
 import SimulatorCard from '@/components/SimulatorCard';
 import TransactionBreakdown from '@/components/TransactionBreakdown';
 import TransactionGraph from '@/components/TransactionGraph';
+import TransactionTimeline from '@/components/TransactionTimeline';
 import SkeletonLoader from '@/components/SkeletonLoader';
 import ExportButton from '@/components/ExportButton';
 import InfoTooltip from '@/components/InfoTooltip';
@@ -129,6 +130,16 @@ function saveHistory(entry: HistoryEntry) {
 function removeHistory(address: string) {
   const updated = loadHistory().filter(e => e.address !== address);
   localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
+}
+
+function useWindowWidth() {
+  const [width, setWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1280);
+  useEffect(() => {
+    function onResize() { setWidth(window.innerWidth); }
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+  return width;
 }
 
 // ---------------------------------------------------------------------------
@@ -276,15 +287,7 @@ function SignalList({ signals }: { signals: ScoringSignal[] }) {
 // Feature card
 // ---------------------------------------------------------------------------
 
-function FeatureCard({
-  label,
-  title,
-  desc,
-}: {
-  label: string;
-  title: string;
-  desc: string;
-}) {
+function FeatureCard({ title, desc }: { title: string; desc: string }) {
   const [hovered, setHovered] = useState(false);
 
   return (
@@ -300,19 +303,6 @@ function FeatureCard({
         cursor: 'default',
       }}
     >
-      <div
-        style={{
-          fontFamily: 'var(--font-space-grotesk)',
-          fontSize: 36,
-          fontWeight: 700,
-          color: 'var(--text-primary)',
-          lineHeight: 1,
-          marginBottom: 12,
-          letterSpacing: '-0.02em',
-        }}
-      >
-        {label}
-      </div>
       <div
         style={{
           fontFamily: 'var(--font-jetbrains-mono)',
@@ -369,10 +359,10 @@ function HeroContent({
   onRemoveHistory: (addr: string) => void;
 }) {
   const features = [
-    { label: '0–100', title: 'Risk Score', desc: 'OFAC exposure, mixer hops, velocity anomalies, and volume clustering.' },
-    { label: 'FATF', title: 'AML Typologies', desc: 'Maps patterns to named typologies: smurfing, layering, mixer obfuscation.' },
-    { label: 'D3', title: 'Transaction Graph', desc: 'Force-directed graph of all counterparties — OFAC entities in red.' },
-    { label: 'SAR', title: 'SAR Draft', desc: 'FinCEN-style narrative ready for compliance officer review and filing.' },
+    { title: 'Risk Score',      desc: '0–100 weighted score with full signal breakdown. Every point explained.' },
+    { title: 'AML Typologies',  desc: 'Maps patterns to FATF/FinCEN typologies: smurfing, layering, mixer obfuscation.' },
+    { title: 'Fund Flow Graph', desc: 'Force-directed graph of all counterparties. OFAC entities flagged in red.' },
+    { title: 'SAR Draft',       desc: 'AI-generated FinCEN SAR narrative. Ready for compliance officer review.' },
   ];
 
 
@@ -444,8 +434,8 @@ function HeroContent({
             animationDelay: '0.2s',
           }}
         >
-          Paste any Ethereum address. Get a risk score, AML typology, transaction
-          graph, and FinCEN SAR draft.
+          Know in 10 seconds whether a wallet is clean, connected to a mixer, or
+          on a government sanctions list — with the SAR draft written automatically.
         </p>
 
         {/* Search bar */}
@@ -709,7 +699,7 @@ function HeroContent({
         >
           {features.map(f => (
             <div key={f.title} style={{ background: '#03040a' }}>
-              <FeatureCard label={f.label} title={f.title} desc={f.desc} />
+              <FeatureCard title={f.title} desc={f.desc} />
             </div>
           ))}
         </div>
@@ -1125,6 +1115,12 @@ export default function HomePage() {
     URL.revokeObjectURL(url);
   }
 
+  const windowWidth = useWindowWidth();
+  const isMobile = windowWidth < 640;
+  const isTablet = windowWidth >= 640 && windowWidth < 1024;
+
+  const gridCols = isMobile ? '1fr' : isTablet ? '1fr 1fr' : '280px 1fr 280px';
+
   const showResults = !!analysis && !loading;
 
   return (
@@ -1368,7 +1364,7 @@ export default function HomePage() {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: '280px 1fr 280px',
+              gridTemplateColumns: gridCols,
               gap: 20,
               marginBottom: 20,
               alignItems: 'start',
@@ -1387,9 +1383,14 @@ export default function HomePage() {
               onAnalyzeAddress={analyzeAddress}
             />
 
-            {/* Col 3: Signal list */}
-            <SignalList signals={analysis.riskScore.signals} />
+            {/* Col 3: Signal list — full width on tablet/mobile */}
+            <div style={isTablet ? { gridColumn: '1 / -1' } : {}}>
+              <SignalList signals={analysis.riskScore.signals} />
+            </div>
           </div>
+
+          {/* Timeline chart */}
+          <TransactionTimeline transactions={analysis.transactions} />
 
           {/* Row 3: Tabbed panel */}
           <div

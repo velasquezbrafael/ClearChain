@@ -126,28 +126,15 @@ export default function NarrativeCard({ narrative, address, analyzedAt }: Narrat
             borderRadius: 2,
           }}
         >
-          <svg
-            width="12"
-            height="12"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#ff8c00"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-          </svg>
           <span
             style={{
               fontFamily: 'var(--font-jetbrains-mono)',
               fontSize: 10,
               letterSpacing: '0.1em',
-              color: 'var(--text-secondary)',
+              color: 'var(--text-dim)',
             }}
           >
-            CLAUDE HAIKU
+            AI-GENERATED NARRATIVE
           </span>
         </div>
 

@@ -187,6 +187,22 @@ export default function RiskScoreCard({ riskScore }: RiskScoreCardProps) {
             </span>
           </div>
 
+          {/* Percentile */}
+          {(() => {
+            let pct: number;
+            if (level === 'CRITICAL') pct = Math.round(75 + ((total - 75) / 25) * 19);
+            else if (level === 'HIGH') pct = Math.round(60 + ((total - 50) / 24) * 14);
+            else if (level === 'MEDIUM') pct = Math.round(30 + ((total - 25) / 24) * 29);
+            else pct = 100 - total;
+            return (
+              <p style={{ fontFamily: 'var(--font-inter)', fontSize: 11, color: 'var(--text-dim)', fontStyle: 'italic', margin: '0 0 16px' }}>
+                {level === 'LOW'
+                  ? `Lower risk than ${pct}% of analyzed wallets`
+                  : `Higher risk than ${pct}% of analyzed wallets`}
+              </p>
+            );
+          })()}
+
           {/* Description */}
           <p
             style={{

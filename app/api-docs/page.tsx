@@ -3,7 +3,10 @@
 import { useState } from 'react';
 import Link from 'next/link';
 
-const BASE_URL = 'https://clear-chain-peach.vercel.app/api';
+const BASE_URL = (
+  process.env.NEXT_PUBLIC_BASE_URL ??
+  (typeof window !== 'undefined' ? window.location.origin : 'https://clear-chain-peach.vercel.app')
+) + '/api';
 const EXAMPLE_ADDRESS = '0x722122dF12D4e14e13Ac3b6895a86e84145b6967';
 
 const CURL_COMMAND = `curl -X POST ${BASE_URL}/analyze \\
