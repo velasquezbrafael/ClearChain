@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 interface InfoTooltipProps {
   text: string;
@@ -8,10 +9,20 @@ interface InfoTooltipProps {
 
 export default function InfoTooltip({ text }: InfoTooltipProps) {
   const [visible, setVisible] = useState(false);
+  const [pos, setPos] = useState({ top: 0, left: 0 });
+  const [mounted, setMounted] = useState(false);
+  const iconRef = useRef<HTMLSpanElement>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Only portal after hydration
+  useEffect(() => { setMounted(true); }, []);
 
   function show() {
     if (timerRef.current) clearTimeout(timerRef.current);
+    if (iconRef.current) {
+      const rect = iconRef.current.getBoundingClientRect();
+      setPos({ top: rect.top, left: rect.left + rect.width / 2 });
+    }
     setVisible(true);
   }
 
@@ -19,69 +30,40 @@ export default function InfoTooltip({ text }: InfoTooltipProps) {
     timerRef.current = setTimeout(() => setVisible(false), 80);
   }
 
-  return (
-    <span
-      style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}
-      onMouseEnter={show}
-      onMouseLeave={hide}
-    >
-      {/* ⓘ circle */}
-      <span
-        aria-label="More information"
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: 14,
-          height: 14,
-          borderRadius: '50%',
-          border: '1px solid rgba(255,255,255,0.15)',
-          fontFamily: 'var(--font-jetbrains-mono)',
-          fontSize: 9,
-          color: 'var(--text-dim)',
-          cursor: 'default',
-          lineHeight: 1,
-          userSelect: 'none',
-          transition: 'border-color 0.15s, color 0.15s',
-          ...(visible ? { borderColor: 'rgba(0,255,136,0.4)', color: '#00ff88' } : {}),
-        }}
-      >
-        i
-      </span>
-
-      {/* Tooltip */}
-      {visible && (
+  const tooltip = mounted && visible
+    ? createPortal(
         <div
           style={{
-            position: 'absolute',
-            bottom: '100%',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            marginBottom: 8,
+            position: 'fixed',
+            top: pos.top,
+            left: pos.left,
+            // go above the icon: shift up by 100% of self + 10px gap
+            transform: 'translateX(-50%) translateY(calc(-100% - 10px))',
             background: '#0d1220',
-            border: '1px solid rgba(255,255,255,0.1)',
+            border: '1px solid rgba(0,255,136,0.25)',
             borderRadius: 4,
             padding: '10px 14px',
-            maxWidth: 280,
+            maxWidth: 300,
             width: 'max-content',
-            zIndex: 200,
+            zIndex: 9999,
             pointerEvents: 'none',
+            opacity: 1,
+            animation: 'tooltipFadeIn 0.12s ease-out both',
           }}
         >
-          {/* Arrow */}
+          {/* Down-pointing arrow */}
           <div
             style={{
               position: 'absolute',
               bottom: -5,
               left: '50%',
-              transform: 'translateX(-50%)',
+              transform: 'translateX(-50%) rotate(45deg)',
               width: 8,
               height: 8,
               background: '#0d1220',
-              border: '1px solid rgba(255,255,255,0.1)',
+              border: '1px solid rgba(0,255,136,0.25)',
               borderTop: 'none',
               borderLeft: 'none',
-              rotate: '45deg',
             }}
           />
           <p
@@ -95,8 +77,41 @@ export default function InfoTooltip({ text }: InfoTooltipProps) {
           >
             {text}
           </p>
-        </div>
-      )}
+        </div>,
+        document.body
+      )
+    : null;
+
+  return (
+    <span
+      style={{ display: 'inline-flex', alignItems: 'center' }}
+      onMouseEnter={show}
+      onMouseLeave={hide}
+    >
+      <span
+        ref={iconRef}
+        aria-label="More information"
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: 14,
+          height: 14,
+          borderRadius: '50%',
+          border: `1px solid ${visible ? 'rgba(0,255,136,0.4)' : 'rgba(255,255,255,0.15)'}`,
+          fontFamily: 'var(--font-jetbrains-mono)',
+          fontSize: 9,
+          color: visible ? '#00ff88' : 'var(--text-dim)',
+          cursor: 'default',
+          lineHeight: 1,
+          userSelect: 'none',
+          transition: 'border-color 0.15s, color 0.15s',
+          flexShrink: 0,
+        }}
+      >
+        i
+      </span>
+      {tooltip}
     </span>
   );
 }

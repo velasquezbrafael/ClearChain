@@ -933,7 +933,7 @@ function ResultsAddressBar({
         onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
         onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-dim)'; }}
       >
-        CLEAR →
+        ← NEW ANALYSIS
       </button>
     </div>
   );

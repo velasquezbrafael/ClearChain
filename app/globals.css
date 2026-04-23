@@ -35,6 +35,11 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+@keyframes tooltipFadeIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(calc(-100% - 14px)); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(calc(-100% - 10px)); }
+}
+
 @keyframes fadeSlideUp {
   from {
     opacity: 0;

@@ -34,6 +34,11 @@ function truncateAddr(addr: string): string {
   return `${addr.slice(0, 8)}...${addr.slice(-6)}`;
 }
 
+function truncateHash(hash: string): string {
+  if (!hash || hash.length <= 14) return hash;
+  return `${hash.slice(0, 10)}...${hash.slice(-6)}`;
+}
+
 function formatDate(ts: number): string {
   try {
     return new Date(ts * 1000).toLocaleString('en-US', {
@@ -50,6 +55,14 @@ function riskTag(addr: string): { label: string; color: string } | null {
   if (MIXER_ADDRESSES.has(lower)) return { label: 'OFAC SDN', color: '#ff3b3b' };
   if (HIGH_RISK_ADDRESSES.has(lower)) return { label: 'HIGH RISK', color: '#ff8c00' };
   return null;
+}
+
+// FIX: flag only if the COUNTERPARTY is high-risk (not the queried address itself)
+function isTxFlagged(tx: WalletTransaction, queriedAddress: string): boolean {
+  const selfLower = queriedAddress.toLowerCase();
+  const counterparty = tx.isInbound ? tx.from.toLowerCase() : tx.to.toLowerCase();
+  if (counterparty === selfLower) return false;
+  return riskTag(counterparty) !== null;
 }
 
 function AddressCell({ addr }: { addr: string }) {
@@ -128,6 +141,9 @@ export default function TransactionBreakdown({
   const sorted = [...transactions].sort((a, b) => b.timestamp - a.timestamp);
   const display = sorted.slice(0, MAX_DISPLAY);
 
+  // Fixed: exclude self-references when counting flagged
+  const flaggedCount = transactions.filter(tx => isTxFlagged(tx, queriedAddress)).length;
+
   if (transactions.length === 0) {
     return (
       <div
@@ -179,8 +195,8 @@ export default function TransactionBreakdown({
           <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: 'var(--text-dim)', marginBottom: 4 }}>
             FLAGGED
           </div>
-          <div style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 24, fontWeight: 700, color: '#ff3b3b' }}>
-            {transactions.filter(tx => riskTag(tx.from) || riskTag(tx.to)).length}
+          <div style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 24, fontWeight: 700, color: flaggedCount > 0 ? '#ff3b3b' : 'var(--text-primary)' }}>
+            {flaggedCount}
           </div>
         </div>
       </div>
@@ -190,7 +206,7 @@ export default function TransactionBreakdown({
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-              {['DATE', 'DIR', 'AMOUNT', 'FROM', 'TO'].map(col => (
+              {['HASH', 'DATE', 'DIR', 'AMOUNT', 'FROM', 'TO'].map(col => (
                 <th
                   key={col}
                   style={{
@@ -212,21 +228,39 @@ export default function TransactionBreakdown({
           <tbody>
             {display.map((tx, idx) => {
               const isInbound = tx.isInbound ?? tx.to.toLowerCase() === queriedAddress.toLowerCase();
-              const fromTag = riskTag(tx.from);
-              const toTag = riskTag(tx.to);
-              const isFlagged = !!(fromTag || toTag);
+              const flagged = isTxFlagged(tx, queriedAddress);
 
               return (
                 <tr
                   key={`${tx.hash}-${idx}`}
                   style={{
                     borderBottom: '1px solid rgba(255,255,255,0.03)',
-                    background: isFlagged ? 'rgba(255,59,59,0.03)' : 'transparent',
+                    background: flagged ? 'rgba(255,59,59,0.03)' : 'transparent',
                     transition: 'background 0.15s',
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.background = isFlagged ? 'rgba(255,59,59,0.06)' : 'rgba(255,255,255,0.02)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = isFlagged ? 'rgba(255,59,59,0.03)' : 'transparent'; }}
+                  onMouseEnter={e => { e.currentTarget.style.background = flagged ? 'rgba(255,59,59,0.06)' : 'rgba(255,255,255,0.02)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = flagged ? 'rgba(255,59,59,0.03)' : 'transparent'; }}
                 >
+                  {/* Hash — links to Etherscan */}
+                  <td style={{ padding: '11px 16px' }}>
+                    <a
+                      href={`https://etherscan.io/tx/${tx.hash}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={tx.hash}
+                      style={{
+                        fontFamily: 'var(--font-jetbrains-mono)',
+                        fontSize: 11,
+                        color: 'var(--text-dim)',
+                        textDecoration: 'none',
+                        transition: 'color 0.15s',
+                      }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = '#00ff88'; }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-dim)'; }}
+                    >
+                      {truncateHash(tx.hash)}
+                    </a>
+                  </td>
                   <td
                     style={{
                       padding: '11px 16px',
