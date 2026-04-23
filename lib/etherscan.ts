@@ -310,5 +310,92 @@ export function getWalletAge(transactions: WalletTransaction[]): number {
   const nowSeconds = Date.now() / 1000;
   const ageSeconds = nowSeconds - earliestTimestamp;
 
-  return Math.floor(ageSeconds / 86400); // Convert seconds to days
+  return Math.floor(ageSeconds / 86400);
+}
+
+/**
+ * Resolve an ENS name or pass-through a raw 0x address.
+ *
+ * - 0x address → returned lowercase as-is (no network call)
+ * - *.eth or any string containing "." → resolved via Alchemy alchemy_resolveName
+ * - Anything else → thrown as invalid
+ *
+ * @throws Error if resolution fails or the name is unregistered
+ */
+export async function resolveENS(input: string): Promise<string> {
+  const trimmed = input.trim();
+
+  // Already a valid address — skip resolution
+  if (/^0x[a-fA-F0-9]{40}$/.test(trimmed)) {
+    return trimmed.toLowerCase();
+  }
+
+  // Must contain a dot to be a valid ENS name
+  if (!trimmed.includes('.')) {
+    throw new Error(`Invalid address or ENS name: "${trimmed}"`);
+  }
+
+  const apiKey = process.env.ALCHEMY_API_KEY;
+  if (!apiKey) {
+    throw new Error('Alchemy API key not configured — cannot resolve ENS');
+  }
+
+  const url = `${ALCHEMY_BASE_URL}/${apiKey}`;
+  const body = {
+    jsonrpc: '2.0',
+    id: 1,
+    method: 'alchemy_resolveName',
+    params: [trimmed],
+  };
+
+  let data: { result?: string | null; error?: { message: string } };
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    data = await response.json();
+  } catch (err) {
+    throw new Error(`ENS resolution network error: ${err instanceof Error ? err.message : String(err)}`);
+  }
+
+  if (data.error) {
+    throw new Error(`ENS resolution error: ${data.error.message}`);
+  }
+
+  if (!data.result) {
+    throw new Error(`ENS name '${trimmed}' could not be resolved — name may be unregistered or expired`);
+  }
+
+  return data.result.toLowerCase();
+}
+
+/**
+ * Return the top N unique counterparty addresses by total ETH volume exchanged
+ * with the queried wallet.
+ *
+ * Uses the `isInbound` flag to identify the counterparty side of each
+ * transaction (inbound → from, outbound → to).
+ *
+ * @param transactions Normalized transactions from the queried wallet
+ * @param limit        Maximum number of addresses to return
+ */
+export function getTopCounterparties(transactions: WalletTransaction[], limit: number): string[] {
+  const volumeMap = new Map<string, number>();
+
+  for (const tx of transactions) {
+    const counterparty = tx.isInbound ? tx.from.toLowerCase() : tx.to.toLowerCase();
+    if (counterparty) {
+      volumeMap.set(counterparty, (volumeMap.get(counterparty) ?? 0) + tx.value);
+    }
+  }
+
+  return [...volumeMap.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, limit)
+    .map(([addr]) => addr);
 }

@@ -9,6 +9,7 @@ import SARDraftCard from '@/components/SARDraftCard';
 import TransactionBreakdown from '@/components/TransactionBreakdown';
 import TransactionGraph from '@/components/TransactionGraph';
 import SkeletonLoader from '@/components/SkeletonLoader';
+import ExportButton from '@/components/ExportButton';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -32,11 +33,18 @@ type Tab = typeof TABS[number];
 // API types
 // ---------------------------------------------------------------------------
 
+interface HopEntry {
+  address: string;
+  transactions: import('@/types').WalletTransaction[];
+}
+
 interface AnalysisAPIResponse {
   success: true;
   data: WalletAnalysis;
   narrative: string;
   sarDraft: string;
+  hopData?: HopEntry[];
+  resolvedAddress?: string;
 }
 
 interface ErrorAPIResponse {
@@ -306,6 +314,7 @@ function HeroContent({
   onSubmit,
   onQuickFill,
   error,
+  analysisCount,
 }: {
   address: string;
   setAddress: (v: string) => void;
@@ -315,6 +324,7 @@ function HeroContent({
   onSubmit: (e: React.FormEvent) => void;
   onQuickFill: (addr: string) => void;
   error: string | null;
+  analysisCount: number;
 }) {
   const features = [
     { label: '0–100', title: 'Risk Score', desc: 'OFAC exposure, mixer hops, velocity anomalies, and volume clustering.' },
@@ -322,6 +332,7 @@ function HeroContent({
     { label: 'D3', title: 'Transaction Graph', desc: 'Force-directed graph of all counterparties — OFAC entities in red.' },
     { label: 'SAR', title: 'SAR Draft', desc: 'FinCEN-style narrative ready for compliance officer review and filing.' },
   ];
+
 
   const quickFills = [
     { label: 'Tornado Cash', sublabel: 'OFAC SDN · Router', addr: TORNADO_CASH },
@@ -489,6 +500,19 @@ function HeroContent({
               {label}
             </span>
           ))}
+          <span
+            style={{
+              padding: '6px 14px',
+              border: '1px solid rgba(0,255,136,0.12)',
+              borderRadius: 2,
+              fontFamily: 'var(--font-jetbrains-mono)',
+              fontSize: 10,
+              letterSpacing: '0.1em',
+              color: 'rgba(0,255,136,0.6)',
+            }}
+          >
+            {analysisCount.toLocaleString()} Analyses Run
+          </span>
         </div>
 
         {/* Quick fills */}
@@ -577,28 +601,45 @@ function AnalyzeButton({ loading, compact }: { loading: boolean; compact?: boole
   const [hovered, setHovered] = useState(false);
 
   return (
-    <button
-      type="submit"
-      disabled={loading}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        background: 'none',
-        border: 'none',
-        cursor: loading ? 'wait' : 'pointer',
-        fontFamily: 'var(--font-jetbrains-mono)',
-        fontSize: compact ? 11 : 13,
-        letterSpacing: '0.12em',
-        color: '#00ff88',
-        padding: '0 4px',
-        flexShrink: 0,
-        textShadow: hovered && !loading ? '0 0 20px rgba(0,255,136,0.8), 0 0 40px rgba(0,255,136,0.4)' : 'none',
-        transition: 'text-shadow 0.2s',
-        opacity: loading ? 0.5 : 1,
-      }}
-    >
-      {loading ? '...' : '→ ANALYZE'}
-    </button>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+      <button
+        type="submit"
+        disabled={loading}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        style={{
+          background: 'none',
+          border: 'none',
+          cursor: loading ? 'wait' : 'pointer',
+          fontFamily: 'var(--font-jetbrains-mono)',
+          fontSize: compact ? 11 : 13,
+          letterSpacing: '0.12em',
+          color: '#00ff88',
+          padding: '0 4px',
+          textShadow: hovered && !loading ? '0 0 20px rgba(0,255,136,0.8), 0 0 40px rgba(0,255,136,0.4)' : 'none',
+          transition: 'text-shadow 0.2s',
+          opacity: loading ? 0.5 : 1,
+        }}
+      >
+        {loading ? '...' : '→ ANALYZE'}
+      </button>
+      {!compact && (
+        <span
+          style={{
+            fontFamily: 'var(--font-jetbrains-mono)',
+            fontSize: 9,
+            letterSpacing: '0.08em',
+            color: 'var(--text-dim)',
+            padding: '2px 6px',
+            border: '1px solid rgba(255,255,255,0.06)',
+            borderRadius: 2,
+            lineHeight: 1.5,
+          }}
+        >
+          ⌘↵
+        </span>
+      )}
+    </div>
   );
 }
 
@@ -616,6 +657,7 @@ function ResultsAddressBar({
   inputFocused,
   setInputFocused,
   onSubmit,
+  exportButton,
 }: {
   address: string;
   analyzedAt: string;
@@ -626,6 +668,7 @@ function ResultsAddressBar({
   inputFocused: boolean;
   setInputFocused: (v: boolean) => void;
   onSubmit: (e: React.FormEvent) => void;
+  exportButton?: React.ReactNode;
 }) {
   return (
     <div
@@ -718,6 +761,9 @@ function ResultsAddressBar({
         <AnalyzeButton loading={loading} compact />
       </form>
 
+      {/* Export PDF */}
+      {exportButton}
+
       {/* New Analysis link */}
       <button
         onClick={onNewAnalysis}
@@ -758,8 +804,13 @@ export default function HomePage() {
   const [analysis, setAnalysis]     = useState<WalletAnalysis | null>(null);
   const [narrative, setNarrative]   = useState<string | null>(null);
   const [sarDraft, setSarDraft]     = useState<string | null>(null);
+  const [hopData, setHopData]       = useState<HopEntry[] | undefined>(undefined);
   const [activeTab, setActiveTab]   = useState<Tab>('TYPOLOGIES');
   const [inputFocused, setInputFocused] = useState(false);
+  const [analysisCount, setAnalysisCount] = useState<number>(() => {
+    if (typeof window === 'undefined') return 1200;
+    return parseInt(localStorage.getItem('cc_analysis_count') ?? '1200', 10);
+  });
 
   // Auto-analyze from ?address= on load
   useEffect(() => {
@@ -769,6 +820,20 @@ export default function HomePage() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Cmd+Enter / Ctrl+Enter shortcut
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+        e.preventDefault();
+        const trimmed = address.trim();
+        if (trimmed && !loading) runAnalysis(trimmed);
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [address, loading]);
 
   // Loading step ticker
   useEffect(() => {
@@ -786,6 +851,7 @@ export default function HomePage() {
     setAnalysis(null);
     setNarrative(null);
     setSarDraft(null);
+    setHopData(undefined);
     setActiveTab('TYPOLOGIES');
 
     const controller = new AbortController();
@@ -807,10 +873,14 @@ export default function HomePage() {
         return;
       }
 
-      const { data, narrative: nar, sarDraft: sar } = json as AnalysisAPIResponse;
+      const { data, narrative: nar, sarDraft: sar, hopData: hops } = json as AnalysisAPIResponse;
       setAnalysis(data);
       setNarrative(nar ?? null);
       setSarDraft(sar ?? null);
+      setHopData(hops);
+      const newCount = analysisCount + 1;
+      setAnalysisCount(newCount);
+      localStorage.setItem('cc_analysis_count', String(newCount));
       window.history.pushState({}, '', `?address=${addr}`);
     } catch (err) {
       clearTimeout(timeout);
@@ -827,9 +897,11 @@ export default function HomePage() {
   async function handleAnalyze(e: React.FormEvent) {
     e.preventDefault();
     const trimmed = address.trim();
-    if (!trimmed) { setError('Please enter an Ethereum wallet address.'); return; }
-    if (!/^0x[a-fA-F0-9]{40}$/.test(trimmed)) {
-      setError('Invalid address format. Must start with 0x followed by 40 hex characters.');
+    if (!trimmed) { setError('Please enter an Ethereum wallet address or ENS name.'); return; }
+    const isHexAddr = /^0x[a-fA-F0-9]{40}$/.test(trimmed);
+    const isEns = trimmed.includes('.');
+    if (!isHexAddr && !isEns) {
+      setError('Invalid input. Enter a 0x address (42 chars) or an ENS name like vitalik.eth.');
       return;
     }
     await runAnalysis(trimmed);
@@ -844,6 +916,7 @@ export default function HomePage() {
     setAnalysis(null);
     setNarrative(null);
     setSarDraft(null);
+    setHopData(undefined);
     setError(null);
     setAddress('');
     window.history.pushState({}, '', '/');
@@ -983,6 +1056,7 @@ export default function HomePage() {
           onSubmit={handleAnalyze}
           onQuickFill={handleQuickFill}
           error={error}
+          analysisCount={analysisCount}
         />
       </div>
 
@@ -1076,6 +1150,7 @@ export default function HomePage() {
             inputFocused={inputFocused}
             setInputFocused={setInputFocused}
             onSubmit={handleAnalyze}
+            exportButton={<ExportButton analysis={analysis} narrative={narrative} sarDraft={sarDraft} />}
           />
 
           {/* Row 2: 3-col layout */}
@@ -1097,6 +1172,7 @@ export default function HomePage() {
             <TransactionGraph
               transactions={analysis.transactions}
               queriedAddress={analysis.address}
+              hopData={hopData}
             />
 
             {/* Col 3: Signal list */}

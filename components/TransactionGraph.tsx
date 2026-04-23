@@ -36,6 +36,7 @@ interface GraphNode {
   isQueried: boolean;
   isMixer: boolean;
   isHighRisk: boolean;
+  hopLevel: 0 | 1 | 2;
   x?: number;
   y?: number;
   vx?: number;
@@ -52,6 +53,7 @@ interface GraphLink {
   hash: string;
   timestamp: number;
   count: number;
+  hopLevel: 1 | 2;
 }
 
 type NodeTooltip = {
@@ -59,6 +61,7 @@ type NodeTooltip = {
   address: string;
   volume: number;
   flags: string[];
+  hopLevel: 0 | 1 | 2;
 };
 
 type EdgeTooltip = {
@@ -75,10 +78,16 @@ type TooltipData = {
   content: NodeTooltip | EdgeTooltip;
 } | null;
 
+interface HopEntry {
+  address: string;
+  transactions: WalletTransaction[];
+}
+
 function nodeColor(n: GraphNode): string {
   if (n.isQueried) return '#00ff88';
   if (n.isMixer) return '#ef4444';
   if (n.isHighRisk) return '#f97316';
+  if (n.hopLevel === 2) return '#3d4a5c';
   return '#4b5563';
 }
 
@@ -95,14 +104,16 @@ function formatDate(ts: number): string {
 interface TransactionGraphProps {
   transactions: WalletTransaction[];
   queriedAddress: string;
+  hopData?: HopEntry[];
 }
 
-export default function TransactionGraph({ transactions, queriedAddress }: TransactionGraphProps) {
+export default function TransactionGraph({ transactions, queriedAddress, hopData }: TransactionGraphProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const simRef = useRef<d3.Simulation<GraphNode, GraphLink> | null>(null);
   const [tooltip, setTooltip] = useState<TooltipData>(null);
   const [containerWidth, setContainerWidth] = useState(0);
+  const [hopDepth, setHopDepth] = useState<1 | 2>(1);
 
   useEffect(() => {
     if (!svgRef.current || !containerRef.current) return;
@@ -120,7 +131,9 @@ export default function TransactionGraph({ transactions, queriedAddress }: Trans
 
     const queried = queriedAddress.toLowerCase();
 
-    // Build volume map
+    // ---------------------------------------------------------------------------
+    // Hop-1: build from primary transactions
+    // ---------------------------------------------------------------------------
     const volMap = new Map<string, number>();
     for (const tx of transactions) {
       const f = tx.from.toLowerCase();
@@ -131,7 +144,6 @@ export default function TransactionGraph({ transactions, queriedAddress }: Trans
       }
     }
 
-    // Build aggregated links (merge parallel edges)
     const linkMap = new Map<string, GraphLink>();
     for (const tx of transactions) {
       const f = tx.from.toLowerCase();
@@ -143,25 +155,66 @@ export default function TransactionGraph({ transactions, queriedAddress }: Trans
         existing.value += tx.value;
         existing.count += 1;
       } else {
-        linkMap.set(key, {
-          source: f,
-          target: t,
-          value: tx.value,
-          hash: tx.hash,
-          timestamp: tx.timestamp,
-          count: 1,
-        });
+        linkMap.set(key, { source: f, target: t, value: tx.value, hash: tx.hash, timestamp: tx.timestamp, count: 1, hopLevel: 1 });
       }
     }
 
-    const nodes: GraphNode[] = Array.from(volMap.entries()).map(([id, volume]) => ({
-      id,
-      volume,
-      isQueried: id === queried,
-      isMixer: MIXER_ADDRESSES.has(id),
-      isHighRisk: HIGH_RISK_ADDRESSES.has(id),
-      ...(id === queried ? { fx: W / 2, fy: H / 2 } : {}),
-    }));
+    // hop-1 addresses (direct counterparties)
+    const hop1Addrs = new Set<string>();
+    for (const [id] of volMap) {
+      if (id !== queried) hop1Addrs.add(id);
+    }
+
+    // ---------------------------------------------------------------------------
+    // Hop-2: add from hopData if toggled
+    // ---------------------------------------------------------------------------
+    if (hopDepth === 2 && hopData && hopData.length > 0) {
+      for (const entry of hopData) {
+        const hop1Addr = entry.address.toLowerCase();
+        if (!hop1Addrs.has(hop1Addr)) continue;
+
+        for (const tx of entry.transactions) {
+          const f = tx.from.toLowerCase();
+          const t = tx.to.toLowerCase();
+          if (f === t) continue;
+          // Only add nodes that are NOT already in the primary graph
+          const isHop2From = !volMap.has(f) && f !== queried;
+          const isHop2To = !volMap.has(t) && t !== queried;
+
+          if (isHop2From) {
+            volMap.set(f, (volMap.get(f) ?? 0) + tx.value * 0.5);
+          }
+          if (isHop2To) {
+            volMap.set(t, (volMap.get(t) ?? 0) + tx.value * 0.5);
+          }
+
+          // Only add link if at least one end is a new hop-2 node
+          if (isHop2From || isHop2To) {
+            const key = `hop2|||${f}|||${t}`;
+            if (!linkMap.has(key)) {
+              linkMap.set(key, { source: f, target: t, value: tx.value, hash: tx.hash, timestamp: tx.timestamp, count: 1, hopLevel: 2 });
+            }
+          }
+        }
+      }
+    }
+
+    // ---------------------------------------------------------------------------
+    // Build node + link arrays
+    // ---------------------------------------------------------------------------
+    const nodes: GraphNode[] = Array.from(volMap.entries()).map(([id, volume]) => {
+      const isHop1 = hop1Addrs.has(id);
+      const hopLevel: 0 | 1 | 2 = id === queried ? 0 : isHop1 ? 1 : 2;
+      return {
+        id,
+        volume,
+        isQueried: id === queried,
+        isMixer: MIXER_ADDRESSES.has(id),
+        isHighRisk: HIGH_RISK_ADDRESSES.has(id),
+        hopLevel,
+        ...(id === queried ? { fx: W / 2, fy: H / 2 } : {}),
+      };
+    });
 
     const links: GraphLink[] = Array.from(linkMap.values());
 
@@ -180,7 +233,6 @@ export default function TransactionGraph({ transactions, queriedAddress }: Trans
       .attr('width', W)
       .attr('height', H);
 
-    // Defs — arrowhead marker
     const defs = svg.append('defs');
     defs.append('marker')
       .attr('id', 'arrow-gray')
@@ -195,7 +247,19 @@ export default function TransactionGraph({ transactions, queriedAddress }: Trans
       .attr('fill', '#6b7280')
       .attr('opacity', 0.7);
 
-    // Zoom group
+    defs.append('marker')
+      .attr('id', 'arrow-dim')
+      .attr('viewBox', '0 -4 8 8')
+      .attr('refX', 8)
+      .attr('refY', 0)
+      .attr('orient', 'auto')
+      .attr('markerWidth', 6)
+      .attr('markerHeight', 6)
+      .append('path')
+      .attr('d', 'M0,-4L8,0L0,4')
+      .attr('fill', '#3d4a5c')
+      .attr('opacity', 0.5);
+
     const g = svg.append('g');
 
     const zoom = d3.zoom<SVGSVGElement, unknown>()
@@ -207,18 +271,17 @@ export default function TransactionGraph({ transactions, queriedAddress }: Trans
 
     svg.call(zoom);
 
-    // Links
     const linkEls = g.append('g')
       .selectAll<SVGLineElement, GraphLink>('line')
       .data(links)
       .join('line')
-      .attr('stroke', '#6b7280')
-      .attr('stroke-opacity', 0.5)
-      .attr('stroke-width', d => wScale(d.value))
-      .attr('marker-end', 'url(#arrow-gray)')
+      .attr('stroke', d => d.hopLevel === 2 ? 'rgba(61,74,92,0.5)' : '#6b7280')
+      .attr('stroke-opacity', d => d.hopLevel === 2 ? 0.35 : 0.5)
+      .attr('stroke-width', d => d.hopLevel === 2 ? 1 : wScale(d.value))
+      .attr('stroke-dasharray', d => d.hopLevel === 2 ? '3 3' : 'none')
+      .attr('marker-end', d => d.hopLevel === 2 ? 'url(#arrow-dim)' : 'url(#arrow-gray)')
       .style('cursor', 'pointer');
 
-    // Node groups
     const nodeG = g.append('g')
       .selectAll<SVGGElement, GraphNode>('g')
       .data(nodes)
@@ -226,13 +289,19 @@ export default function TransactionGraph({ transactions, queriedAddress }: Trans
       .style('cursor', 'grab');
 
     nodeG.append('circle')
-      .attr('r', d => rScale(d.volume))
+      .attr('r', d => {
+        const base = rScale(d.volume);
+        return d.hopLevel === 2 ? base * 0.55 : base;
+      })
       .attr('fill', d => nodeColor(d))
-      .attr('fill-opacity', d => d.isQueried ? 1 : 0.75)
+      .attr('fill-opacity', d => {
+        if (d.isQueried) return 1;
+        if (d.hopLevel === 2) return 0.4;
+        return 0.75;
+      })
       .attr('stroke', d => d.isQueried ? '#00ff88' : '#0a0a0f')
       .attr('stroke-width', d => d.isQueried ? 3 : 1);
 
-    // Pulse ring for queried node
     nodeG.filter(d => d.isQueried).append('circle')
       .attr('r', d => rScale(d.volume) + 8)
       .attr('fill', 'none')
@@ -241,20 +310,33 @@ export default function TransactionGraph({ transactions, queriedAddress }: Trans
       .attr('stroke-opacity', 0.3);
 
     nodeG.append('text')
-      .text(d => d.isQueried ? 'Queried' : (rScale(d.volume) >= 12 ? truncateAddr(d.id) : ''))
-      .attr('font-size', d => d.isQueried ? '11px' : '9px')
+      .text(d => {
+        if (d.isQueried) return 'Queried';
+        if (d.hopLevel === 2) return rScale(d.volume) * 0.55 >= 10 ? truncateAddr(d.id) : '';
+        return rScale(d.volume) >= 12 ? truncateAddr(d.id) : '';
+      })
+      .attr('font-size', d => d.isQueried ? '11px' : d.hopLevel === 2 ? '8px' : '9px')
       .attr('font-family', 'monospace')
-      .attr('fill', d => d.isQueried ? '#00ff88' : '#9ca3af')
+      .attr('fill', d => {
+        if (d.isQueried) return '#00ff88';
+        if (d.hopLevel === 2) return '#4b5563';
+        return '#9ca3af';
+      })
       .attr('text-anchor', 'middle')
-      .attr('dy', d => rScale(d.volume) + 14)
+      .attr('dy', d => {
+        const r = d.hopLevel === 2 ? rScale(d.volume) * 0.55 : rScale(d.volume);
+        return r + 14;
+      })
       .attr('pointer-events', 'none');
 
-    // Simulation
     const simulation = d3.forceSimulation<GraphNode>(nodes)
-      .force('link', d3.forceLink<GraphNode, GraphLink>(links).id(d => d.id).distance(130).strength(0.7))
-      .force('charge', d3.forceManyBody<GraphNode>().strength(-350))
+      .force('link', d3.forceLink<GraphNode, GraphLink>(links).id(d => d.id).distance(d => (d as unknown as GraphLink).hopLevel === 2 ? 80 : 130).strength(0.7))
+      .force('charge', d3.forceManyBody<GraphNode>().strength(d => d.hopLevel === 2 ? -150 : -350))
       .force('center', d3.forceCenter(W / 2, H / 2))
-      .force('collision', d3.forceCollide<GraphNode>().radius(d => rScale(d.volume) + 18));
+      .force('collision', d3.forceCollide<GraphNode>().radius(d => {
+        const r = d.hopLevel === 2 ? rScale(d.volume) * 0.55 : rScale(d.volume);
+        return r + (d.hopLevel === 2 ? 10 : 18);
+      }));
 
     simRef.current = simulation;
 
@@ -269,7 +351,7 @@ export default function TransactionGraph({ transactions, queriedAddress }: Trans
           const dy = (tgt.y ?? 0) - (src.y ?? 0);
           const len = Math.sqrt(dx * dx + dy * dy);
           if (len === 0) return tgt.x ?? 0;
-          const r = rScale(tgt.volume) + 6;
+          const r = (tgt.hopLevel === 2 ? rScale(tgt.volume) * 0.55 : rScale(tgt.volume)) + 6;
           return (tgt.x ?? 0) - (dx / len) * r;
         })
         .attr('y2', d => {
@@ -279,14 +361,13 @@ export default function TransactionGraph({ transactions, queriedAddress }: Trans
           const dy = (tgt.y ?? 0) - (src.y ?? 0);
           const len = Math.sqrt(dx * dx + dy * dy);
           if (len === 0) return tgt.y ?? 0;
-          const r = rScale(tgt.volume) + 6;
+          const r = (tgt.hopLevel === 2 ? rScale(tgt.volume) * 0.55 : rScale(tgt.volume)) + 6;
           return (tgt.y ?? 0) - (dy / len) * r;
         });
 
       nodeG.attr('transform', d => `translate(${d.x ?? 0},${d.y ?? 0})`);
     });
 
-    // Drag
     const drag = d3.drag<SVGGElement, GraphNode>()
       .on('start', (event, d) => {
         if (!event.active) simulation.alphaTarget(0.3).restart();
@@ -307,17 +388,17 @@ export default function TransactionGraph({ transactions, queriedAddress }: Trans
 
     nodeG.call(drag);
 
-    // Node tooltips
     nodeG
       .on('mouseover', (event: MouseEvent, d: GraphNode) => {
         const rect = container.getBoundingClientRect();
         const flags: string[] = [];
         if (d.isMixer) flags.push('Tornado Cash (OFAC SDN)');
         if (d.isHighRisk) flags.push('High-risk counterparty');
+        if (d.hopLevel === 2) flags.push('2nd-hop counterparty');
         setTooltip({
           x: event.clientX - rect.left,
           y: event.clientY - rect.top,
-          content: { kind: 'node', address: d.id, volume: d.volume, flags },
+          content: { kind: 'node', address: d.id, volume: d.volume, flags, hopLevel: d.hopLevel },
         });
       })
       .on('mousemove', (event: MouseEvent) => {
@@ -326,7 +407,6 @@ export default function TransactionGraph({ transactions, queriedAddress }: Trans
       })
       .on('mouseout', () => setTooltip(null));
 
-    // Edge tooltips
     linkEls
       .on('mouseover', (event: MouseEvent, d: GraphLink) => {
         const rect = container.getBoundingClientRect();
@@ -345,7 +425,9 @@ export default function TransactionGraph({ transactions, queriedAddress }: Trans
     return () => {
       simulation.stop();
     };
-  }, [transactions, queriedAddress]);
+  }, [transactions, queriedAddress, hopData, hopDepth]);
+
+  const hasHopData = hopData && hopData.length > 0;
 
   return (
     <div
@@ -370,35 +452,72 @@ export default function TransactionGraph({ transactions, queriedAddress }: Trans
           flexWrap: 'wrap',
         }}
       >
-        <div>
-          <div
-            style={{
-              fontFamily: 'var(--font-jetbrains-mono)',
-              fontSize: 10,
-              letterSpacing: '0.15em',
-              color: 'var(--text-dim)',
-              marginBottom: 3,
-            }}
-          >
-            TRANSACTION GRAPH
-          </div>
-          <p
-            style={{
-              fontFamily: 'var(--font-inter)',
-              fontSize: 12,
-              color: 'var(--text-secondary)',
-              margin: 0,
-            }}
-          >
-            Force-directed — drag nodes, scroll to zoom
-          </p>
-        </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div>
+            <div
+              style={{
+                fontFamily: 'var(--font-jetbrains-mono)',
+                fontSize: 10,
+                letterSpacing: '0.15em',
+                color: 'var(--text-dim)',
+                marginBottom: 3,
+              }}
+            >
+              TRANSACTION GRAPH
+            </div>
+            <p
+              style={{
+                fontFamily: 'var(--font-inter)',
+                fontSize: 12,
+                color: 'var(--text-secondary)',
+                margin: 0,
+              }}
+            >
+              Force-directed — drag nodes, scroll to zoom
+            </p>
+          </div>
+
+          {/* Hop toggle */}
+          {hasHopData && (
+            <div
+              style={{
+                display: 'flex',
+                border: '1px solid rgba(255,255,255,0.08)',
+                borderRadius: 3,
+                overflow: 'hidden',
+              }}
+            >
+              {([1, 2] as const).map(depth => (
+                <button
+                  key={depth}
+                  onClick={() => setHopDepth(depth)}
+                  style={{
+                    padding: '5px 12px',
+                    fontFamily: 'var(--font-jetbrains-mono)',
+                    fontSize: 9,
+                    letterSpacing: '0.1em',
+                    border: 'none',
+                    cursor: 'pointer',
+                    transition: 'background 0.15s, color 0.15s',
+                    background: hopDepth === depth ? 'rgba(0,255,136,0.12)' : 'transparent',
+                    color: hopDepth === depth ? '#00ff88' : 'var(--text-dim)',
+                    borderRight: depth === 1 ? '1px solid rgba(255,255,255,0.08)' : 'none',
+                  }}
+                >
+                  {depth} HOP{depth === 2 ? 'S' : ''}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
           {[
             { color: '#00ff88', label: 'QUERIED' },
             { color: '#ff3b3b', label: 'OFAC/MIXER' },
             { color: '#ff8c00', label: 'HIGH RISK' },
-            { color: '#3d4a5c', label: 'UNKNOWN' },
+            { color: '#4b5563', label: 'HOP 1' },
+            ...(hopDepth === 2 ? [{ color: '#3d4a5c', label: 'HOP 2' }] : []),
           ].map(({ color, label }) => (
             <span
               key={label}
@@ -420,6 +539,7 @@ export default function TransactionGraph({ transactions, queriedAddress }: Trans
                   background: color,
                   boxShadow: `0 0 6px ${color}88`,
                   flexShrink: 0,
+                  opacity: label === 'HOP 2' ? 0.5 : 1,
                 }}
               />
               {label}
@@ -471,6 +591,8 @@ export default function TransactionGraph({ transactions, queriedAddress }: Trans
                 <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.08em', color: '#00ff88' }}>
                   {tooltip.content.address.toLowerCase() === queriedAddress.toLowerCase()
                     ? 'QUERIED WALLET'
+                    : tooltip.content.hopLevel === 2
+                    ? '2ND HOP'
                     : 'COUNTERPARTY'}
                 </div>
                 <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: 'var(--text-secondary)', wordBreak: 'break-all' }}>
@@ -481,7 +603,7 @@ export default function TransactionGraph({ transactions, queriedAddress }: Trans
                 </div>
                 {tooltip.content.flags.length > 0 &&
                   tooltip.content.flags.map(f => (
-                    <div key={f} style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#ff3b3b' }}>
+                    <div key={f} style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: f.includes('2nd') ? '#6b7280' : '#ff3b3b' }}>
                       {f}
                     </div>
                   ))}

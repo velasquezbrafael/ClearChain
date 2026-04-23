@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+
 interface NarrativeCardProps {
   narrative: string | null;
   address: string;
@@ -23,6 +25,14 @@ function truncateAddress(addr: string): string {
 }
 
 export default function NarrativeCard({ narrative, address, analyzedAt }: NarrativeCardProps) {
+  const [copied, setCopied] = useState(false);
+
+  function copyAddress() {
+    navigator.clipboard.writeText(address).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  }
   const isFailed = !!narrative && narrative.toLowerCase().includes('generation failed');
   const isReady = !!narrative && !isFailed;
 
@@ -141,16 +151,22 @@ export default function NarrativeCard({ narrative, address, analyzedAt }: Narrat
           </span>
         </div>
 
-        <span
+        <button
+          onClick={copyAddress}
+          title={address}
           style={{
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            padding: 0,
             fontFamily: 'var(--font-jetbrains-mono)',
             fontSize: 10,
-            color: 'var(--text-dim)',
+            color: copied ? '#00ff88' : 'var(--text-dim)',
+            transition: 'color 0.2s',
           }}
-          title={address}
         >
-          {truncateAddress(address)}
-        </span>
+          {copied ? 'COPIED' : truncateAddress(address)}
+        </button>
 
         <span
           style={{
