@@ -6,37 +6,54 @@ _Maintained by Rocky (Cowork). Claude Code: read this before starting work, mark
 
 ## 🔴 Active (do these now)
 
-### [ACTIVE] Fund Flow Visualization (Sankey diagram)
-Build a new tab "FLOW" next to TYPOLOGIES/NARRATIVE/etc. Shows ETH movement as a Sankey/river diagram:
-- Left column: source addresses
-- Middle: mixer/intermediary nodes
-- Right: destination (queried wallet)
-- Arrow thickness proportional to ETH volume
-- Color coded by risk (red=OFAC, orange=high-risk, gray=unknown)
-- Built with pure SVG (no new libraries)
-- Only show if ≥3 hops detected in transaction data
+### [ACTIVE] Graph intelligence — connected node highlighting
+When a node is expanded in Investigation Mode and new counterparties load, check each new counterparty against the existing node list. If a new counterparty address is ALREADY in the graph (from a different expansion path), render it with a distinct "overlap" indicator — a pulsing outer ring or double-border circle in yellow/gold (`#ffd60a`).
 
-### Graph intelligence — connected node highlighting
-When a node is expanded in Investigation Mode and new counterparties load, auto-highlight any new counterparty that is ALREADY in the graph (showing a circle/ring indicator). This reveals when two separate wallets share a common counterparty — a key money laundering pattern.
+This reveals when two separate wallets share a common counterparty — a critical money laundering pattern called "convergence." It should appear automatically without user action when the overlap is detected.
 
-### Case intelligence view
-On the case detail page (`/dashboard/cases/[id]`), add a combined network graph showing ALL addresses in the case as one shared D3 graph. Connections between case addresses are highlighted. Uses the same Investigation Mode graph component. This shows if any two wallets in the case are connected to each other or share common counterparties.
+In `TransactionGraph.tsx`, in the `expandNode` function, after fetching new counterparties:
+```typescript
+// For each new node coming in, check if it's already in the graph
+const overlapping = data.nodes.filter(n => 
+  graphNodes.some(existing => existing.id === n.address.toLowerCase())
+);
+// Mark overlapping nodes with state: 'overlap' and apply gold ring style
+```
 
-### Dashboard polish
-- Total Analyses stat is showing 0 (analyses aren't saving to Supabase when logged in — debug the analyze route's user auth save)
-- Add pagination to recent analyses table (currently capped at 10)
-- Add status filter to cases list (filter by open/under_review/escalated/etc)
+Add a new legend item: `● OVERLAP` in gold, shown when any overlap is detected.
+
+---
+
+### [ACTIVE] Case intelligence view
+On the case detail page (`/dashboard/cases/[id]`), add a "NETWORK" section that shows all addresses in the case as a single combined D3 force-directed graph.
+
+- Each case address = a node, color-coded by its risk level (red=CRITICAL, orange=HIGH, yellow=MEDIUM, green=LOW/CLEAN)
+- If two addresses in the case share a known common counterparty (from their stored analyses), draw an edge between them with label "shared counterparty"
+- Use the same `TransactionGraph` component with `investigationMode={false}` and `showCaseLinks={true}`
+- Node click opens that address's full analysis in a new tab
+- Empty state: "Add addresses to this case to see the network graph"
+
+This is the feature that shows investigators whether their case subjects are connected.
+
+---
+
+### [ACTIVE] Dashboard polish
+Three quick items:
+1. **Pagination** on the Recent Analyses table — currently capped at 10. Add "Load more" button or page numbers. Fetch next 10 from Supabase with `.range(offset, offset+9)`.
+2. **Status filter** on Cases list — dropdown filter: All / Open / Under Review / Escalated / SAR Filed / Closed. Filters the cases query client-side or adds a `.eq('status', filter)` to the Supabase query.
+3. **Critical Findings count** on dashboard — currently shows 0. Fix: count analyses where `risk_level = 'CRITICAL'` from the `analyses` table for this user.
+
+After all three active items: `npx tsc --noEmit` → `git add . && git commit -m "feat: overlap detection, case network graph, dashboard polish" && git push && vercel --prod`
 
 ---
 
 ## 🔵 Planned
 
-### Bitcoin support
-- Bitcoin uses UTXO model (different from Ethereum's account model)
-- Need new `lib/bitcoin.ts` client using a Bitcoin API (Blockstream.info or Mempool.space — both free)
-- New scoring engine branch for UTXO analysis (different typologies: coinjoin, peeling chains)
-- Add chain selector on the main search: `[ETH] [BTC]` toggle
-- OFAC list needs Bitcoin address support (separate address format)
+### Tron (TRX) chain support
+- Tron is the #1 chain for sanctions evasion and drug trafficking
+- Use TronGrid API (free tier, no key required for basic access)
+- Add `[ETH] [BTC] [TRX]` toggle
+- TRX-specific OFAC addresses (OFAC has sanctioned many Tron addresses)
 
 ### API key system + monetization
 - Add `api_keys` table to Supabase

@@ -37,7 +37,10 @@ export default function CasesPage() {
   const [error, setError] = useState('')
   const [userEmail, setUserEmail] = useState('')
 
+  const [statusFilter, setStatusFilter] = useState<string>('all')
   const supabase = createClient()
+
+  const filteredCases = statusFilter === 'all' ? cases : cases.filter(c => c.status === statusFilter)
 
   useEffect(() => {
     async function load() {
@@ -111,12 +114,26 @@ export default function CasesPage() {
             <div style={{ fontSize: 11, letterSpacing: '0.2em', color: '#3d4a5c', marginBottom: 4 }}>COMPLIANCE</div>
             <h1 style={{ fontSize: 24, fontWeight: 700, color: '#f0f4ff', margin: 0 }}>Cases</h1>
           </div>
-          <button
-            onClick={() => setShowForm(v => !v)}
-            style={{ padding: '10px 20px', background: 'rgba(0,255,136,0.1)', border: '1px solid rgba(0,255,136,0.3)', borderRadius: 4, color: '#00ff88', fontSize: 11, letterSpacing: '0.12em', cursor: 'pointer', fontFamily: 'var(--font-jetbrains-mono)' }}
-          >
-            + NEW CASE
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <select
+              value={statusFilter}
+              onChange={e => setStatusFilter(e.target.value)}
+              style={{ background: '#080b14', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 4, color: '#8892a4', fontSize: 11, letterSpacing: '0.08em', padding: '8px 12px', cursor: 'pointer', fontFamily: 'var(--font-jetbrains-mono)' }}
+            >
+              <option value="all">ALL</option>
+              <option value="open">OPEN</option>
+              <option value="under_review">UNDER REVIEW</option>
+              <option value="escalated">ESCALATED</option>
+              <option value="sar_filed">SAR FILED</option>
+              <option value="closed">CLOSED</option>
+            </select>
+            <button
+              onClick={() => setShowForm(v => !v)}
+              style={{ padding: '10px 20px', background: 'rgba(0,255,136,0.1)', border: '1px solid rgba(0,255,136,0.3)', borderRadius: 4, color: '#00ff88', fontSize: 11, letterSpacing: '0.12em', cursor: 'pointer', fontFamily: 'var(--font-jetbrains-mono)' }}
+            >
+              + NEW CASE
+            </button>
+          </div>
         </div>
 
         {/* Inline create form */}
@@ -145,9 +162,9 @@ export default function CasesPage() {
 
         {loading ? (
           <div style={{ color: '#3d4a5c', fontSize: 13, textAlign: 'center', padding: 40 }}>Loading...</div>
-        ) : cases.length === 0 ? (
+        ) : filteredCases.length === 0 ? (
           <div style={{ padding: '48px', textAlign: 'center', color: '#3d4a5c', fontSize: 13, background: '#080b14', borderRadius: 8, border: '1px solid rgba(255,255,255,0.06)' }}>
-            No cases yet. Click + NEW CASE to create one.
+            {cases.length === 0 ? 'No cases yet. Click + NEW CASE to create one.' : 'No cases match this filter.'}
           </div>
         ) : (
           <div style={{ background: '#080b14', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, overflow: 'hidden' }}>
@@ -160,7 +177,7 @@ export default function CasesPage() {
                 </tr>
               </thead>
               <tbody>
-                {cases.map(c => (
+                {filteredCases.map(c => (
                   <tr key={c.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
                     <td style={{ padding: '14px 16px', fontSize: 13, color: '#f0f4ff', fontWeight: 500 }}>{c.title}</td>
                     <td style={{ padding: '14px 16px' }}>

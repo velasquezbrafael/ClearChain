@@ -84,6 +84,7 @@ interface InvNode {
   isMixer: boolean;
   isHighRisk: boolean;
   isOfac: boolean;
+  isOverlap?: boolean;
   label: string | null;
   txCount: number;
   x?: number; y?: number; vx?: number; vy?: number;
@@ -278,6 +279,7 @@ function initInvestigationD3({
         if (d.isMixer) flags.push('Tornado Cash (OFAC SDN)');
         if (d.isHighRisk) flags.push('High-risk counterparty');
         if (d.isOfac && !d.isMixer) flags.push('OFAC-sanctioned');
+        if (d.isOverlap) flags.push('CONVERGENCE — shared by multiple paths');
         if (d.state === 'unexpanded') flags.push('Click to expand');
         if (d.state === 'at-limit') flags.push('Max depth reached');
         onTooltip({ x: event.clientX - rect.left, y: event.clientY - rect.top,
@@ -334,6 +336,10 @@ function initInvestigationD3({
       .attr('r', d => rScale(d.volume) + 4).attr('fill', 'none')
       .attr('stroke', '#6b7280').attr('stroke-width', 1).attr('stroke-dasharray', '3 3').attr('stroke-opacity', 0.5);
 
+    entering.filter(d => !!d.isOverlap).append('circle').attr('class', 'overlap-ring')
+      .attr('r', d => rScale(d.volume) + 7).attr('fill', 'none')
+      .attr('stroke', '#ffd60a').attr('stroke-width', 2).attr('stroke-opacity', 0.9);
+
     entering.append('text')
       .attr('font-size', '9px').attr('font-family', 'monospace')
       .attr('fill', d => d.state === 'root' ? '#00ff88' : '#9ca3af')
@@ -349,6 +355,19 @@ function initInvestigationD3({
       .text(d => d.state === 'root' ? 'ROOT' : d.state === 'loading' ? '...' : rScale(d.volume) >= 10 ? truncateAddr(d.id) : '');
 
     const merged = entering.merge(sel as d3.Selection<SVGGElement, InvNode, SVGGElement, unknown>);
+
+    // Add overlap ring to existing nodes that became overlapping after initial render
+    merged.each(function(d) {
+      if (d.isOverlap) {
+        const g = d3.select<SVGGElement, InvNode>(this);
+        if (g.select('circle.overlap-ring').empty()) {
+          g.insert('circle', 'text').attr('class', 'overlap-ring')
+            .attr('r', rScale(d.volume) + 7).attr('fill', 'none')
+            .attr('stroke', '#ffd60a').attr('stroke-width', 2).attr('stroke-opacity', 0.9);
+        }
+      }
+    });
+
     merged.style('cursor', d => d.state === 'unexpanded' ? 'pointer' : 'default');
     attachInteraction(merged);
   }
@@ -572,6 +591,9 @@ export default function TransactionGraph({
                 depth: node.depth + 1, volume: cp.volume, isMixer: cp.isMixer,
                 isHighRisk: cp.isHighRisk, isOfac: cp.isOfac, label: cp.label, txCount: cp.txCount,
               };
+            } else if (next[cp.address].state !== 'root') {
+              // Already in graph from a different expansion path — convergence detected
+              next[cp.address] = { ...next[cp.address], isOverlap: true };
             }
           }
           return next;
@@ -727,6 +749,8 @@ export default function TransactionGraph({
   })();
   const totalETHFlow = transactions.reduce((sum, tx) => sum + tx.value, 0);
 
+  const invOverlapCount = Object.values(invNodeMap).filter(n => n.isOverlap).length;
+
   const baseLegend = [
     { color: '#00ff88', label: 'QUERIED' },
     { color: '#ff3b3b', label: 'OFAC/MIXER' },
@@ -734,7 +758,13 @@ export default function TransactionGraph({
   ];
   const legend = investigationMode
     ? (expandedTrail.length > 0
-      ? [...baseLegend, { color: '#4b5563', label: 'UNEXPANDED' }, { color: '#2563eb', label: 'EXPANDED' }, { color: '#374151', label: 'AT LIMIT' }]
+      ? [
+          ...baseLegend,
+          { color: '#4b5563', label: 'UNEXPANDED' },
+          { color: '#2563eb', label: 'EXPANDED' },
+          { color: '#374151', label: 'AT LIMIT' },
+          ...(invOverlapCount > 0 ? [{ color: '#ffd60a', label: 'OVERLAP' }] : []),
+        ]
       : baseLegend)
     : [...baseLegend, { color: '#4b5563', label: 'HOP 1' }, ...(hopDepth === 2 ? [{ color: '#3d4a5c', label: 'HOP 2' }] : [])];
 
@@ -980,7 +1010,7 @@ export default function TransactionGraph({
             </div>
             <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: 'var(--text-dim)', letterSpacing: '0.08em' }}>
               {investigationMode
-                ? `${invNodeCount} NODES · ${invEdgeCount} EDGES · DEPTH ${invMaxDepth} · ${invRiskCount > 0 ? invRiskCount + ' HIGH-RISK' : '0 RISK'}`
+                ? `${invNodeCount} NODES · ${invEdgeCount} EDGES · DEPTH ${invMaxDepth} · ${invRiskCount > 0 ? invRiskCount + ' HIGH-RISK' : '0 RISK'}${invOverlapCount > 0 ? ' · ' + invOverlapCount + ' OVERLAP' : ''}`
                 : `${transactions.length} TXN${transactions.length !== 1 ? 'S' : ''} · ${hop1Count} COUNTERPART${hop1Count !== 1 ? 'IES' : 'Y'} · ${highRiskCount > 0 ? highRiskCount + ' OFAC' : '0 OFAC'}`
               }
             </div>
@@ -1057,6 +1087,7 @@ export default function TransactionGraph({
             <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: 'var(--text-dim)', letterSpacing: '0.08em' }}>
               {invNodeCount} NODES&nbsp;·&nbsp;{invEdgeCount} EDGES&nbsp;·&nbsp;DEPTH {invMaxDepth}&nbsp;·&nbsp;
               {invRiskCount > 0 ? <span style={{ color: '#ff3b3b' }}>{invRiskCount} HIGH-RISK</span> : <span>0 RISK</span>}
+              {invOverlapCount > 0 && <>&nbsp;·&nbsp;<span style={{ color: '#ffd60a' }}>{invOverlapCount} OVERLAP</span></>}
             </div>
             <button onClick={resetGraph}
               style={{ background: 'rgba(0,255,136,0.04)', border: '1px solid rgba(0,255,136,0.2)', borderRadius: 3, color: '#00ff88', cursor: 'pointer', padding: '3px 10px', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 8, letterSpacing: '0.1em', transition: 'background 0.15s, border-color 0.15s' }}

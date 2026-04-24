@@ -28,22 +28,33 @@ function RiskBadge({ level }: { level: string }) {
   )
 }
 
-export default async function DashboardPage() {
+const PAGE_SIZE = 10
+
+export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
 
-  const [{ data: analyses }, { count: totalAnalysesCount }, { data: cases }] = await Promise.all([
+  const { page: pageParam } = await searchParams
+  const page = Math.max(1, parseInt(pageParam ?? '1', 10) || 1)
+  const offset = (page - 1) * PAGE_SIZE
+
+  const [{ data: analyses }, { count: totalAnalysesCount }, { count: criticalCount }, { data: cases }] = await Promise.all([
     supabase
       .from('analyses')
       .select('id, address, chain, risk_score, risk_level, analyzed_at')
       .eq('user_id', user.id)
       .order('analyzed_at', { ascending: false })
-      .limit(10),
+      .range(offset, offset + PAGE_SIZE - 1),
     supabase
       .from('analyses')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', user.id),
+    supabase
+      .from('analyses')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('risk_level', 'CRITICAL'),
     supabase
       .from('cases')
       .select('*, case_addresses(count)')
@@ -52,8 +63,9 @@ export default async function DashboardPage() {
   ])
 
   const totalAnalyses = totalAnalysesCount ?? 0
+  const totalPages = Math.ceil(totalAnalyses / PAGE_SIZE)
   const activeCases = cases?.filter(c => c.status !== 'closed').length ?? 0
-  const criticalFindings = analyses?.filter(a => a.risk_level === 'CRITICAL').length ?? 0
+  const criticalFindings = criticalCount ?? 0
 
   async function signOut() {
     'use server'
@@ -150,6 +162,25 @@ export default async function DashboardPage() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+          {totalPages > 1 && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 12 }}>
+              <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#3d4a5c' }}>
+                Page {page} of {totalPages} · {totalAnalyses} total
+              </span>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {page > 1 && (
+                  <a href={`/dashboard?page=${page - 1}`} style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#8892a4', textDecoration: 'none', padding: '6px 14px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 3 }}>
+                    ← Prev
+                  </a>
+                )}
+                {page < totalPages && (
+                  <a href={`/dashboard?page=${page + 1}`} style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#00ff88', textDecoration: 'none', padding: '6px 14px', border: '1px solid rgba(0,255,136,0.25)', borderRadius: 3 }}>
+                    Next →
+                  </a>
+                )}
+              </div>
             </div>
           )}
         </div>

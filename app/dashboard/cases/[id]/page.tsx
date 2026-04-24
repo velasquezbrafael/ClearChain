@@ -3,6 +3,7 @@
 import { useEffect, useState, use } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import CaseNetworkGraph from '@/components/CaseNetworkGraph'
 
 const STATUS_OPTIONS = ['open', 'under_review', 'escalated', 'sar_filed', 'closed'] as const
 const STATUS_COLORS: Record<string, string> = {
@@ -307,6 +308,12 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
             </button>
           </form>
           {addressError && <div style={{ marginTop: 10, color: '#ff3b3b', fontSize: 12 }}>{addressError}</div>}
+        </div>
+
+        {/* Network graph */}
+        <div style={{ marginBottom: 48 }}>
+          <div style={{ fontSize: 11, letterSpacing: '0.15em', color: '#8892a4', marginBottom: 16 }}>NETWORK</div>
+          <CaseNetworkGraph addresses={addresses.map(a => ({ address: a.address, riskLevel: a.risk_level, chain: a.chain }))} />
         </div>
 
         {/* Notes */}
