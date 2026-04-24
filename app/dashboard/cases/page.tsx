@@ -98,7 +98,7 @@ export default function CasesPage() {
       {/* Nav */}
       <nav style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 56 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
-          <span style={{ fontSize: 13, letterSpacing: '0.2em', color: '#00ff88', fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 700 }}>CLEARCHAIN</span>
+          <span style={{ fontSize: 15, letterSpacing: '0.15em', color: '#00ff88', fontFamily: 'var(--font-rubik-glitch)', fontWeight: 400 }}>CLEARCHAIN</span>
           <a href="/" style={{ fontSize: 12, color: '#8892a4', textDecoration: 'none' }}>← Back to Tool</a>
           <a href="/dashboard" style={{ fontSize: 12, color: '#8892a4', textDecoration: 'none' }}>Dashboard</a>
           <a href="/intel" style={{ fontSize: 12, color: '#8892a4', textDecoration: 'none' }}>Intel</a>

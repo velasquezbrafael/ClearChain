@@ -409,19 +409,22 @@ function FeatureCard({ title, desc, icon }: { title: string; desc: string; icon?
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        padding: 28,
+        padding: 32,
         border: `1px solid ${hovered ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.06)'}`,
         borderRadius: 4,
         background: hovered ? 'rgba(255,255,255,0.02)' : 'transparent',
         transition: 'border-color 0.2s, background 0.2s',
         cursor: 'default',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
       }}
     >
       {icon && <div style={{ marginBottom: 14, opacity: hovered ? 1 : 0.7, transition: 'opacity 0.2s' }}>{icon}</div>}
       <div
         style={{
           fontFamily: 'var(--font-jetbrains-mono)',
-          fontSize: 10,
+          fontSize: 11,
           letterSpacing: '0.15em',
           color: '#00ff88',
           marginBottom: 10,
@@ -432,7 +435,7 @@ function FeatureCard({ title, desc, icon }: { title: string; desc: string; icon?
       <p
         style={{
           fontFamily: 'var(--font-inter)',
-          fontSize: 13,
+          fontSize: 14,
           color: 'var(--text-secondary)',
           lineHeight: 1.6,
           margin: 0,
@@ -680,7 +683,7 @@ function HeroContent({
             animationDelay: '0.25s',
           }}
         >
-          Trace funds across Ethereum, Bitcoin, and Tron. Identify OFAC-sanctioned wallets, detect mixer usage, and generate FinCEN SAR drafts automatically — the intelligence platform that used to cost $200K a year.
+          Real-time OFAC screening, AML typology detection, and SAR draft generation — across Ethereum, Bitcoin, and Tron. In seconds, not days.
         </p>
 
         {/* Search bar */}
@@ -981,10 +984,11 @@ function HeroContent({
             gridTemplateColumns: 'repeat(5, 1fr)',
             gap: 1,
             background: 'rgba(255,255,255,0.04)',
+            alignItems: 'stretch',
           }}
         >
           {features.map(f => (
-            <div key={f.title} style={{ background: '#03040a' }}>
+            <div key={f.title} style={{ background: '#03040a', display: 'flex', alignItems: 'stretch' }}>
               <FeatureCard title={f.title} desc={f.desc} icon={f.icon} />
             </div>
           ))}
@@ -1053,6 +1057,70 @@ function HeroContent({
               </p>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Why ClearChain */}
+      <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', width: '100%' }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '80px 32px' }}>
+          {/* Header */}
+          <div style={{ marginBottom: 60 }}>
+            <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.2em', color: '#3d4a5c', marginBottom: 16, textTransform: 'uppercase' as const }}>
+              Why ClearChain
+            </div>
+            <h2 style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 36, fontWeight: 700, color: '#f0f4ff', margin: '0 0 16px', letterSpacing: '-0.01em' }}>
+              Built for investigators, not checkboxes.
+            </h2>
+            <p style={{ fontFamily: 'var(--font-inter)', fontSize: 16, color: '#8892a4', margin: 0, lineHeight: 1.6, maxWidth: 560 }}>
+              Most AML tools produce reports for regulators. ClearChain produces intelligence for analysts.
+            </p>
+          </div>
+
+          {/* Comparison grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', marginBottom: 64 }}>
+            {[
+              {
+                left: { label: 'LEGACY TOOLS', body: 'Black-box scores. A number with no explanation. You file a SAR because the score said so.' },
+                right: { label: 'CLEARCHAIN', body: 'Every point explained. Six signals, each with detail. You know exactly why a wallet scored 65.' },
+              },
+              {
+                left: { label: 'LEGACY TOOLS', body: 'Ethereum-only, or multi-chain at 10× the price. Bitcoin and Tron are afterthoughts.' },
+                right: { label: 'CLEARCHAIN', body: 'ETH, BTC, and TRX in one tool. OFAC-designated addresses across all three chains. Free.' },
+              },
+              {
+                left: { label: 'LEGACY TOOLS', body: 'SAR generation is a separate workflow. Copy the report, open another tool, rewrite it.' },
+                right: { label: 'CLEARCHAIN', body: 'SAR draft generated automatically from the analysis. One click to download. BSA-formatted.' },
+              },
+            ].map((row, i) => (
+              <>
+                <div key={`left-${i}`} style={{ padding: '28px 32px', border: '1px solid rgba(255,255,255,0.06)', background: '#080b14' }}>
+                  <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.15em', color: '#3d4a5c', marginBottom: 12 }}>{row.left.label}</div>
+                  <p style={{ fontFamily: 'var(--font-inter)', fontSize: 15, color: '#8892a4', lineHeight: 1.7, margin: 0 }}>{row.left.body}</p>
+                </div>
+                <div key={`right-${i}`} style={{ padding: '28px 32px', border: '1px solid rgba(255,255,255,0.06)', background: 'transparent' }}>
+                  <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.15em', color: '#3d4a5c', marginBottom: 12 }}>{row.right.label}</div>
+                  <p style={{ fontFamily: 'var(--font-inter)', fontSize: 15, color: '#8892a4', lineHeight: 1.7, margin: 0 }}>{row.right.body}</p>
+                </div>
+              </>
+            ))}
+          </div>
+
+          {/* Stat row */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0 }}>
+            {[
+              { value: '< 10s', label: 'average analysis time' },
+              { value: '3 chains', label: 'ETH, BTC, TRX' },
+              { value: 'Free', label: 'no account required' },
+            ].map((stat, i) => (
+              <>
+                {i > 0 && <div key={`div-${i}`} style={{ width: 1, height: 40, background: 'rgba(255,255,255,0.06)', margin: '0 48px' }} />}
+                <div key={stat.value} style={{ textAlign: 'center' }}>
+                  <div style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 32, fontWeight: 700, color: '#00ff88', lineHeight: 1, marginBottom: 8 }}>{stat.value}</div>
+                  <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.12em', color: '#3d4a5c' }}>{stat.label}</div>
+                </div>
+              </>
+            ))}
+          </div>
         </div>
       </div>
     </div>
