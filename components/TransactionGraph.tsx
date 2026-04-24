@@ -600,7 +600,7 @@ export default function TransactionGraph({
     if (isFullscreen) return;
     const container = containerRef.current;
     const W = container.clientWidth; setContainerWidth(W);
-    const H = containerHeight ?? 500;
+    const H = containerHeight ?? 420;
     const { nodeMap, edges } = buildInitialInvState(transactions, queriedAddress);
     const nodes = Object.values(nodeMap);
     if (invCardStopRef.current) { invCardStopRef.current(); invCardStopRef.current = null; }
@@ -705,15 +705,16 @@ export default function TransactionGraph({
   })();
   const totalETHFlow = transactions.reduce((sum, tx) => sum + tx.value, 0);
 
-  const legend = [
+  const baseLegend = [
     { color: '#00ff88', label: 'QUERIED' },
     { color: '#ff3b3b', label: 'OFAC/MIXER' },
     { color: '#ff8c00', label: 'HIGH RISK' },
-    { color: '#4b5563', label: investigationMode ? 'UNEXPANDED' : 'HOP 1' },
-    ...(investigationMode
-      ? [{ color: '#2563eb', label: 'EXPANDED' }, { color: '#374151', label: 'AT LIMIT' }]
-      : hopDepth === 2 ? [{ color: '#3d4a5c', label: 'HOP 2' }] : []),
   ];
+  const legend = investigationMode
+    ? (expandedTrail.length > 0
+      ? [...baseLegend, { color: '#4b5563', label: 'UNEXPANDED' }, { color: '#2563eb', label: 'EXPANDED' }, { color: '#374151', label: 'AT LIMIT' }]
+      : baseLegend)
+    : [...baseLegend, { color: '#4b5563', label: 'HOP 1' }, ...(hopDepth === 2 ? [{ color: '#3d4a5c', label: 'HOP 2' }] : [])];
 
   function renderTooltipContent(tt: TooltipData, cWidth: number) {
     if (!tt) return null;
@@ -856,9 +857,10 @@ export default function TransactionGraph({
           {/* Top bar */}
           <div style={{ height: 52, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', borderBottom: '1px solid rgba(255,255,255,0.06)', gap: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, minWidth: 0 }}>
-              <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.12em', color: investigationMode ? '#7c3aed' : 'var(--text-dim)', flexShrink: 0 }}>
-                {investigationMode ? 'INVESTIGATION MODE' : 'TRANSACTION GRAPH'}
+              <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.12em', color: 'var(--text-dim)', flexShrink: 0 }}>
+                TRANSACTION GRAPH
               </div>
+              {investigationMode && <span style={{ background: 'rgba(0,255,136,0.08)', color: '#00ff88', border: '1px solid rgba(0,255,136,0.25)', borderRadius: 2, padding: '1px 7px', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 8, letterSpacing: '0.1em' }}>INVESTIGATION MODE</span>}
               {investigationMode ? breadcrumb : (
                 <span style={{ color: 'var(--text-secondary)', letterSpacing: 0, fontFamily: 'var(--font-inter)', fontSize: 12 }}>
                   {queriedAddress.slice(0, 10)}...{queriedAddress.slice(-8)}
@@ -948,44 +950,47 @@ export default function TransactionGraph({
     <>
       {fullscreenPortal}
       <div style={{ border: '1px solid rgba(255,255,255,0.06)', borderRadius: 4, background: '#080b14', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-        {/* Header */}
-        <div style={{ padding: '14px 20px', borderBottom: '1px solid rgba(255,255,255,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16, minWidth: 0, flex: 1 }}>
-            <div>
-              <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: 'var(--text-dim)', marginBottom: 3, display: 'flex', alignItems: 'center', gap: 8 }}>
-                {investigationMode ? (
-                  <>
-                    TRANSACTION GRAPH
-                    <span style={{ background: 'rgba(124,58,237,0.15)', color: '#7c3aed', border: '1px solid rgba(124,58,237,0.3)', borderRadius: 2, padding: '1px 6px', fontSize: 8, letterSpacing: '0.1em' }}>INVESTIGATION MODE</span>
-                  </>
-                ) : (
-                  <>TRANSACTION GRAPH <InfoTooltip text="Each dot is a unique wallet that transacted with this address. Green = queried wallet. Red = OFAC-sanctioned or known mixer. Orange = high-risk. Drag nodes, scroll to zoom." /></>
-                )}
-              </div>
-              <p style={{ fontFamily: 'var(--font-inter)', fontSize: 12, color: 'var(--text-secondary)', margin: 0 }}>
-                {investigationMode ? 'Click nodes to expand the money trail' : 'Force-directed — drag nodes, scroll to zoom'}
-              </p>
-            </div>
-            {!investigationMode && hasHopData && hopToggle}
-            {investigationMode && breadcrumb}
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-            {legend.map(({ color, label }) => (
-              <span key={label} style={{ display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.1em', color: 'var(--text-dim)' }}>
-                <span style={{ width: 6, height: 6, borderRadius: '50%', background: color, flexShrink: 0 }} />{label}
+        {/* Header — two-row layout */}
+        <div style={{ padding: '12px 20px', borderBottom: '1px solid rgba(255,255,255,0.04)', display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {/* Row 1: title + badge + expand */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: 'var(--text-dim)' }}>
+                TRANSACTION GRAPH
               </span>
-            ))}
-            <button onClick={() => { setIsFullscreen(true); setSelectedNode(null); }} title="Fullscreen graph" style={{ background: 'none', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 3, color: 'var(--text-dim)', cursor: 'pointer', padding: '4px 8px', fontSize: 12, lineHeight: 1, transition: 'border-color 0.15s, color 0.15s' }}
+              {investigationMode
+                ? <span style={{ background: 'rgba(0,255,136,0.08)', color: '#00ff88', border: '1px solid rgba(0,255,136,0.25)', borderRadius: 2, padding: '1px 7px', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 8, letterSpacing: '0.1em' }}>INVESTIGATION MODE</span>
+                : <InfoTooltip text="Each dot is a unique wallet that transacted with this address. Green = queried wallet. Red = OFAC-sanctioned or known mixer. Orange = high-risk. Drag nodes, scroll to zoom." />
+              }
+              {!investigationMode && hasHopData && <div style={{ marginLeft: 4 }}>{hopToggle}</div>}
+            </div>
+            <button onClick={() => { setIsFullscreen(true); setSelectedNode(null); }} title="Fullscreen graph"
+              style={{ background: 'none', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 3, color: 'var(--text-dim)', cursor: 'pointer', padding: '4px 8px', fontSize: 12, lineHeight: 1, transition: 'border-color 0.15s, color 0.15s', flexShrink: 0 }}
               onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#00ff88'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(0,255,136,0.3)'; }}
               onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-dim)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.08)'; }}>
               ⛶
             </button>
           </div>
+          {/* Row 2: instruction + legend */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+              <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: 'var(--text-dim)', letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>
+                {investigationMode ? 'Click any node to trace funds →' : 'Force-directed — drag nodes, scroll to zoom'}
+              </span>
+              {investigationMode && expandedTrail.length > 0 && breadcrumb}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+              {legend.map(({ color, label }) => (
+                <span key={label} style={{ display: 'flex', alignItems: 'center', gap: 5, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.06em', color: 'var(--text-dim)', whiteSpace: 'nowrap' }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: color, flexShrink: 0 }} />{label}
+                </span>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Graph canvas */}
-        <div ref={containerRef} style={{ position: 'relative', flex: 1, minHeight: containerHeight ?? 500 }}>
+        <div ref={containerRef} style={{ position: 'relative', flex: 1, minHeight: containerHeight ?? 420 }}>
           {transactions.length === 0 ? (
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, letterSpacing: '0.12em', color: 'var(--text-dim)' }}>NO TRANSACTIONS TO GRAPH</div>
           ) : (
@@ -996,15 +1001,16 @@ export default function TransactionGraph({
 
         {/* Investigation stats bar */}
         {investigationMode && invNodeCount > 0 && (
-          <div style={{ padding: '8px 20px', borderTop: '1px solid rgba(255,255,255,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+          <div style={{ padding: '7px 20px', borderTop: '1px solid rgba(255,255,255,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
             <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: 'var(--text-dim)', letterSpacing: '0.08em' }}>
               {invNodeCount} NODES&nbsp;·&nbsp;{invEdgeCount} EDGES&nbsp;·&nbsp;DEPTH {invMaxDepth}&nbsp;·&nbsp;
-              {invRiskCount > 0 ? <span style={{ color: '#ff3b3b' }}>{invRiskCount} HIGH-RISK</span> : '0 RISK'}
+              {invRiskCount > 0 ? <span style={{ color: '#ff3b3b' }}>{invRiskCount} HIGH-RISK</span> : <span>0 RISK</span>}
             </div>
-            <button onClick={resetGraph} style={{ background: 'none', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 3, color: 'var(--text-dim)', cursor: 'pointer', padding: '3px 10px', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 8, letterSpacing: '0.1em', transition: 'border-color 0.15s, color 0.15s' }}
-              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#f0f4ff'; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-dim)'; }}>
-              RESET GRAPH
+            <button onClick={resetGraph}
+              style={{ background: 'rgba(0,255,136,0.04)', border: '1px solid rgba(0,255,136,0.2)', borderRadius: 3, color: '#00ff88', cursor: 'pointer', padding: '3px 10px', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 8, letterSpacing: '0.1em', transition: 'background 0.15s, border-color 0.15s' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,255,136,0.1)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(0,255,136,0.4)'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,255,136,0.04)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(0,255,136,0.2)'; }}>
+              ⟳ RESET
             </button>
           </div>
         )}

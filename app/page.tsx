@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import type { WalletAnalysis, ScoringSignal, RiskLevel } from '@/types';
 import RiskScoreCard from '@/components/RiskScoreCard';
@@ -1216,6 +1216,7 @@ function ResultsAddressBar({
   exportButton?: React.ReactNode;
   saveButton?: React.ReactNode;
 }) {
+  const [overflowOpen, setOverflowOpen] = React.useState(false);
   return (
     <div
       style={{
@@ -1334,26 +1335,35 @@ function ResultsAddressBar({
         <AnalyzeButton loading={loading} compact />
       </form>
 
-      {/* Share + Save + Export */}
+      {/* Share (primary) */}
       <ShareButton />
-      {saveButton}
-      {exportButton}
 
-      {/* New Analysis link */}
+      {/* ··· overflow: Save + Export */}
+      <div style={{ position: 'relative', flexShrink: 0 }}>
+        <button
+          onClick={() => setOverflowOpen(o => !o)}
+          style={{ background: 'none', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 3, color: 'var(--text-dim)', cursor: 'pointer', padding: '5px 10px', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, lineHeight: 1, letterSpacing: '0.05em', transition: 'border-color 0.15s, color 0.15s' }}
+          onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; }}
+          onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-dim)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
+          title="More actions"
+        >
+          ···
+        </button>
+        {overflowOpen && (
+          <>
+            <div style={{ position: 'fixed', inset: 0, zIndex: 9998 }} onClick={() => setOverflowOpen(false)} />
+            <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 6, zIndex: 9999, background: '#0d1220', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 4, padding: '6px 0', minWidth: 160, boxShadow: '0 8px 24px rgba(0,0,0,0.4)', display: 'flex', flexDirection: 'column' }}>
+              <div onClick={() => setOverflowOpen(false)} style={{ display: 'contents' }}>{saveButton}</div>
+              <div onClick={() => setOverflowOpen(false)} style={{ display: 'contents' }}>{exportButton}</div>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* New Analysis (primary) */}
       <button
         onClick={onNewAnalysis}
-        style={{
-          background: 'none',
-          border: 'none',
-          fontFamily: 'var(--font-jetbrains-mono)',
-          fontSize: 10,
-          letterSpacing: '0.1em',
-          color: 'var(--text-dim)',
-          cursor: 'pointer',
-          flexShrink: 0,
-          padding: 0,
-          transition: 'color 0.2s',
-        }}
+        style={{ background: 'none', border: 'none', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.1em', color: 'var(--text-dim)', cursor: 'pointer', flexShrink: 0, padding: 0, transition: 'color 0.2s' }}
         onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
         onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-dim)'; }}
       >
