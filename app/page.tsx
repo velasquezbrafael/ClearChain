@@ -128,30 +128,34 @@ const slogans = [
   { text: 'följ pengarna', lang: 'swedish' },
 ];
 
-const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&';
+const CHARS = 'abcdefghijklmnopqrstuvwxyz@#$%&*';
 
 function scrambleToWord(
-  current: string,
+  _current: string,
   target: string,
   onUpdate: (val: string) => void,
   onDone: () => void
 ) {
-  const maxLen = Math.max(current.length, target.length);
-  const duration = 700;
-  const steps = 20;
+  const duration = 900;
+  const steps = 30;
   const stepDuration = duration / steps;
   let step = 0;
 
   const interval = setInterval(() => {
     step++;
-    const progress = step / steps;
-    const resolvedCount = Math.floor(progress * target.length);
-    const result = Array.from({ length: maxLen }, (_, i) => {
-      if (i >= target.length) return '';
-      if (i < resolvedCount) return target[i];
+    const progress = step / steps; // 0 → 1
+
+    // Staggered left-to-right resolution:
+    // char 0 resolves at progress ≈ 0.15, last char at ≈ 0.85
+    const result = Array.from({ length: target.length }, (_, i) => {
+      if (target[i] === ' ') return ' '; // spaces lock in immediately
+      const resolveAt = 0.15 + (i / Math.max(target.length - 1, 1)) * 0.70;
+      if (progress >= resolveAt) return target[i];
       return CHARS[Math.floor(Math.random() * CHARS.length)];
     }).join('');
+
     onUpdate(result);
+
     if (step >= steps) {
       clearInterval(interval);
       onUpdate(target);
@@ -741,7 +745,7 @@ function HeroContent({
               autoComplete="off"
               autoCorrect="off"
               disabled={loading}
-              aria-label="Ethereum wallet address"
+              aria-label={selectedChain === 'BTC' ? 'Bitcoin wallet address' : selectedChain === 'TRX' ? 'Tron wallet address' : 'Ethereum wallet address'}
               style={{
                 flex: 1,
                 background: 'none',
@@ -964,7 +968,7 @@ function HeroContent({
       <div
         style={{
           borderTop: '1px solid rgba(255,255,255,0.04)',
-          padding: '48px 24px',
+          padding: '48px 24px 16px',
           maxWidth: 1200,
           margin: '0 auto',
           width: '100%',
@@ -993,7 +997,7 @@ function HeroContent({
       <div
         style={{
           borderTop: '1px solid rgba(255,255,255,0.04)',
-          padding: '56px 24px 64px',
+          padding: '32px 24px 64px',
           maxWidth: 1200,
           margin: '0 auto',
           width: '100%',
@@ -1826,8 +1830,8 @@ export default function HomePage() {
   }
 
   const windowWidth = useWindowWidth();
-  const isMobile = windowWidth < 640;
-  const isTablet = windowWidth >= 640 && windowWidth < 1024;
+  const isMobile = windowWidth < 768;
+  const isTablet = windowWidth >= 768 && windowWidth < 1024;
 
   const gridCols = isMobile ? '1fr' : isTablet ? '1fr 1fr' : '280px 1fr 280px';
 
@@ -1892,75 +1896,81 @@ export default function HomePage() {
               CLEARCHAIN
             </span>
           </button>
-          <span
-            style={{
-              fontFamily: 'var(--font-inter)',
-              fontSize: 12,
-              color: 'var(--text-dim)',
-              paddingLeft: 12,
-              borderLeft: '1px solid rgba(255,255,255,0.06)',
-            }}
-          >
-            Crypto Intelligence Platform
-          </span>
+          {!isMobile && (
+            <span
+              style={{
+                fontFamily: 'var(--font-inter)',
+                fontSize: 12,
+                color: 'var(--text-dim)',
+                paddingLeft: 12,
+                borderLeft: '1px solid rgba(255,255,255,0.06)',
+              }}
+            >
+              Crypto Intelligence Platform
+            </span>
+          )}
         </div>
 
         {/* Nav links */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-          <a
-            href="/api-docs"
-            style={{
-              fontFamily: 'var(--font-jetbrains-mono)',
-              fontSize: 10,
-              letterSpacing: '0.1em',
-              color: 'var(--text-dim)',
-              textDecoration: 'none',
-              transition: 'color 0.15s',
-            }}
-            onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-secondary)'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-dim)'; }}
-          >
-            API DOCS
-          </a>
-          <a
-            href="/intel"
-            style={{
-              fontFamily: 'var(--font-jetbrains-mono)',
-              fontSize: 10,
-              letterSpacing: '0.1em',
-              color: 'var(--text-dim)',
-              textDecoration: 'none',
-              transition: 'color 0.15s',
-            }}
-            onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-secondary)'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-dim)'; }}
-          >
-            INTEL →
-          </a>
+          {!isMobile && (
+            <>
+              <a
+                href="/api-docs"
+                style={{
+                  fontFamily: 'var(--font-jetbrains-mono)',
+                  fontSize: 10,
+                  letterSpacing: '0.1em',
+                  color: 'var(--text-dim)',
+                  textDecoration: 'none',
+                  transition: 'color 0.15s',
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-secondary)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-dim)'; }}
+              >
+                API DOCS
+              </a>
+              <a
+                href="/intel"
+                style={{
+                  fontFamily: 'var(--font-jetbrains-mono)',
+                  fontSize: 10,
+                  letterSpacing: '0.1em',
+                  color: 'var(--text-dim)',
+                  textDecoration: 'none',
+                  transition: 'color 0.15s',
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-secondary)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-dim)'; }}
+              >
+                INTEL →
+              </a>
 
-          {/* Status indicator */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div
-            style={{
-              width: 6,
-              height: 6,
-              borderRadius: '50%',
-              background: '#00ff88',
-              boxShadow: '0 0 8px rgba(0,255,136,0.8)',
-              animation: 'pulseGlow 2s ease-in-out infinite',
-            }}
-          />
-          <span
-            style={{
-              fontFamily: 'var(--font-jetbrains-mono)',
-              fontSize: 10,
-              letterSpacing: '0.1em',
-              color: 'var(--text-dim)',
-            }}
-          >
-            ETH · BTC · TRX
-          </span>
-        </div>
+              {/* Status indicator */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: '50%',
+                    background: '#00ff88',
+                    boxShadow: '0 0 8px rgba(0,255,136,0.8)',
+                    animation: 'pulseGlow 2s ease-in-out infinite',
+                  }}
+                />
+                <span
+                  style={{
+                    fontFamily: 'var(--font-jetbrains-mono)',
+                    fontSize: 10,
+                    letterSpacing: '0.1em',
+                    color: 'var(--text-dim)',
+                  }}
+                >
+                  ETH · BTC · TRX
+                </span>
+              </div>
+            </>
+          )}
 
           {/* Auth nav */}
           {navUser ? (

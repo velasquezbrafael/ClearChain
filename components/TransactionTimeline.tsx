@@ -208,6 +208,11 @@ export default function TransactionTimeline({ transactions }: { transactions: Wa
       <div style={{ overflowX: 'auto', paddingBottom: 2 }}>
         <div style={{ position: 'relative', minWidth: totalWidth }}>
           <svg width={totalWidth} height={TOTAL_H} style={{ display: 'block', overflow: 'visible' }}>
+            {/* Dotted vertical grid lines */}
+            {[0.25, 0.5, 0.75].map(pct => {
+              const gx = Math.round(pct * totalWidth);
+              return <line key={pct} x1={gx} y1={0} x2={gx} y2={CHART_H} stroke="rgba(255,255,255,0.04)" strokeWidth={1} strokeDasharray="3 4" />;
+            })}
             <line x1={0} y1={CHART_H} x2={totalWidth} y2={CHART_H} stroke="rgba(255,255,255,0.06)" strokeWidth={1} />
 
             {buckets.map((b, i) => {

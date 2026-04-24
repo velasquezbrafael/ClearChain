@@ -88,15 +88,20 @@ export default function ApiDocsPage() {
           background: 'rgba(3,4,10,0.92)', backdropFilter: 'blur(16px)',
         }}
       >
-        <Link
-          href="/"
-          style={{
-            fontFamily: 'var(--font-space-grotesk)', fontSize: 15, fontWeight: 700,
-            letterSpacing: '0.12em', color: 'var(--text-primary)', textDecoration: 'none',
-          }}
-        >
-          CLEARCHAIN
-        </Link>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+          <Link
+            href="/"
+            style={{
+              fontFamily: 'var(--font-space-grotesk)', fontSize: 15, fontWeight: 700,
+              letterSpacing: '0.12em', color: 'var(--text-primary)', textDecoration: 'none',
+            }}
+          >
+            CLEARCHAIN
+          </Link>
+          <Link href="/" style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: '#8892a4', textDecoration: 'none', letterSpacing: '0.08em' }}>
+            ← Back to Tool
+          </Link>
+        </div>
         <span
           style={{
             fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10,
@@ -134,12 +139,12 @@ export default function ApiDocsPage() {
             <code style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 16, color: 'var(--text-primary)' }}>/analyze</code>
           </div>
           <p style={{ fontFamily: 'var(--font-inter)', fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6, margin: '0 0 28px' }}>
-            Analyze an Ethereum wallet address for AML risk. Returns a risk score, OFAC screening result,
+            Analyze an Ethereum, Bitcoin, or Tron wallet address for AML risk. Returns a risk score, OFAC screening result,
             AML typologies, AI-generated narrative, and FinCEN SAR draft.
           </p>
 
           <SubHeading>Request</SubHeading>
-          <CodeBlock>{`Content-Type: application/json\n\n{ "address": "0x..." }\n\n// Also accepts ENS names:\n{ "address": "vitalik.eth" }`}</CodeBlock>
+          <CodeBlock>{`Content-Type: application/json\n\n// Ethereum (default)\n{ "address": "0x...", "chain": "ETH" }\n\n// Bitcoin\n{ "address": "bc1q...", "chain": "BTC" }\n\n// Tron\n{ "address": "T...", "chain": "TRX" }\n\n// Also accepts ENS names:\n{ "address": "vitalik.eth" }`}</CodeBlock>
 
           <SubHeading>Response</SubHeading>
           <CodeBlock>{EXAMPLE_RESPONSE}</CodeBlock>
@@ -232,7 +237,8 @@ export default function ApiDocsPage() {
 
         {/* cURL example */}
         <Section>
-          <SectionTitle>cURL Example</SectionTitle>
+          <SectionTitle>cURL Examples</SectionTitle>
+          <SubHeading>Ethereum</SubHeading>
           <div style={{ position: 'relative' }}>
             <CodeBlock>{CURL_COMMAND}</CodeBlock>
             <button
@@ -252,6 +258,14 @@ export default function ApiDocsPage() {
               {copied ? 'COPIED' : 'COPY'}
             </button>
           </div>
+          <SubHeading>Bitcoin</SubHeading>
+          <CodeBlock>{`curl -X POST ${BASE_URL}/analyze \\
+  -H "Content-Type: application/json" \\
+  -d '{"address":"1A1zP1eP5QGefi2DMPTfTL5SLmv7Divf5n","chain":"BTC"}'`}</CodeBlock>
+          <SubHeading>Tron</SubHeading>
+          <CodeBlock>{`curl -X POST ${BASE_URL}/analyze \\
+  -H "Content-Type: application/json" \\
+  -d '{"address":"TJDENsfBJs4RFETt1X1W8wMDc8M5XnJhCe","chain":"TRX"}'`}</CodeBlock>
         </Section>
 
         <Divider />

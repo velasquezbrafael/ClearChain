@@ -40,6 +40,7 @@ function truncate(addr: string) {
 
 export default async function IntelPage() {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
   const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
@@ -63,7 +64,17 @@ export default async function IntelPage() {
 
   const today = todayRaw ?? [];
   const all = allRaw ?? [];
-  const flags = recentFlags ?? [];
+
+  // Deduplicate recentFlags by address — keep the most recent analyzed_at per address
+  const rawFlags = recentFlags ?? [];
+  const flagsByAddr = new Map<string, typeof rawFlags[number]>();
+  for (const r of rawFlags) {
+    const existing = flagsByAddr.get(r.address);
+    if (!existing || r.analyzed_at > existing.analyzed_at) {
+      flagsByAddr.set(r.address, r);
+    }
+  }
+  const flags = Array.from(flagsByAddr.values()).sort((a, b) => b.analyzed_at.localeCompare(a.analyzed_at));
 
   // Today's stats
   const screenedToday  = today.length;
@@ -92,7 +103,7 @@ export default async function IntelPage() {
   const riskTotal = all.length || 1;
 
   const stat = (label: string, value: number | string, accent?: string) => (
-    <div style={{ background: '#080b14', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, padding: '24px 28px' }}>
+    <div style={{ background: '#080b14', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 4, padding: '24px 28px' }}>
       <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: '#8892a4', marginBottom: 14, textTransform: 'uppercase' as const }}>{label}</div>
       <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 40, fontWeight: 700, color: accent ?? '#f0f4ff', lineHeight: 1, letterSpacing: '-0.02em' }}>
         {value}
@@ -115,9 +126,11 @@ export default async function IntelPage() {
           <a href="/" style={{ fontSize: 12, color: '#8892a4', textDecoration: 'none', letterSpacing: '0.08em' }}>← Back to Tool</a>
           <a href="/api-docs" style={{ fontSize: 12, color: '#8892a4', textDecoration: 'none', letterSpacing: '0.08em' }}>API Docs</a>
         </div>
-        <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.18em', color: '#00ff88' }}>
-          INTELLIGENCE FEED
-        </span>
+        {user ? (
+          <a href="/dashboard" style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.1em', color: '#00ff88', textDecoration: 'none' }}>DASHBOARD →</a>
+        ) : (
+          <a href="/auth/login" style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.1em', color: '#8892a4', textDecoration: 'none' }}>SIGN IN →</a>
+        )}
       </nav>
 
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '48px 32px 96px' }}>
