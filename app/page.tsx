@@ -2065,7 +2065,7 @@ export default function HomePage() {
       <div
         style={{
           overflow: 'hidden',
-          maxHeight: analysis || loading ? 0 : '2000px',
+          maxHeight: analysis || loading ? 0 : '6000px',
           opacity: analysis || loading ? 0 : 1,
           transform: analysis || loading ? 'translateY(-12px)' : 'translateY(0)',
           transition: 'max-height 0.6s cubic-bezier(0.4,0,0.2,1), opacity 0.35s ease, transform 0.35s ease',
