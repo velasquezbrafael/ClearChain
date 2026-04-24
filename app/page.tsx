@@ -25,6 +25,8 @@ import { createClient } from '@/lib/supabase/client';
 const TORNADO_CASH = '0x722122dF12D4e14e13Ac3b6895a86e84145b6967';
 const LAZARUS      = '0x098B716B8Aaf21512996dC57eb0615e2383E2f96';
 const VITALIK      = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045';
+const BINANCE_BTC  = '34xp4vRoCGJym3xR7yCVPFHoCNxv4Twseo';
+const LAZARUS_BTC  = 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh';
 
 const LOADING_STEPS = [
   'Fetching on-chain transactions...',
@@ -492,15 +494,15 @@ function HeroContent({
   ];
 
 
-  const BINANCE_BTC = '34xp4vRoCGJym3xR7yCVPFHoCNxv4Twseo';
-
   const quickFills = [
-    { label: 'Tornado Cash', sublabel: 'OFAC SDN · Router', addr: TORNADO_CASH, simulator: false, clean: false, btc: false },
-    { label: 'Lazarus Group', sublabel: 'DPRK · OFAC SDN', addr: LAZARUS, simulator: false, clean: false, btc: false },
-    { label: 'Vitalik.eth', sublabel: 'Clean baseline', addr: VITALIK, simulator: false, clean: true, btc: false },
-    { label: 'Binance BTC', sublabel: 'Exchange', addr: BINANCE_BTC, simulator: false, clean: false, btc: true },
-    { label: 'Try the Simulator', sublabel: '', addr: TORNADO_CASH, simulator: true, clean: false, btc: false },
+    { label: 'Tornado Cash', sub: 'OFAC SDN · Router', address: TORNADO_CASH, chain: 'ETH' as const, style: 'red'   as const },
+    { label: 'Lazarus Group', sub: 'DPRK · OFAC SDN',  address: LAZARUS,      chain: 'ETH' as const, style: 'red'   as const },
+    { label: 'Vitalik.eth',   sub: 'Clean baseline',    address: VITALIK,      chain: 'ETH' as const, style: 'green' as const },
+    { label: 'Binance BTC',   sub: 'Exchange',          address: BINANCE_BTC,  chain: 'BTC' as const, style: 'blue'  as const },
+    { label: 'Lazarus BTC',   sub: 'OFAC SDN · DPRK',  address: LAZARUS_BTC,  chain: 'BTC' as const, style: 'red'   as const },
   ];
+
+  const visibleQuickFills = quickFills.filter(q => q.chain === selectedChain);
 
   return (
     <div style={{ minHeight: 'calc(100vh - 56px)', display: 'flex', flexDirection: 'column' }}>
@@ -729,60 +731,47 @@ function HeroContent({
             animationDelay: '0.65s',
           }}
         >
-          {quickFills.map(({ label, sublabel, addr, simulator, clean, btc }) => {
-            const borderDefault = btc
-              ? 'rgba(59,130,246,0.25)'
-              : simulator || clean ? 'rgba(0,255,136,0.2)' : 'rgba(255,255,255,0.06)';
-            const colorDefault = btc
-              ? 'rgba(96,165,250,0.8)'
-              : simulator || clean ? 'rgba(0,255,136,0.8)' : 'var(--text-secondary)';
-            const bgDefault = btc
-              ? 'rgba(59,130,246,0.04)'
-              : simulator || clean ? 'rgba(0,255,136,0.04)' : 'none';
-            const hoverBorder = btc ? 'rgba(59,130,246,0.5)' : 'rgba(0,255,136,0.4)';
-            const hoverColor  = btc ? '#60a5fa' : '#00ff88';
+          {(() => {
+            const STYLE_MAP = {
+              red:   { border: 'rgba(255,255,255,0.06)', color: 'var(--text-secondary)', bg: 'none',                    hoverBorder: 'rgba(255,59,59,0.35)',   hoverColor: '#ff6b6b' },
+              green: { border: 'rgba(0,255,136,0.2)',    color: 'rgba(0,255,136,0.8)',   bg: 'rgba(0,255,136,0.04)',    hoverBorder: 'rgba(0,255,136,0.4)',    hoverColor: '#00ff88' },
+              blue:  { border: 'rgba(59,130,246,0.25)',  color: 'rgba(96,165,250,0.8)',  bg: 'rgba(59,130,246,0.04)',   hoverBorder: 'rgba(59,130,246,0.5)',   hoverColor: '#60a5fa' },
+            };
             return (
-              <button
-                key={label}
-                onClick={() => {
-                  if (simulator) { onSimulatorFill(); return; }
-                  if (btc) { setSelectedChain('BTC'); onQuickFill(addr); return; }
-                  onQuickFill(addr);
-                }}
-                disabled={loading}
-                style={{
-                  padding: '6px 14px',
-                  border: `1px solid ${borderDefault}`,
-                  borderRadius: 2,
-                  background: bgDefault,
-                  fontFamily: 'var(--font-jetbrains-mono)',
-                  fontSize: 10,
-                  color: colorDefault,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  transition: 'border-color 0.2s, color 0.2s, background 0.2s',
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.borderColor = hoverBorder;
-                  e.currentTarget.style.color = hoverColor;
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.borderColor = borderDefault;
-                  e.currentTarget.style.color = colorDefault;
-                }}
-              >
-                {simulator && (
-                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0 }}>
-                    <polygon points="2,1 9,5 2,9" fill="#00ff88"/>
-                  </svg>
+              <>
+                {visibleQuickFills.map(({ label, sub, address, style }) => {
+                  const s = STYLE_MAP[style];
+                  return (
+                    <button
+                      key={label}
+                      onClick={() => onQuickFill(address)}
+                      disabled={loading}
+                      style={{ padding: '6px 14px', border: `1px solid ${s.border}`, borderRadius: 2, background: s.bg, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: s.color, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, transition: 'border-color 0.2s, color 0.2s' }}
+                      onMouseEnter={e => { e.currentTarget.style.borderColor = s.hoverBorder; e.currentTarget.style.color = s.hoverColor; }}
+                      onMouseLeave={e => { e.currentTarget.style.borderColor = s.border; e.currentTarget.style.color = s.color; }}
+                    >
+                      {label}
+                      {sub && <span style={{ color: 'var(--text-dim)', fontSize: 9 }}>{sub}</span>}
+                    </button>
+                  );
+                })}
+                {selectedChain === 'ETH' && (
+                  <button
+                    onClick={onSimulatorFill}
+                    disabled={loading}
+                    style={{ padding: '6px 14px', border: '1px solid rgba(0,255,136,0.2)', borderRadius: 2, background: 'rgba(0,255,136,0.04)', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: 'rgba(0,255,136,0.8)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, transition: 'border-color 0.2s, color 0.2s' }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(0,255,136,0.4)'; e.currentTarget.style.color = '#00ff88'; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(0,255,136,0.2)'; e.currentTarget.style.color = 'rgba(0,255,136,0.8)'; }}
+                  >
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0 }}>
+                      <polygon points="2,1 9,5 2,9" fill="#00ff88"/>
+                    </svg>
+                    Try the Simulator
+                  </button>
                 )}
-                {label}
-                {sublabel && <span style={{ color: 'var(--text-dim)', fontSize: 9 }}>{sublabel}</span>}
-              </button>
+              </>
             );
-          })}
+          })()}
         </div>
 
         {/* Search history */}
