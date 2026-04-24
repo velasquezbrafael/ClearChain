@@ -33,19 +33,25 @@ function RiskBadge({ level }: { level: string }) {
   )
 }
 
-export default async function DashboardPage() {
+const PAGE_SIZE = 10
+
+export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
+  const { page: pageStr } = await searchParams
+  const page = Math.max(1, parseInt(pageStr ?? '1', 10))
+  const offset = (page - 1) * PAGE_SIZE
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
 
-  const [{ data: recentRaw }, { data: allSummary }, { data: cases }] = await Promise.all([
-    // Last 50 for dedup table
+  const [{ data: recentRaw, count: recentCount }, { data: allSummary }, { data: cases }] = await Promise.all([
+    // Paginated recent analyses
     supabase
       .from('analyses')
-      .select('id, address, chain, risk_score, risk_level, analyzed_at')
+      .select('id, address, chain, risk_score, risk_level, analyzed_at', { count: 'exact' })
       .eq('user_id', user.id)
       .order('analyzed_at', { ascending: false })
-      .limit(50),
+      .range(offset, offset + PAGE_SIZE - 1),
     // All rows — only lightweight fields — for stats + distribution
     supabase
       .from('analyses')
@@ -58,14 +64,8 @@ export default async function DashboardPage() {
       .order('updated_at', { ascending: false }),
   ])
 
-  // ── Deduplication for table ──────────────────────────────────────────────
-  const seen = new Set<string>()
-  const deduped = (recentRaw ?? []).filter(a => {
-    const key = `${a.address}-${a.chain}`
-    if (seen.has(key)) return false
-    seen.add(key)
-    return true
-  })
+  const deduped = recentRaw ?? []
+  const totalPages = Math.max(1, Math.ceil((recentCount ?? 0) / PAGE_SIZE))
 
   // ── Stats from allSummary ────────────────────────────────────────────────
   const summary = allSummary ?? []
@@ -76,6 +76,7 @@ export default async function DashboardPage() {
 
   const ethCount      = summary.filter(a => a.chain === 'ETH').length
   const btcCount      = summary.filter(a => a.chain === 'BTC').length
+  const trxCount      = summary.filter(a => a.chain === 'TRX').length
   const highRiskCount = summary.filter(a => a.risk_level === 'HIGH' || a.risk_level === 'CRITICAL').length
 
   // Risk distribution
@@ -125,6 +126,7 @@ export default async function DashboardPage() {
           <a href="/" style={{ fontSize: 12, color: '#8892a4', textDecoration: 'none', letterSpacing: '0.08em' }}>← Back to Tool</a>
           <a href="/dashboard/cases" style={{ fontSize: 12, color: '#8892a4', textDecoration: 'none', letterSpacing: '0.08em' }}>Cases</a>
           <a href="/dashboard/settings" style={{ fontSize: 12, color: '#8892a4', textDecoration: 'none', letterSpacing: '0.08em' }}>Settings</a>
+          <a href="/intel" style={{ fontSize: 12, color: '#8892a4', textDecoration: 'none', letterSpacing: '0.08em' }}>Intel</a>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
           <span style={{ fontSize: 12, color: '#3d4a5c', fontFamily: 'var(--font-jetbrains-mono)' }}>{user.email}</span>
@@ -150,7 +152,9 @@ export default async function DashboardPage() {
               {ethCount > 0 && <span style={{ color: '#4b9e6e' }}>{ethCount} ETH</span>}
               {ethCount > 0 && btcCount > 0 && <span style={{ margin: '0 6px' }}>·</span>}
               {btcCount > 0 && <span style={{ color: '#7a6030' }}>{btcCount} BTC</span>}
-              {ethCount === 0 && btcCount === 0 && '—'}
+              {(ethCount > 0 || btcCount > 0) && trxCount > 0 && <span style={{ margin: '0 6px' }}>·</span>}
+              {trxCount > 0 && <span style={{ color: '#993d2a' }}>{trxCount} TRX</span>}
+              {ethCount === 0 && btcCount === 0 && trxCount === 0 && '—'}
             </div>
           </div>
 
@@ -239,7 +243,7 @@ export default async function DashboardPage() {
                       <td style={{ ...cell, color: '#8892a4' }}>{fmtDate(a.analyzed_at)}</td>
                       <td style={{ padding: '12px 16px' }}>
                         <a
-                          href={`/?address=${a.address}`}
+                          href={`/?address=${a.address}&chain=${a.chain}`}
                           style={{ fontSize: 11, color: '#8892a4', textDecoration: 'none', letterSpacing: '0.08em', whiteSpace: 'nowrap' }}
                         >
                           View →
@@ -249,6 +253,33 @@ export default async function DashboardPage() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16 }}>
+              <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#3d4a5c', letterSpacing: '0.08em' }}>
+                PAGE {page} OF {totalPages} · {recentCount ?? 0} TOTAL
+              </span>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {page > 1 && (
+                  <a
+                    href={`/dashboard?page=${page - 1}`}
+                    style={{ padding: '6px 14px', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.1em', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 2, color: '#8892a4', textDecoration: 'none', background: '#080b14' }}
+                  >
+                    ← PREV
+                  </a>
+                )}
+                {page < totalPages && (
+                  <a
+                    href={`/dashboard?page=${page + 1}`}
+                    style={{ padding: '6px 14px', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.1em', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 2, color: '#8892a4', textDecoration: 'none', background: '#080b14' }}
+                  >
+                    NEXT →
+                  </a>
+                )}
+              </div>
             </div>
           )}
         </div>

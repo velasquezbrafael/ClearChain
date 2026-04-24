@@ -86,6 +86,12 @@ export async function OPTIONS() {
 }
 
 // ---------------------------------------------------------------------------
+// REQUIRED SQL — run once in Supabase dashboard to enable rate limiting:
+//   alter table api_keys add column if not exists daily_usage integer not null default 0;
+//   alter table api_keys add column if not exists daily_reset_date text;
+// ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
 // POST — main analysis
 // ---------------------------------------------------------------------------
 
@@ -111,7 +117,7 @@ export async function POST(request: NextRequest) {
 
     const { data: apiKey } = await anonSupabase
       .from('api_keys')
-      .select('id, user_id, tier, usage_count, is_active')
+      .select('id, user_id, tier, usage_count, is_active, daily_usage, daily_reset_date')
       .eq('key_hash', keyHash)
       .eq('is_active', true)
       .single();
@@ -123,10 +129,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Non-blocking usage tracking
+    // ── Rate limiting (free tier: 10 req/day) ─────────────────────────────
+    const today = new Date().toISOString().slice(0, 10); // 'YYYY-MM-DD'
+    const isNewDay = (apiKey.daily_reset_date as string | null) !== today;
+    const currentDailyUsage = isNewDay ? 0 : ((apiKey.daily_usage as number | null) ?? 0);
+
+    if (apiKey.tier === 'free' && currentDailyUsage >= 10) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Daily rate limit exceeded. Free tier allows 10 requests per day. Upgrade to Pro for unlimited access.',
+          code: 'RATE_LIMIT_EXCEEDED',
+          limit: 10,
+          used: currentDailyUsage,
+          resets: `${today}T23:59:59Z`,
+        },
+        { status: 429, headers: CORS_HEADERS }
+      );
+    }
+
+    // Non-blocking usage tracking (also resets daily counter on new day)
     anonSupabase.from('api_keys').update({
-      usage_count: apiKey.usage_count + 1,
+      usage_count: (apiKey.usage_count as number) + 1,
       last_used_at: new Date().toISOString(),
+      daily_usage: currentDailyUsage + 1,
+      daily_reset_date: today,
     }).eq('id', apiKey.id).then(() => {});
 
     apiKeyUserId = apiKey.user_id;

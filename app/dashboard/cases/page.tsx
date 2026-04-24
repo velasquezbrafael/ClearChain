@@ -101,6 +101,7 @@ export default function CasesPage() {
           <span style={{ fontSize: 13, letterSpacing: '0.2em', color: '#00ff88', fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 700 }}>CLEARCHAIN</span>
           <a href="/" style={{ fontSize: 12, color: '#8892a4', textDecoration: 'none' }}>← Back to Tool</a>
           <a href="/dashboard" style={{ fontSize: 12, color: '#8892a4', textDecoration: 'none' }}>Dashboard</a>
+          <a href="/intel" style={{ fontSize: 12, color: '#8892a4', textDecoration: 'none' }}>Intel</a>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
           <span style={{ fontSize: 12, color: '#3d4a5c', fontFamily: 'var(--font-jetbrains-mono)' }}>{userEmail}</span>

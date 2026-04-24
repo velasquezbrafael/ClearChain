@@ -74,7 +74,12 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
 
   async function updateStatus(newStatus: string) {
     setStatus(newStatus)
-    await supabase.from('cases').update({ status: newStatus, updated_at: new Date().toISOString() }).eq('id', id)
+    await fetch(`/api/cases/${id}`, {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: newStatus }),
+    })
   }
 
   async function handleAddAddress(e: React.FormEvent) {
@@ -219,6 +224,7 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
         <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
           <span style={{ fontSize: 13, letterSpacing: '0.2em', color: '#00ff88', fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 700 }}>CLEARCHAIN</span>
           <a href="/dashboard/cases" style={{ fontSize: 12, color: '#8892a4', textDecoration: 'none' }}>← Back to Cases</a>
+          <a href="/intel" style={{ fontSize: 12, color: '#8892a4', textDecoration: 'none' }}>Intel</a>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
           <span style={{ fontSize: 12, color: '#3d4a5c', fontFamily: 'var(--font-jetbrains-mono)' }}>{userEmail}</span>
