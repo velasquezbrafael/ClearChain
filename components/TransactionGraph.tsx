@@ -258,10 +258,12 @@ function initInvestigationD3({
   const nodeG = g.append('g').attr('class', 'inv-nodes');
 
   const sim = d3.forceSimulation<InvNode>(nodes)
-    .force('link', d3.forceLink<InvNode, InvEdge>(edges).id(d => d.id).distance(130).strength(0.7))
-    .force('charge', d3.forceManyBody<InvNode>().strength(-280))
+    .force('link', d3.forceLink<InvNode, InvEdge>(edges).id(d => d.id).distance(60).strength(0.5))
+    .force('charge', d3.forceManyBody<InvNode>().strength(-120))
     .force('center', d3.forceCenter(W / 2, H / 2))
-    .force('collision', d3.forceCollide<InvNode>().radius(d => rScale(d.volume) + 16));
+    .force('x', d3.forceX<InvNode>(W / 2).strength(0.08))
+    .force('y', d3.forceY<InvNode>(H / 2).strength(0.08))
+    .force('collision', d3.forceCollide<InvNode>().radius(18));
 
   const drag = d3.drag<SVGGElement, InvNode>()
     .on('start', (event, d) => { if (!event.active) sim.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
@@ -354,9 +356,18 @@ function initInvestigationD3({
   renderLinks(edges); renderNodes(nodes);
 
   sim.on('tick', () => {
-    linkG.selectAll<SVGLineElement, { source: InvNode; target: InvNode }>('line')
-      .attr('x1', d => d.source.x ?? 0).attr('y1', d => d.source.y ?? 0)
-      .attr('x2', d => d.target.x ?? 0).attr('y2', d => d.target.y ?? 0);
+    // Clamp nodes to SVG bounds before rendering
+    for (const n of sim.nodes()) {
+      n.x = Math.max(20, Math.min(W - 20, n.x ?? W / 2));
+      n.y = Math.max(20, Math.min(H - 20, n.y ?? H / 2));
+    }
+    // Look up current positions via sim.nodes() — DOM data has string ids, not node refs
+    const posMap = new Map<string, InvNode>(sim.nodes().map(n => [n.id, n]));
+    linkG.selectAll<SVGLineElement, { source: string | InvNode; target: string | InvNode }>('line')
+      .attr('x1', d => { const id = typeof d.source === 'string' ? d.source : d.source.id; return posMap.get(id)?.x ?? 0; })
+      .attr('y1', d => { const id = typeof d.source === 'string' ? d.source : d.source.id; return posMap.get(id)?.y ?? 0; })
+      .attr('x2', d => { const id = typeof d.target === 'string' ? d.target : d.target.id; return posMap.get(id)?.x ?? 0; })
+      .attr('y2', d => { const id = typeof d.target === 'string' ? d.target : d.target.id; return posMap.get(id)?.y ?? 0; });
     nodeG.selectAll<SVGGElement, InvNode>('g.inv-node')
       .attr('transform', d => `translate(${d.x ?? 0},${d.y ?? 0})`);
   });
@@ -420,10 +431,10 @@ function initD3Graph({ svgEl, W, H, nodes, links, queriedAddress, hopDepth, onTo
     .on('zoom', event => { g.attr('transform', event.transform.toString()); onTooltip(null); });
   svg.call(zoom);
   const linkEls = g.append('g').selectAll<SVGLineElement, GraphLink>('line').data(links).join('line')
-    .attr('stroke', d => d.hopLevel === 2 ? 'rgba(61,74,92,0.5)' : '#6b7280')
-    .attr('stroke-opacity', d => d.hopLevel === 2 ? 0.35 : 0.5)
-    .attr('stroke-width', d => d.hopLevel === 2 ? 1 : wScale(d.value))
+    .attr('stroke', d => d.hopLevel === 2 ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.3)')
+    .attr('stroke-width', d => d.hopLevel === 2 ? 1 : Math.max(1.5, wScale(d.value)))
     .attr('stroke-dasharray', d => d.hopLevel === 2 ? '3 3' : 'none')
+    .attr('stroke-linecap', 'round')
     .attr('marker-end', d => d.hopLevel === 2 ? 'url(#arrow-dim)' : 'url(#arrow-gray)')
     .style('cursor', 'pointer');
   const nodeG = g.append('g').selectAll<SVGGElement, GraphNode>('g').data(nodes).join('g')
@@ -450,15 +461,20 @@ function initD3Graph({ svgEl, W, H, nodes, links, queriedAddress, hopDepth, onTo
     .attr('dy', d => { const r = d.hopLevel === 2 ? rScale(d.volume) * 0.55 : rScale(d.volume); return r + 14; })
     .attr('pointer-events', 'none');
   const simulation = d3.forceSimulation<GraphNode>(nodes)
-    .force('link', d3.forceLink<GraphNode, GraphLink>(links).id(d => d.id).distance(d => (d as unknown as GraphLink).hopLevel === 2 ? 80 : 130).strength(0.7))
-    .force('charge', d3.forceManyBody<GraphNode>().strength(d => d.hopLevel === 2 ? -150 : -350))
+    .force('link', d3.forceLink<GraphNode, GraphLink>(links).id(d => d.id).distance(60).strength(0.5))
+    .force('charge', d3.forceManyBody<GraphNode>().strength(-120))
     .force('center', d3.forceCenter(W / 2, H / 2))
-    .force('collision', d3.forceCollide<GraphNode>().radius(d => { const r = d.hopLevel === 2 ? rScale(d.volume) * 0.55 : rScale(d.volume); return r + (d.hopLevel === 2 ? 10 : 18); }));
+    .force('x', d3.forceX<GraphNode>(W / 2).strength(0.08))
+    .force('y', d3.forceY<GraphNode>(H / 2).strength(0.08))
+    .force('collision', d3.forceCollide<GraphNode>().radius(18));
   simulation.on('tick', () => {
+    for (const n of nodes) {
+      n.x = Math.max(20, Math.min(W - 20, n.x ?? W / 2));
+      n.y = Math.max(20, Math.min(H - 20, n.y ?? H / 2));
+    }
     linkEls
       .attr('x1', d => (d.source as GraphNode).x ?? 0).attr('y1', d => (d.source as GraphNode).y ?? 0)
-      .attr('x2', d => { const src = d.source as GraphNode; const tgt = d.target as GraphNode; const dx = (tgt.x ?? 0) - (src.x ?? 0); const dy = (tgt.y ?? 0) - (src.y ?? 0); const len = Math.sqrt(dx * dx + dy * dy); if (len === 0) return tgt.x ?? 0; const r = (tgt.hopLevel === 2 ? rScale(tgt.volume) * 0.55 : rScale(tgt.volume)) + 6; return (tgt.x ?? 0) - (dx / len) * r; })
-      .attr('y2', d => { const src = d.source as GraphNode; const tgt = d.target as GraphNode; const dx = (tgt.x ?? 0) - (src.x ?? 0); const dy = (tgt.y ?? 0) - (src.y ?? 0); const len = Math.sqrt(dx * dx + dy * dy); if (len === 0) return tgt.y ?? 0; const r = (tgt.hopLevel === 2 ? rScale(tgt.volume) * 0.55 : rScale(tgt.volume)) + 6; return (tgt.y ?? 0) - (dy / len) * r; });
+      .attr('x2', d => (d.target as GraphNode).x ?? 0).attr('y2', d => (d.target as GraphNode).y ?? 0);
     nodeG.attr('transform', d => `translate(${d.x ?? 0},${d.y ?? 0})`);
   });
   const drag = d3.drag<SVGGElement, GraphNode>()
@@ -982,8 +998,8 @@ export default function TransactionGraph({
     <>
       {fullscreenPortal}
       <div style={{ border: '1px solid rgba(255,255,255,0.06)', borderRadius: 4, background: '#080b14', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-        {/* Header — two-row layout */}
-        <div style={{ padding: '12px 20px', borderBottom: '1px solid rgba(255,255,255,0.04)', display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {/* Header — two-row layout, fixed height so graph canvas never shifts */}
+        <div style={{ padding: '8px 20px', borderBottom: '1px solid rgba(255,255,255,0.04)', display: 'flex', flexDirection: 'column', gap: 4, minHeight: 56, maxHeight: 56, overflow: 'hidden' }}>
           {/* Row 1: title + badge + expand */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -1005,11 +1021,15 @@ export default function TransactionGraph({
           </div>
           {/* Row 2: instruction + legend */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
-              <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: 'var(--text-dim)', letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>
-                {investigationMode ? 'Click any node to trace funds →' : 'Force-directed — drag nodes, scroll to zoom'}
-              </span>
-              {investigationMode && expandedTrail.length > 0 && breadcrumb}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, overflow: 'hidden' }}>
+              {investigationMode && expandedTrail.length > 0
+                ? breadcrumb
+                : (
+                  <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: 'var(--text-dim)', letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>
+                    {investigationMode ? 'Click any node to trace funds →' : 'Force-directed — drag nodes, scroll to zoom'}
+                  </span>
+                )
+              }
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
               {legend.map(({ color, label }) => (
