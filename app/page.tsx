@@ -696,7 +696,7 @@ function HeroContent({
             animationDelay: '0.55s',
           }}
         >
-          {['OFAC Screening', '7 AML Typologies', 'SAR Auto-Draft', 'ETH + BTC', 'Investigation Mode'].map(label => (
+          {['OFAC Screening', '7 AML Typologies', 'SAR Auto-Draft', 'ETH + BTC + TRX', 'Investigation Mode'].map(label => (
             <span
               key={label}
               style={{
@@ -1452,7 +1452,11 @@ export default function HomePage() {
     const urlAddr = new URLSearchParams(window.location.search).get('address') ?? '';
     return /^0x[a-fA-F0-9]{40}$/.test(urlAddr) ? urlAddr : '';
   });
-  const [selectedChain, setSelectedChain] = useState<'ETH' | 'BTC' | 'TRX'>('ETH');
+  const [selectedChain, setSelectedChain] = useState<'ETH' | 'BTC' | 'TRX'>(() => {
+    if (typeof window === 'undefined') return 'ETH';
+    const c = new URLSearchParams(window.location.search).get('chain');
+    return (c === 'BTC' || c === 'TRX') ? c : 'ETH';
+  });
   const [loading, setLoading]       = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
   const [error, setError]           = useState<string | null>(null);
@@ -1492,11 +1496,19 @@ export default function HomePage() {
     });
   }, []);
 
-  // Auto-analyze from ?address= on load
+  // Auto-analyze from ?address= on load — supports ETH, BTC, and TRX
   useEffect(() => {
-    const urlAddr = new URLSearchParams(window.location.search).get('address');
-    if (urlAddr && /^0x[a-fA-F0-9]{40}$/.test(urlAddr)) {
-      runAnalysis(urlAddr);
+    const params = new URLSearchParams(window.location.search);
+    const urlAddr = params.get('address');
+    const urlChain = params.get('chain');
+    const chain: 'ETH' | 'BTC' | 'TRX' =
+      urlChain === 'BTC' ? 'BTC' : urlChain === 'TRX' ? 'TRX' : 'ETH';
+    if (!urlAddr) return;
+    const isEth = /^0x[a-fA-F0-9]{40}$/.test(urlAddr) || urlAddr.includes('.');
+    const isBtc = /^(1|3)[a-km-zA-HJ-NP-Z1-9]{25,34}$/.test(urlAddr) || /^bc1[a-z0-9]{39,59}$/.test(urlAddr);
+    const isTrx = /^T[a-zA-Z0-9]{33}$/.test(urlAddr);
+    if (isEth || isBtc || isTrx) {
+      runAnalysis(urlAddr, chain);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -1506,6 +1518,7 @@ export default function HomePage() {
     const handlePopState = () => {
       const params = new URLSearchParams(window.location.search);
       const addr = params.get('address');
+      const c = params.get('chain');
       if (!addr) {
         setAnalysis(null);
         setNarrative(null);
@@ -1515,6 +1528,8 @@ export default function HomePage() {
         setAddress('');
       } else {
         setAddress(addr);
+        if (c === 'BTC' || c === 'TRX') setSelectedChain(c);
+        else setSelectedChain('ETH');
       }
     };
     window.addEventListener('popstate', handlePopState);
@@ -1588,6 +1603,16 @@ export default function HomePage() {
       }
 
       const { data, narrative: nar, sarDraft: sar, hopData: hops } = json as AnalysisAPIResponse;
+
+      // Defensive: ensure required nested fields exist before setting state
+      if (!data?.riskScore || !Array.isArray(data?.transactions)) {
+        console.error('[ClearChain] Unexpected response shape:', data);
+        setError('Analysis returned an unexpected data format. Please try again.');
+        return;
+      }
+      // Ensure typologies is always an array (BTC/TRX return [])
+      if (!Array.isArray(data.typologies)) data.typologies = [];
+
       setAnalysis(data);
       setNarrative(nar ?? null);
       setSarDraft(sar ?? null);
@@ -1596,9 +1621,10 @@ export default function HomePage() {
       const historyEntry: HistoryEntry = { address: data.address, level: data.riskScore.level, timestamp: Date.now() };
       saveHistory(historyEntry);
       setHistory(loadHistory());
-      window.history.pushState({}, '', `?address=${addr}`);
+      window.history.pushState({}, '', `?address=${addr}&chain=${activeChain}`);
     } catch (err) {
       clearTimeout(timeout);
+      console.error('[ClearChain] runAnalysis error:', err);
       if (err instanceof Error && err.name === 'AbortError') {
         setError('Analysis is taking longer than expected — the server may be warming up. Please try again.');
       } else {
@@ -1637,7 +1663,7 @@ export default function HomePage() {
 
   function handleQuickFill(addr: string) {
     setAddress(addr);
-    runAnalysis(addr);
+    runAnalysis(addr, selectedChain);
   }
 
   function handleSimulatorFill() {

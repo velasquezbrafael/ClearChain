@@ -454,6 +454,12 @@ export async function POST(request: NextRequest) {
 
       analysisCache.set(cacheKey, { data: analysis, narrative, sarDraft: sarDraftRaw, hopData: [], cachedAt: Date.now() });
 
+      console.info('[ClearChain/analyze] TRX response shape:', {
+        address, chain: 'TRX',
+        riskScore: { total: trxRiskScore.total, level: trxRiskScore.level, signalCount: trxRiskScore.signals.length },
+        typologiesLength: 0, txCount: trxTxs.length, ofacMatched: trxOfacResult.matched,
+      });
+
       return NextResponse.json(
         { success: true, data: analysis, narrative, sarDraft: sarDraftRaw, hopData: [], resolvedAddress: address },
         { status: 200, headers: CORS_HEADERS }
