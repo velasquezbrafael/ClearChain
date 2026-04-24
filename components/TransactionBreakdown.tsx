@@ -60,6 +60,7 @@ function riskTag(addr: string): { label: string; color: string } | null {
 
 // FIX: flag only if the COUNTERPARTY is high-risk (not the queried address itself)
 function isTxFlagged(tx: WalletTransaction, queriedAddress: string): boolean {
+  if (!tx.from || !tx.to) return false;
   const selfLower = queriedAddress.toLowerCase();
   const counterparty = tx.isInbound ? tx.from.toLowerCase() : tx.to.toLowerCase();
   if (counterparty === selfLower) return false;
@@ -254,6 +255,7 @@ export default function TransactionBreakdown({
           </thead>
           <tbody>
             {display.map((tx, idx) => {
+              if (!tx.from || !tx.to) return null;
               const isInbound = tx.isInbound ?? tx.to.toLowerCase() === queriedAddress.toLowerCase();
               const flagged = isTxFlagged(tx, queriedAddress);
 
@@ -335,10 +337,10 @@ export default function TransactionBreakdown({
                     )}
                   </td>
                   <td style={{ padding: '11px 16px' }}>
-                    <AddressCell addr={tx.from} onAnalyzeAddress={tx.from.toLowerCase() !== queriedAddress.toLowerCase() ? onAnalyzeAddress : undefined} />
+                    <AddressCell addr={tx.from || '—'} onAnalyzeAddress={tx.from && tx.from.toLowerCase() !== queriedAddress.toLowerCase() ? onAnalyzeAddress : undefined} />
                   </td>
                   <td style={{ padding: '11px 16px' }}>
-                    <AddressCell addr={tx.to} onAnalyzeAddress={tx.to.toLowerCase() !== queriedAddress.toLowerCase() ? onAnalyzeAddress : undefined} />
+                    <AddressCell addr={tx.to || '—'} onAnalyzeAddress={tx.to && tx.to.toLowerCase() !== queriedAddress.toLowerCase() ? onAnalyzeAddress : undefined} />
                   </td>
                 </tr>
               );

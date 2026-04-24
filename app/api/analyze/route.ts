@@ -343,7 +343,8 @@ export async function POST(request: NextRequest) {
   // ── TRX pipeline ──────────────────────────────────────────────────────────
   if (chain === 'TRX') {
     try {
-      const trxTxs = await getTronTransactions(address);
+      const rawTrxTxs = await getTronTransactions(address);
+      const trxTxs = rawTrxTxs.filter(tx => tx.from && tx.to);
       const TRX_SDN = new Map(
         Object.entries(OFAC_TRX as Record<string, string>).map(([a, e]) => [a, e])
       );
@@ -461,7 +462,7 @@ export async function POST(request: NextRequest) {
       });
 
       return NextResponse.json(
-        { success: true, data: analysis, narrative, sarDraft: sarDraftRaw, hopData: [], resolvedAddress: address },
+        { success: true, data: analysis, narrative: narrative ?? '', sarDraft: sarDraftRaw ?? '', hopData: [], resolvedAddress: address },
         { status: 200, headers: CORS_HEADERS }
       );
     } catch (err) {

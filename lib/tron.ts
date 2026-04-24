@@ -136,9 +136,11 @@ export async function getTronTransactions(address: string): Promise<WalletTransa
     const val = contract.parameter?.value;
     if (!val?.owner_address || !val?.to_address) continue;
 
-    const from = normalizeTronAddr(val.owner_address);
-    const to = normalizeTronAddr(val.to_address);
-    const amount = (val.amount ?? 0) / 1_000_000; // sun → TRX
+    const from = normalizeTronAddr(val.owner_address ?? '') || '';
+    const to = normalizeTronAddr(val.to_address ?? '') || '';
+    if (!from || !to) continue;
+    const rawAmount = val.amount ?? 0;
+    const amount = isNaN(rawAmount) ? 0 : rawAmount / 1_000_000; // sun → TRX
     if (amount === 0) continue;
 
     const timestamp = Math.floor(

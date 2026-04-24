@@ -141,11 +141,13 @@ function buildGraphData(
   const queried = queriedAddress.toLowerCase();
   const volMap = new Map<string, number>();
   for (const tx of transactions) {
+    if (!tx.from || !tx.to) continue;
     const f = tx.from.toLowerCase(); const t = tx.to.toLowerCase();
     if (f !== t) { volMap.set(f, (volMap.get(f) ?? 0) + tx.value); volMap.set(t, (volMap.get(t) ?? 0) + tx.value); }
   }
   const linkMap = new Map<string, GraphLink>();
   for (const tx of transactions) {
+    if (!tx.from || !tx.to) continue;
     const f = tx.from.toLowerCase(); const t = tx.to.toLowerCase();
     if (f === t) continue;
     const key = `${f}|||${t}`;
@@ -191,6 +193,7 @@ function buildInitialInvState(transactions: WalletTransaction[], queriedAddress:
   const txCountMap = new Map<string, number>();
   const edgeMap = new Map<string, InvEdge>();
   for (const tx of transactions) {
+    if (!tx.from || !tx.to) continue;
     const f = tx.from.toLowerCase(); const t = tx.to.toLowerCase();
     if (f === t) continue;
     volMap.set(f, (volMap.get(f) ?? 0) + tx.value);
