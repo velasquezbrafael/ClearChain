@@ -128,6 +128,38 @@ const slogans = [
   { text: 'följ pengarna', lang: 'swedish' },
 ];
 
+const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&';
+
+function scrambleToWord(
+  current: string,
+  target: string,
+  onUpdate: (val: string) => void,
+  onDone: () => void
+) {
+  const maxLen = Math.max(current.length, target.length);
+  const duration = 700;
+  const steps = 20;
+  const stepDuration = duration / steps;
+  let step = 0;
+
+  const interval = setInterval(() => {
+    step++;
+    const progress = step / steps;
+    const resolvedCount = Math.floor(progress * target.length);
+    const result = Array.from({ length: maxLen }, (_, i) => {
+      if (i >= target.length) return '';
+      if (i < resolvedCount) return target[i];
+      return CHARS[Math.floor(Math.random() * CHARS.length)];
+    }).join('');
+    onUpdate(result);
+    if (step >= steps) {
+      clearInterval(interval);
+      onUpdate(target);
+      onDone();
+    }
+  }, stepDuration);
+}
+
 // ---------------------------------------------------------------------------
 // Search history helpers
 // ---------------------------------------------------------------------------
@@ -441,18 +473,35 @@ function HeroContent({
   history: HistoryEntry[];
   onRemoveHistory: (addr: string) => void;
 }) {
-  const [sloganIdx, setSloganIdx] = useState(0);
-  const [sloganVisible, setSloganVisible] = useState(true);
+  const [displayText, setDisplayText] = useState(slogans[0].text);
+  const [currentLang, setCurrentLang] = useState(slogans[0].lang);
+  const [nextIdx, setNextIdx] = useState(1);
+  const [langVisible, setLangVisible] = useState(true);
+  const isFirstLangRender = useRef(true);
+
   useEffect(() => {
-    const id = setInterval(() => {
-      setSloganVisible(false);
-      setTimeout(() => {
-        setSloganIdx(i => (i + 1) % slogans.length);
-        setSloganVisible(true);
-      }, 400);
-    }, 3000);
-    return () => clearInterval(id);
-  }, []);
+    if (isFirstLangRender.current) { isFirstLangRender.current = false; return; }
+    setLangVisible(false);
+    const t = setTimeout(() => setLangVisible(true), 150);
+    return () => clearTimeout(t);
+  }, [currentLang]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const next = slogans[nextIdx];
+      scrambleToWord(
+        displayText,
+        next.text,
+        (val) => setDisplayText(val),
+        () => {
+          setCurrentLang(next.lang);
+          setNextIdx((i) => (i + 1) % slogans.length);
+        }
+      );
+    }, 5000);
+    return () => clearInterval(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nextIdx]);
 
   const features = [
     {
@@ -585,7 +634,7 @@ function HeroContent({
           </a>
         </div>
 
-        {/* Rotating headline */}
+        {/* Glitch scramble headline */}
         <div style={{ margin: '0 0 24px', animation: 'fadeSlideUp 0.5s ease-out both', animationDelay: '0.1s' }}>
           <h1
             className="hero-headline"
@@ -596,12 +645,11 @@ function HeroContent({
               color: 'var(--text-primary)',
               letterSpacing: '0.02em',
               margin: '0 0 10px',
-              opacity: sloganVisible ? 1 : 0,
-              transform: sloganVisible ? 'translateY(0)' : 'translateY(-8px)',
-              transition: 'opacity 0.4s ease, transform 0.4s ease',
+              height: 'clamp(3rem, 8vw, 6rem)',
+              overflow: 'hidden',
             }}
           >
-            {slogans[sloganIdx].text}
+            {displayText}
           </h1>
           <div
             style={{
@@ -609,11 +657,11 @@ function HeroContent({
               fontSize: 10,
               letterSpacing: '0.15em',
               color: 'var(--text-dim)',
-              opacity: sloganVisible ? 1 : 0,
-              transition: 'opacity 0.4s ease',
+              opacity: langVisible ? 1 : 0,
+              transition: 'opacity 0.3s ease',
             }}
           >
-            [ {slogans[sloganIdx].lang} ]
+            [ {currentLang} ]
           </div>
         </div>
 
