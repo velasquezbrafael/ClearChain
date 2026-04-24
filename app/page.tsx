@@ -10,6 +10,7 @@ import SARDraftCard from '@/components/SARDraftCard';
 import SimulatorCard from '@/components/SimulatorCard';
 import TransactionBreakdown from '@/components/TransactionBreakdown';
 import TransactionGraph from '@/components/TransactionGraph';
+import FundFlowDiagram from '@/components/FundFlowDiagram';
 import TransactionTimeline from '@/components/TransactionTimeline';
 import SkeletonLoader from '@/components/SkeletonLoader';
 import ExportButton from '@/components/ExportButton';
@@ -32,8 +33,9 @@ const LOADING_STEPS = [
   'Generating AI narrative...',
 ];
 
-const TABS = ['TYPOLOGIES', 'NARRATIVE', 'SAR DRAFT', 'TRANSACTIONS', 'SIMULATOR'] as const;
-type Tab = typeof TABS[number];
+const BASE_TABS = ['TYPOLOGIES', 'NARRATIVE', 'SAR DRAFT', 'TRANSACTIONS', 'SIMULATOR'] as const;
+type BaseTab = typeof BASE_TABS[number];
+type Tab = BaseTab | 'FLOW';
 
 // ---------------------------------------------------------------------------
 // API types
@@ -1398,6 +1400,22 @@ export default function HomePage() {
   const pendingTabRef = useRef<Tab | null>(null);
   const showResults = !!analysis && !loading;
 
+  // Show FLOW tab only when ≥3 distinct inbound sources exist
+  const hasFlowData = React.useMemo(() => {
+    if (!analysis) return false;
+    const q = analysis.address.toLowerCase();
+    const seen = new Set<string>();
+    for (const tx of analysis.transactions) {
+      const from = tx.from.toLowerCase();
+      const to = (tx.to ?? '').toLowerCase();
+      const isIn = tx.isInbound ?? (to === q);
+      if (isIn && tx.value > 0 && from !== q) seen.add(from);
+    }
+    return seen.size >= 3;
+  }, [analysis]);
+
+  const displayTabs: Tab[] = hasFlowData ? [...BASE_TABS, 'FLOW'] : [...BASE_TABS];
+
   // Check auth state for nav
   useEffect(() => {
     const supabase = createClient();
@@ -1958,7 +1976,7 @@ export default function HomePage() {
                 scrollbarWidth: 'none',
               } as React.CSSProperties}
             >
-              {TABS.map(tab => {
+              {displayTabs.map(tab => {
                 const isActive = activeTab === tab;
                 const tabTooltips: Record<string, string> = {
                   'TYPOLOGIES': 'FATF and FinCEN-recognized money laundering patterns. Matched against your wallet\'s on-chain behavior. Each match includes the regulatory citation and the specific evidence found.',
@@ -1966,6 +1984,7 @@ export default function HomePage() {
                   'SAR DRAFT': 'A draft Suspicious Activity Report in FinCEN format. This is NOT a filed SAR — it must be reviewed and approved by a qualified BSA/AML compliance officer before submission.',
                   'TRANSACTIONS': 'Raw on-chain transactions fetched from Alchemy. Includes ETH transfers, ERC-20 token transfers, and internal transactions. Sorted by timestamp.',
                   'SIMULATOR': 'Counterfactual scenario modeling — toggle risk signals on/off to see the score change in real time. Click Generate Scenario Narrative to get an AI description of what this wallet would look like under the simulated conditions.',
+                  'FLOW': 'Visual Sankey diagram of inbound ETH flows. Shows where funds originated, ribbon thickness proportional to ETH volume. Red nodes = known mixers (OFAC-designated), orange = high-risk counterparties.',
                 };
                 return (
                   <button
@@ -2056,6 +2075,13 @@ export default function HomePage() {
                   address={analysis.address}
                   baselineScore={analysis.riskScore.total}
                   baselineLevel={analysis.riskScore.level}
+                />
+              )}
+              {activeTab === 'FLOW' && (
+                <FundFlowDiagram
+                  transactions={analysis.transactions}
+                  queriedAddress={analysis.address}
+                  hopData={hopData}
                 />
               )}
             </div>

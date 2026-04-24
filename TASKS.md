@@ -6,30 +6,7 @@ _Maintained by Rocky (Cowork). Claude Code: read this before starting work, mark
 
 ## 🔴 Active (do these now)
 
-### [ACTIVE] Fix Investigation Mode formatting issues
-From visual QA on https://clear-chain-peach.vercel.app:
-
-1. **Graph header cleanup** — reorganize into two clean rows:
-   - Row 1 left: `TRANSACTION GRAPH` title · `INVESTIGATION MODE` badge (green `#00ff88`, not purple)
-   - Row 1 right: fullscreen expand button
-   - Row 2 left: `Click any node to trace funds →` (dim, small, single line)
-   - Row 2 right: condensed legend
-
-2. **Legend condensing** — 6 items is too many. Show 3 by default (QUERIED, OFAC/MIXER, HIGH RISK). Add remaining 3 (UNEXPANDED, EXPANDED, AT LIMIT) only after first node expansion. Each item: 10px font, 6px dot, tighter spacing.
-
-3. **Stats bar** — `justify-content: space-between` so RESET GRAPH button is right-aligned and clearly separated from node/edge/depth stats.
-
-4. **Results header overflow** — SHARE → and ← NEW ANALYSIS stay visible. `+ Save to Case` and `EXPORT REPORT →` move into a `[···]` overflow menu (portal dropdown, same style as Save to Case).
-
-5. **Graph height** — cap SVG at 420px on desktop so the three-column layout stays consistent and tabs don't get pushed too far down.
-
-After: `npx tsc --noEmit` → `git add . && git commit -m "fix: investigation mode formatting" && git push && vercel --prod`
-
----
-
-## 🟡 Next up
-
-### Fund Flow Visualization (Sankey diagram)
+### [ACTIVE] Fund Flow Visualization (Sankey diagram)
 Build a new tab "FLOW" next to TYPOLOGIES/NARRATIVE/etc. Shows ETH movement as a Sankey/river diagram:
 - Left column: source addresses
 - Middle: mixer/intermediary nodes
@@ -81,6 +58,8 @@ On the case detail page (`/dashboard/cases/[id]`), add a combined network graph 
 ---
 
 ## ✅ Completed
+
+- [x] Investigation Mode formatting — header layout, legend, badge color, header bar, height
 
 - [x] Core analysis engine (Alchemy, OFAC, scoring, typology)
 - [x] Claude Haiku integration (narrative + SAR draft in one call)
