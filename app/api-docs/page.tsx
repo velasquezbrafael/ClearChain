@@ -147,6 +147,34 @@ export default function ApiDocsPage() {
 
         <Divider />
 
+        {/* Authentication */}
+        <Section>
+          <SectionTitle>AUTHENTICATION (OPTIONAL)</SectionTitle>
+          <p style={{ fontFamily: 'var(--font-inter)', fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6, margin: '0 0 20px' }}>
+            Include an API key to save analyses to your dashboard and unlock higher rate limits. Generate a key in{' '}
+            <a href="/dashboard/settings" style={{ color: '#00ff88', textDecoration: 'none' }}>Dashboard &rarr; Settings</a>.
+          </p>
+          <SubHeading>Request with API Key</SubHeading>
+          <CodeBlock>{`curl -X POST ${BASE_URL}/analyze \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer ck_live_your_key_here" \\
+  -d '{"address":"${EXAMPLE_ADDRESS}"}'`}</CodeBlock>
+          <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {[
+              ['Free tier', '100 requests / day — analyses saved to dashboard'],
+              ['Analyst tier', '2,000 requests / day'],
+              ['Team tier', 'Unlimited'],
+            ].map(([k, v]) => (
+              <div key={k} style={{ display: 'flex', gap: 24, padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: 'var(--text-dim)', minWidth: 180 }}>{k}</span>
+                <span style={{ fontFamily: 'var(--font-inter)', fontSize: 13, color: 'var(--text-secondary)' }}>{v}</span>
+              </div>
+            ))}
+          </div>
+        </Section>
+
+        <Divider />
+
         {/* Live example */}
         <Section>
           <SectionTitle>Live Example</SectionTitle>

@@ -55,13 +55,32 @@ After all three active items: `npx tsc --noEmit` → `git add . && git commit -m
 - Add `[ETH] [BTC] [TRX]` toggle
 - TRX-specific OFAC addresses (OFAC has sanctioned many Tron addresses)
 
-### API key system + monetization
-- Add `api_keys` table to Supabase
-- Issue keys per user from dashboard Settings page
-- Rate limiting middleware based on key tier
-- Usage tracking (count queries per key per day)
-- Pricing page: Free (20/month), Analyst ($29/month, 500), Team ($99/seat)
-- Stripe integration for paid tiers
+### [DONE] API key system + monetization
+- `lib/apikeys.ts` — key generation + SHA-256 hashing
+- `app/api/apikeys/route.ts` — server-side POST handler (create action)
+- `app/dashboard/settings/page.tsx` — full Settings UI (list keys, generate, revoke, rate limits, curl example)
+- `app/api/analyze/route.ts` — Bearer token auth in step 0; `apiKeyUserId` fallback saves analyses to key owner's account
+- `app/api-docs/page.tsx` — AUTHENTICATION section with curl example and tier table
+- **REQUIRED: Run this SQL in Supabase dashboard before deploying:**
+  ```sql
+  create table if not exists api_keys (
+    id uuid primary key default gen_random_uuid(),
+    user_id uuid references auth.users(id) on delete cascade not null,
+    key_hash text not null unique,
+    label text not null,
+    tier text not null default 'free',
+    usage_count integer not null default 0,
+    last_used_at timestamptz,
+    is_active boolean not null default true,
+    created_at timestamptz not null default now()
+  );
+  alter table api_keys enable row level security;
+  create policy "Users manage own keys" on api_keys
+    for all using (auth.uid() = user_id);
+  ```
+
+### Remove unused dependencies [DONE]
+- Ran `npm uninstall jspdf html2canvas` — 22 packages removed, zero source imports existed
 
 ### Email notifications
 - When case status changes to `escalated` or `sar_filed`, send email to case owner

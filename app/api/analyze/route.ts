@@ -15,6 +15,7 @@ import { checkAddress } from '@/lib/ofac';
 import { computeRiskScore } from '@/lib/scoring';
 import { matchTypologies } from '@/lib/typology';
 import { generateAll } from '@/lib/claude';
+import { hashApiKey } from '@/lib/apikeys';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
@@ -87,6 +88,48 @@ export async function OPTIONS() {
 // ---------------------------------------------------------------------------
 
 export async function POST(request: NextRequest) {
+  // ── 0. API key authentication (optional — supplements cookie session) ───────
+  let apiKeyUserId: string | null = null;
+  const authHeader = request.headers.get('authorization');
+  if (authHeader?.startsWith('Bearer ck_live_')) {
+    const rawKey = authHeader.slice(7);
+    const keyHash = hashApiKey(rawKey);
+
+    const cookieStore = await cookies();
+    const anonSupabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() { return cookieStore.getAll(); },
+          setAll(s) { try { s.forEach(({ name, value, options }) => cookieStore.set(name, value, options)); } catch {} },
+        },
+      }
+    );
+
+    const { data: apiKey } = await anonSupabase
+      .from('api_keys')
+      .select('id, user_id, tier, usage_count, is_active')
+      .eq('key_hash', keyHash)
+      .eq('is_active', true)
+      .single();
+
+    if (!apiKey) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid or revoked API key', code: 'INVALID_API_KEY' },
+        { status: 401, headers: CORS_HEADERS }
+      );
+    }
+
+    // Non-blocking usage tracking
+    anonSupabase.from('api_keys').update({
+      usage_count: apiKey.usage_count + 1,
+      last_used_at: new Date().toISOString(),
+    }).eq('id', apiKey.id).then(() => {});
+
+    apiKeyUserId = apiKey.user_id;
+  }
+
   // ── 1. Parse body ──────────────────────────────────────────────────────────
   let body: unknown;
   try {
@@ -245,9 +288,10 @@ export async function POST(request: NextRequest) {
           }
         );
         const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
+        const saveUserId = user?.id ?? apiKeyUserId;
+        if (saveUserId) {
           const { error: insertError } = await supabase.from('analyses').insert({
-            user_id: user.id,
+            user_id: saveUserId,
             address,
             chain: 'BTC',
             risk_score: btcRiskScore.total,
@@ -259,7 +303,7 @@ export async function POST(request: NextRequest) {
             analyzed_at: analysis.analyzedAt,
           });
           if (insertError) console.error('[ClearChain/analyze] BTC insert failed:', insertError.message, insertError.code);
-          else console.info('[ClearChain/analyze] BTC analysis saved for user', user.id);
+          else console.info('[ClearChain/analyze] BTC analysis saved for user', saveUserId);
         } else {
           console.info('[ClearChain/analyze] No authenticated user — skipping BTC save');
         }
@@ -366,9 +410,10 @@ export async function POST(request: NextRequest) {
     );
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError) throw authError;
-    if (user) {
+    const saveUserId = user?.id ?? apiKeyUserId;
+    if (saveUserId) {
       const { error: insertError } = await supabase.from('analyses').insert({
-        user_id: user.id,
+        user_id: saveUserId,
         address,
         chain: 'ETH',
         risk_score: analysis.riskScore.total,
@@ -380,7 +425,7 @@ export async function POST(request: NextRequest) {
         analyzed_at: analysis.analyzedAt,
       });
       if (insertError) console.error('[ClearChain/analyze] ETH insert failed:', insertError.message, insertError.code);
-      else console.info('[ClearChain/analyze] ETH analysis saved for user', user.id);
+      else console.info('[ClearChain/analyze] ETH analysis saved for user', saveUserId);
     } else {
       console.info('[ClearChain/analyze] No authenticated user — skipping save');
     }
