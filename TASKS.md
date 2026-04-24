@@ -49,11 +49,17 @@ After all three active items: `npx tsc --noEmit` → `git add . && git commit -m
 
 ## 🔵 Planned
 
-### Tron (TRX) chain support
-- Tron is the #1 chain for sanctions evasion and drug trafficking
-- Use TronGrid API (free tier, no key required for basic access)
-- Add `[ETH] [BTC] [TRX]` toggle
-- TRX-specific OFAC addresses (OFAC has sanctioned many Tron addresses)
+### [DONE] Tron (TRX) chain support
+- `lib/tron.ts` — TronGrid API, hex→base58 address conversion, getTronTransactions(), detectTrxPatterns()
+- `data/ofac-trx-addresses.json` — known OFAC-designated TRX addresses
+- `/api/analyze` — TRX pipeline with 4-signal scoring (OFAC, rapid hops, counterparty, volume)
+- `app/page.tsx` — [ETH][BTC][TRX] toggle, TRX quick fills, validation, badge, INTEL nav link
+- `app/intel/page.tsx` — public intelligence feed (/intel), no auth required
+- **REQUIRED: Run this SQL in Supabase if /intel shows empty data:**
+  ```sql
+  create policy "Public can read aggregate intel" on analyses
+    for select using (true);
+  ```
 
 ### [DONE] API key system + monetization
 - `lib/apikeys.ts` — key generation + SHA-256 hashing
