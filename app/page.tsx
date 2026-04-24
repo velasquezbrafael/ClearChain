@@ -27,7 +27,8 @@ const LAZARUS       = '0x098B716B8Aaf21512996dC57eb0615e2383E2f96';
 const VITALIK       = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045';
 const BINANCE_BTC   = '34xp4vRoCGJym3xR7yCVPFHoCNxv4Twseo';
 const LAZARUS_BTC   = 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh';
-const GARANTEX_TRX  = 'TChkH4APvgSjFMwSBFxgKTcfSJKYsGhifA';
+const GARANTEX_TRX  = 'TJDENsfBJs4RFETt1X1W8wMDc8M5XnJhCe';
+const LAZARUS_TRX   = 'TU4vEruvZwLLkSfV9bNw12EJTPvNr7Pvaa';
 const BINANCE_TRX   = 'TLyqzVGLV1srkB7dToTAEqgDSfPtXRJZYH';
 
 const LOADING_STEPS = [
@@ -503,6 +504,7 @@ function HeroContent({
     { label: 'Binance BTC',   sub: 'Exchange',          address: BINANCE_BTC,  chain: 'BTC' as const, style: 'blue'   as const },
     { label: 'Lazarus BTC',   sub: 'OFAC SDN · DPRK',  address: LAZARUS_BTC,  chain: 'BTC' as const, style: 'red'    as const },
     { label: 'Garantex',      sub: 'OFAC SDN · TRX',   address: GARANTEX_TRX, chain: 'TRX' as const, style: 'red'    as const },
+    { label: 'Lazarus TRX',   sub: 'OFAC SDN · DPRK',  address: LAZARUS_TRX,  chain: 'TRX' as const, style: 'red'    as const },
     { label: 'Binance TRX',   sub: 'Exchange',          address: BINANCE_TRX,  chain: 'TRX' as const, style: 'orange' as const },
   ];
 
