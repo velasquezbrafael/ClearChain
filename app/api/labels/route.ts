@@ -65,8 +65,8 @@ export async function GET(request: NextRequest) {
         source: 'community',
       }, { headers: CORS_HEADERS });
     }
-  } catch {
-    // No label found or Supabase unavailable — return null gracefully
+  } catch (err) {
+    console.error('[ClearChain/labels] Supabase GET error:', err instanceof Error ? err.message : err);
   }
 
   return NextResponse.json({ address, label: null }, { headers: CORS_HEADERS });
@@ -83,6 +83,12 @@ export async function POST(request: NextRequest) {
 
   if (!address || !label || !category) {
     return NextResponse.json({ error: 'address, label, category required' }, { status: 400, headers: CORS_HEADERS });
+  }
+
+  const ETH_PATTERN = /^0x[a-fA-F0-9]{40}$/;
+  const BTC_PATTERN = /^(1|3)[a-km-zA-HJ-NP-Z1-9]{25,34}$|^bc1[a-z0-9]{39,59}$/;
+  if (!ETH_PATTERN.test(address) && !BTC_PATTERN.test(address)) {
+    return NextResponse.json({ error: 'Invalid address format — must be a valid ETH (0x...) or BTC address' }, { status: 400, headers: CORS_HEADERS });
   }
 
   const VALID_CATEGORIES = ['exchange', 'mixer', 'sanctioned', 'hack', 'defi', 'notable', 'scam', 'other'];

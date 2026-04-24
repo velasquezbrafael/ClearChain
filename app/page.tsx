@@ -90,6 +90,9 @@ const SIGNAL_LABELS: Record<string, string> = {
   high_risk_counterparty: 'HIGH-RISK PARTY',
   volume_anomaly: 'VOLUME ANOMALY',
   community_red_flags: 'RED FLAGS',
+  coinjoin_usage: 'COINJOIN USAGE',
+  peel_chain: 'PEEL CHAIN',
+  coinbase_recipient: 'COINBASE RECIPIENT',
 };
 
 function formatSignalName(name: string): string {
@@ -1451,7 +1454,7 @@ export default function HomePage() {
 
   // Show FLOW tab only when ≥3 distinct inbound sources exist
   const hasFlowData = React.useMemo(() => {
-    if (!analysis) return false;
+    if (!analysis || analysis.chain !== 'ETH') return false;
     const q = analysis.address.toLowerCase();
     const seen = new Set<string>();
     for (const tx of analysis.transactions) {
@@ -1514,7 +1517,7 @@ export default function HomePage() {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [address, loading]);
+  }, [address, loading, selectedChain]);
 
   // Loading step ticker
   useEffect(() => {
@@ -1609,7 +1612,7 @@ export default function HomePage() {
         return;
       }
     }
-    await runAnalysis(trimmed);
+    await runAnalysis(trimmed, selectedChain);
   }
 
   function handleQuickFill(addr: string) {

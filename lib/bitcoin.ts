@@ -53,7 +53,11 @@ export async function getBitcoinTransactions(address: string): Promise<WalletTra
   const res = await fetch(`${BLOCKSTREAM_BASE}/address/${address}/txs`, {
     next: { revalidate: 60 },
   });
-  if (!res.ok) throw new Error(`Blockstream.info tx fetch failed: ${res.status}`);
+  if (!res.ok) {
+    if (res.status === 400) throw new Error('Invalid Bitcoin address — not recognized by Blockstream API');
+    if (res.status === 429) throw new Error('Rate limited by Blockstream API; please try again in a few seconds');
+    throw new Error(`Blockstream.info tx fetch failed: ${res.status}`);
+  }
   const txs: MempoolTx[] = await res.json();
 
   const addr = address.toLowerCase();
@@ -175,6 +179,13 @@ export async function getBitcoinRawTxs(address: string): Promise<MempoolTx[]> {
   const res = await fetch(`${BLOCKSTREAM_BASE}/address/${address}/txs`, {
     next: { revalidate: 60 },
   });
-  if (!res.ok) return [];
-  return res.json();
+  if (!res.ok) {
+    if (res.status === 400) throw new Error('Invalid Bitcoin address — not recognized by Blockstream API');
+    throw new Error(`Blockstream.info raw tx fetch failed: ${res.status}`);
+  }
+  try {
+    return await res.json();
+  } catch {
+    throw new Error('Blockstream.info returned invalid JSON response');
+  }
 }

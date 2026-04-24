@@ -270,8 +270,9 @@ export async function POST(request: NextRequest) {
       );
     } catch (err) {
       console.error('[ClearChain/analyze] Bitcoin fetch failed:', err);
+      const btcErrMsg = err instanceof Error ? err.message : 'Failed to fetch Bitcoin transaction history';
       return NextResponse.json(
-        { success: false, error: 'Failed to fetch Bitcoin transaction history', code: 'MEMPOOL_ERROR' },
+        { success: false, error: btcErrMsg, code: 'BTC_FETCH_ERROR' },
         { status: 502, headers: CORS_HEADERS }
       );
     }
