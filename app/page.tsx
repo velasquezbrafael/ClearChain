@@ -114,6 +114,21 @@ function riskColor(level: RiskLevel): string {
 }
 
 // ---------------------------------------------------------------------------
+// Rotating headline slogans
+// ---------------------------------------------------------------------------
+
+const slogans = [
+  { text: 'follow the money', lang: 'english' },
+  { text: 'sigue el dinero', lang: 'spanish' },
+  { text: "suivez l'argent", lang: 'french' },
+  { text: 'folge dem geld', lang: 'german' },
+  { text: 'segui i soldi', lang: 'italian' },
+  { text: 'siga o dinheiro', lang: 'portuguese' },
+  { text: 'volg het geld', lang: 'dutch' },
+  { text: 'följ pengarna', lang: 'swedish' },
+];
+
+// ---------------------------------------------------------------------------
 // Search history helpers
 // ---------------------------------------------------------------------------
 
@@ -426,6 +441,19 @@ function HeroContent({
   history: HistoryEntry[];
   onRemoveHistory: (addr: string) => void;
 }) {
+  const [sloganIdx, setSloganIdx] = useState(0);
+  const [sloganVisible, setSloganVisible] = useState(true);
+  useEffect(() => {
+    const id = setInterval(() => {
+      setSloganVisible(false);
+      setTimeout(() => {
+        setSloganIdx(i => (i + 1) % slogans.length);
+        setSloganVisible(true);
+      }, 400);
+    }, 3000);
+    return () => clearInterval(id);
+  }, []);
+
   const features = [
     {
       title: 'Risk Score',
@@ -557,22 +585,37 @@ function HeroContent({
           </a>
         </div>
 
-        {/* Headline */}
-        <h1
-          className="hero-headline"
-          style={{
-            fontFamily: 'var(--font-nunito)',
-            fontWeight: 900,
-            lineHeight: 1.0,
-            color: 'var(--text-primary)',
-            letterSpacing: '-0.02em',
-            margin: '0 0 24px',
-            animation: 'fadeSlideUp 0.5s ease-out both',
-            animationDelay: '0.1s',
-          }}
-        >
-          Follow the money.
-        </h1>
+        {/* Rotating headline */}
+        <div style={{ margin: '0 0 24px', animation: 'fadeSlideUp 0.5s ease-out both', animationDelay: '0.1s' }}>
+          <h1
+            className="hero-headline"
+            style={{
+              fontFamily: 'var(--font-rubik-glitch)',
+              fontWeight: 400,
+              lineHeight: 1.0,
+              color: 'var(--text-primary)',
+              letterSpacing: '0.02em',
+              margin: '0 0 10px',
+              opacity: sloganVisible ? 1 : 0,
+              transform: sloganVisible ? 'translateY(0)' : 'translateY(-8px)',
+              transition: 'opacity 0.4s ease, transform 0.4s ease',
+            }}
+          >
+            {slogans[sloganIdx].text}
+          </h1>
+          <div
+            style={{
+              fontFamily: 'var(--font-jetbrains-mono)',
+              fontSize: 10,
+              letterSpacing: '0.15em',
+              color: 'var(--text-dim)',
+              opacity: sloganVisible ? 1 : 0,
+              transition: 'opacity 0.4s ease',
+            }}
+          >
+            [ {slogans[sloganIdx].lang} ]
+          </div>
+        </div>
 
         {/* Subhead */}
         <p
@@ -1791,10 +1834,10 @@ export default function HomePage() {
           >
             <span
               style={{
-                fontFamily: 'var(--font-nunito)',
+                fontFamily: 'var(--font-rubik-glitch)',
                 fontSize: 15,
-                fontWeight: 900,
-                letterSpacing: '0.08em',
+                fontWeight: 400,
+                letterSpacing: '0.15em',
                 color: 'var(--text-primary)',
               }}
             >

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Space_Grotesk, JetBrains_Mono, Inter, Nunito } from 'next/font/google';
+import { Space_Grotesk, JetBrains_Mono, Inter, Nunito, Rubik_Glitch } from 'next/font/google';
 import './globals.css';
 
 const spaceGrotesk = Space_Grotesk({
@@ -27,6 +27,13 @@ const nunito = Nunito({
   subsets: ['latin'],
   weight: ['900'],
   variable: '--font-nunito',
+  display: 'swap',
+});
+
+const rubikGlitch = Rubik_Glitch({
+  weight: '400',
+  subsets: ['latin'],
+  variable: '--font-rubik-glitch',
   display: 'swap',
 });
 
@@ -63,7 +70,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en"
-      className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} ${inter.variable} ${nunito.variable}`}
+      className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} ${inter.variable} ${nunito.variable} ${rubikGlitch.variable}`}
     >
       <body className="min-h-screen antialiased">{children}</body>
     </html>
