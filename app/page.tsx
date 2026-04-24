@@ -592,16 +592,14 @@ function HeroContent({
   const visibleQuickFills = quickFills.filter(q => q.chain === selectedChain);
 
   return (
-    <div style={{ minHeight: 'calc(100vh - 56px)', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
       {/* Center section */}
       <div
         style={{
-          flex: 1,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'center',
-          padding: '80px 24px 60px',
+          padding: '60px 24px 24px',
           textAlign: 'center',
           maxWidth: 760,
           margin: '0 auto',
