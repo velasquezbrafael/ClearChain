@@ -1,6 +1,6 @@
 import type { WalletTransaction } from '@/types';
 
-const MEMPOOL_BASE = 'https://mempool.space/api';
+const BLOCKSTREAM_BASE = 'https://blockstream.info/api';
 
 interface MempoolVin {
   prevout?: {
@@ -40,20 +40,20 @@ interface MempoolAddressInfo {
 }
 
 export async function getBitcoinBalance(address: string): Promise<number> {
-  const res = await fetch(`${MEMPOOL_BASE}/address/${address}`, {
+  const res = await fetch(`${BLOCKSTREAM_BASE}/address/${address}`, {
     next: { revalidate: 60 },
   });
-  if (!res.ok) throw new Error(`Mempool.space address lookup failed: ${res.status}`);
+  if (!res.ok) throw new Error(`Blockstream.info address lookup failed: ${res.status}`);
   const info: MempoolAddressInfo = await res.json();
   const confirmed = info.chain_stats.funded_txo_sum - info.chain_stats.spent_txo_sum;
   return confirmed / 1e8; // satoshis → BTC
 }
 
 export async function getBitcoinTransactions(address: string): Promise<WalletTransaction[]> {
-  const res = await fetch(`${MEMPOOL_BASE}/address/${address}/txs`, {
+  const res = await fetch(`${BLOCKSTREAM_BASE}/address/${address}/txs`, {
     next: { revalidate: 60 },
   });
-  if (!res.ok) throw new Error(`Mempool.space tx fetch failed: ${res.status}`);
+  if (!res.ok) throw new Error(`Blockstream.info tx fetch failed: ${res.status}`);
   const txs: MempoolTx[] = await res.json();
 
   const addr = address.toLowerCase();
@@ -172,7 +172,7 @@ export function detectBtcPatterns(
 }
 
 export async function getBitcoinRawTxs(address: string): Promise<MempoolTx[]> {
-  const res = await fetch(`${MEMPOOL_BASE}/address/${address}/txs`, {
+  const res = await fetch(`${BLOCKSTREAM_BASE}/address/${address}/txs`, {
     next: { revalidate: 60 },
   });
   if (!res.ok) return [];
