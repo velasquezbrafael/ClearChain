@@ -399,7 +399,8 @@ function HeroContent({
   onQuickFill,
   onSimulatorFill,
   error,
-
+  selectedChain,
+  setSelectedChain,
   history,
   onRemoveHistory,
 }: {
@@ -412,6 +413,8 @@ function HeroContent({
   onQuickFill: (addr: string) => void;
   onSimulatorFill: () => void;
   error: string | null;
+  selectedChain: 'ETH' | 'BTC';
+  setSelectedChain: (c: 'ETH' | 'BTC') => void;
   history: HistoryEntry[];
   onRemoveHistory: (addr: string) => void;
 }) {
@@ -583,6 +586,32 @@ function HeroContent({
             animationDelay: '0.4s',
           }}
         >
+          {/* Chain selector */}
+          <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
+            {(['ETH', 'BTC'] as const).map(c => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => { setSelectedChain(c); setAddress(''); }}
+                disabled={loading}
+                style={{
+                  padding: '4px 14px',
+                  fontFamily: 'var(--font-jetbrains-mono)',
+                  fontSize: 11,
+                  letterSpacing: '0.12em',
+                  border: `1px solid ${selectedChain === c ? '#00ff88' : 'rgba(255,255,255,0.12)'}`,
+                  borderRadius: 2,
+                  background: selectedChain === c ? 'rgba(0,255,136,0.08)' : 'none',
+                  color: selectedChain === c ? '#00ff88' : 'var(--text-dim)',
+                  cursor: loading ? 'default' : 'pointer',
+                  transition: 'all 0.15s',
+                }}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+
           <div
             style={{
               display: 'flex',
@@ -599,7 +628,7 @@ function HeroContent({
               onChange={e => setAddress(e.target.value)}
               onFocus={() => setInputFocused(true)}
               onBlur={() => setInputFocused(false)}
-              placeholder="0x..."
+              placeholder={selectedChain === 'BTC' ? '1A1zP1... or bc1q...' : '0x...'}
               spellCheck={false}
               autoComplete="off"
               autoCorrect="off"
@@ -1196,6 +1225,7 @@ function SaveToCaseButton({ address, analysisId }: { address: string; analysisId
 function ResultsAddressBar({
   address,
   analyzedAt,
+  chain,
   onNewAnalysis,
   inputValue,
   setInputValue,
@@ -1208,6 +1238,7 @@ function ResultsAddressBar({
 }: {
   address: string;
   analyzedAt: string;
+  chain?: 'ETH' | 'BTC';
   onNewAnalysis: () => void;
   inputValue: string;
   setInputValue: (v: string) => void;
@@ -1259,6 +1290,23 @@ function ResultsAddressBar({
         >
           {address}
         </span>
+        {chain && (
+          <span
+            style={{
+              padding: '3px 10px',
+              border: chain === 'BTC' ? '1px solid rgba(249,115,22,0.35)' : '1px solid rgba(0,255,136,0.2)',
+              background: chain === 'BTC' ? 'rgba(249,115,22,0.07)' : 'rgba(0,255,136,0.05)',
+              borderRadius: 2,
+              fontFamily: 'var(--font-jetbrains-mono)',
+              fontSize: 9,
+              letterSpacing: '0.12em',
+              color: chain === 'BTC' ? '#f97316' : '#00ff88',
+              flexShrink: 0,
+            }}
+          >
+            {chain}
+          </span>
+        )}
         {(() => {
           const lbl = getLabel(address);
           if (!lbl) return null;
@@ -1385,6 +1433,7 @@ export default function HomePage() {
     const urlAddr = new URLSearchParams(window.location.search).get('address') ?? '';
     return /^0x[a-fA-F0-9]{40}$/.test(urlAddr) ? urlAddr : '';
   });
+  const [selectedChain, setSelectedChain] = useState<'ETH' | 'BTC'>('ETH');
   const [loading, setLoading]       = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
   const [error, setError]           = useState<string | null>(null);
@@ -1488,7 +1537,8 @@ export default function HomePage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showResults]);
 
-  async function runAnalysis(addr: string) {
+  async function runAnalysis(addr: string, chain?: 'ETH' | 'BTC') {
+    const activeChain = chain ?? selectedChain;
     setLoading(true);
     setLoadingStep(0);
     setError(null);
@@ -1505,7 +1555,7 @@ export default function HomePage() {
       const res = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address: addr }),
+        body: JSON.stringify({ address: addr, chain: activeChain }),
         signal: controller.signal,
       });
       clearTimeout(timeout);
@@ -1542,12 +1592,22 @@ export default function HomePage() {
   async function handleAnalyze(e: React.FormEvent) {
     e.preventDefault();
     const trimmed = address.trim();
-    if (!trimmed) { setError('Please enter an Ethereum wallet address or ENS name.'); return; }
-    const isHexAddr = /^0x[a-fA-F0-9]{40}$/.test(trimmed);
-    const isEns = trimmed.includes('.');
-    if (!isHexAddr && !isEns) {
-      setError('Invalid input. Enter a 0x address (42 chars) or an ENS name like vitalik.eth.');
+    if (!trimmed) {
+      setError(selectedChain === 'BTC'
+        ? 'Please enter a Bitcoin address.'
+        : 'Please enter an Ethereum wallet address or ENS name.');
       return;
+    }
+    if (selectedChain === 'BTC') {
+      const isBtc = /^(1|3)[a-km-zA-HJ-NP-Z1-9]{25,34}$/.test(trimmed) || /^bc1[a-z0-9]{39,59}$/.test(trimmed);
+      if (!isBtc) { setError('Invalid Bitcoin address format. Must start with 1, 3, or bc1.'); return; }
+    } else {
+      const isHexAddr = /^0x[a-fA-F0-9]{40}$/.test(trimmed);
+      const isEns = trimmed.includes('.');
+      if (!isHexAddr && !isEns) {
+        setError('Invalid input. Enter a 0x address (42 chars) or an ENS name like vitalik.eth.');
+        return;
+      }
     }
     await runAnalysis(trimmed);
   }
@@ -1762,7 +1822,8 @@ export default function HomePage() {
           onQuickFill={handleQuickFill}
           onSimulatorFill={handleSimulatorFill}
           error={error}
-
+          selectedChain={selectedChain}
+          setSelectedChain={setSelectedChain}
           history={history}
           onRemoveHistory={handleRemoveHistory}
         />
@@ -1851,6 +1912,7 @@ export default function HomePage() {
           <ResultsAddressBar
             address={analysis.address}
             analyzedAt={analysis.analyzedAt}
+            chain={analysis.chain}
             onNewAnalysis={handleNewAnalysis}
             inputValue={address}
             setInputValue={setAddress}

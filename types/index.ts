@@ -165,8 +165,8 @@ export interface AMLTypology {
 export interface WalletAnalysis {
   /** The Ethereum address that was analyzed (checksummed, lowercase) */
   address: string;
-  /** Blockchain analyzed — ETH only in v1 */
-  chain: 'ETH';
+  /** Blockchain analyzed */
+  chain: 'ETH' | 'BTC';
   /** Computed risk score with full signal breakdown */
   riskScore: RiskScore;
   /** All evaluated AML typologies (triggered and clean) */
