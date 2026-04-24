@@ -166,7 +166,7 @@ export interface WalletAnalysis {
   /** The Ethereum address that was analyzed (checksummed, lowercase) */
   address: string;
   /** Blockchain analyzed */
-  chain: 'ETH' | 'BTC';
+  chain: 'ETH' | 'BTC' | 'TRX';
   /** Computed risk score with full signal breakdown */
   riskScore: RiskScore;
   /** All evaluated AML typologies (triggered and clean) */

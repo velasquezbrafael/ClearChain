@@ -22,11 +22,13 @@ import { createClient } from '@/lib/supabase/client';
 // Constants
 // ---------------------------------------------------------------------------
 
-const TORNADO_CASH = '0x722122dF12D4e14e13Ac3b6895a86e84145b6967';
-const LAZARUS      = '0x098B716B8Aaf21512996dC57eb0615e2383E2f96';
-const VITALIK      = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045';
-const BINANCE_BTC  = '34xp4vRoCGJym3xR7yCVPFHoCNxv4Twseo';
-const LAZARUS_BTC  = 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh';
+const TORNADO_CASH  = '0x722122dF12D4e14e13Ac3b6895a86e84145b6967';
+const LAZARUS       = '0x098B716B8Aaf21512996dC57eb0615e2383E2f96';
+const VITALIK       = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045';
+const BINANCE_BTC   = '34xp4vRoCGJym3xR7yCVPFHoCNxv4Twseo';
+const LAZARUS_BTC   = 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh';
+const GARANTEX_TRX  = 'TChkH4APvgSjFMwSBFxgKTcfSJKYsGhifA';
+const BINANCE_TRX   = 'TLyqzVGLV1srkB7dToTAEqgDSfPtXRJZYH';
 
 const LOADING_STEPS = [
   'Fetching on-chain transactions...',
@@ -418,8 +420,8 @@ function HeroContent({
   onQuickFill: (addr: string) => void;
   onSimulatorFill: () => void;
   error: string | null;
-  selectedChain: 'ETH' | 'BTC';
-  setSelectedChain: (c: 'ETH' | 'BTC') => void;
+  selectedChain: 'ETH' | 'BTC' | 'TRX';
+  setSelectedChain: (c: 'ETH' | 'BTC' | 'TRX') => void;
   history: HistoryEntry[];
   onRemoveHistory: (addr: string) => void;
 }) {
@@ -495,11 +497,13 @@ function HeroContent({
 
 
   const quickFills = [
-    { label: 'Tornado Cash', sub: 'OFAC SDN · Router', address: TORNADO_CASH, chain: 'ETH' as const, style: 'red'   as const },
-    { label: 'Lazarus Group', sub: 'DPRK · OFAC SDN',  address: LAZARUS,      chain: 'ETH' as const, style: 'red'   as const },
-    { label: 'Vitalik.eth',   sub: 'Clean baseline',    address: VITALIK,      chain: 'ETH' as const, style: 'green' as const },
-    { label: 'Binance BTC',   sub: 'Exchange',          address: BINANCE_BTC,  chain: 'BTC' as const, style: 'blue'  as const },
-    { label: 'Lazarus BTC',   sub: 'OFAC SDN · DPRK',  address: LAZARUS_BTC,  chain: 'BTC' as const, style: 'red'   as const },
+    { label: 'Tornado Cash', sub: 'OFAC SDN · Router', address: TORNADO_CASH, chain: 'ETH' as const, style: 'red'    as const },
+    { label: 'Lazarus Group', sub: 'DPRK · OFAC SDN',  address: LAZARUS,      chain: 'ETH' as const, style: 'red'    as const },
+    { label: 'Vitalik.eth',   sub: 'Clean baseline',    address: VITALIK,      chain: 'ETH' as const, style: 'green'  as const },
+    { label: 'Binance BTC',   sub: 'Exchange',          address: BINANCE_BTC,  chain: 'BTC' as const, style: 'blue'   as const },
+    { label: 'Lazarus BTC',   sub: 'OFAC SDN · DPRK',  address: LAZARUS_BTC,  chain: 'BTC' as const, style: 'red'    as const },
+    { label: 'Garantex',      sub: 'OFAC SDN · TRX',   address: GARANTEX_TRX, chain: 'TRX' as const, style: 'red'    as const },
+    { label: 'Binance TRX',   sub: 'Exchange',          address: BINANCE_TRX,  chain: 'TRX' as const, style: 'orange' as const },
   ];
 
   const visibleQuickFills = quickFills.filter(q => q.chain === selectedChain);
@@ -533,7 +537,7 @@ function HeroContent({
             animationDelay: '0s',
           }}
         >
-          {'ETH · BTC · '}
+          {'ETH · BTC · TRX · '}
           <a
             href="https://github.com/velasquezbrafael-source/ClearChain"
             target="_blank"
@@ -581,7 +585,7 @@ function HeroContent({
             animationDelay: '0.25s',
           }}
         >
-          Trace funds across Ethereum and Bitcoin. Identify OFAC-sanctioned wallets, detect mixer usage, and generate FinCEN SAR drafts automatically — the intelligence platform that used to cost $200K a year.
+          Trace funds across Ethereum, Bitcoin, and Tron. Identify OFAC-sanctioned wallets, detect mixer usage, and generate FinCEN SAR drafts automatically — the intelligence platform that used to cost $200K a year.
         </p>
 
         {/* Search bar */}
@@ -595,28 +599,32 @@ function HeroContent({
         >
           {/* Chain selector */}
           <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
-            {(['ETH', 'BTC'] as const).map(c => (
-              <button
-                key={c}
-                type="button"
-                onClick={() => { setSelectedChain(c); setAddress(''); }}
-                disabled={loading}
-                style={{
-                  padding: '4px 14px',
-                  fontFamily: 'var(--font-jetbrains-mono)',
-                  fontSize: 11,
-                  letterSpacing: '0.12em',
-                  border: `1px solid ${selectedChain === c ? '#00ff88' : 'rgba(255,255,255,0.12)'}`,
-                  borderRadius: 2,
-                  background: selectedChain === c ? 'rgba(0,255,136,0.08)' : 'none',
-                  color: selectedChain === c ? '#00ff88' : 'var(--text-dim)',
-                  cursor: loading ? 'default' : 'pointer',
-                  transition: 'all 0.15s',
-                }}
-              >
-                {c}
-              </button>
-            ))}
+            {(['ETH', 'BTC', 'TRX'] as const).map(c => {
+              const chainColor = c === 'ETH' ? '#00ff88' : c === 'BTC' ? '#f97316' : '#ff4500';
+              const isActive = selectedChain === c;
+              return (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => { setSelectedChain(c); setAddress(''); }}
+                  disabled={loading}
+                  style={{
+                    padding: '4px 14px',
+                    fontFamily: 'var(--font-jetbrains-mono)',
+                    fontSize: 11,
+                    letterSpacing: '0.12em',
+                    border: `1px solid ${isActive ? chainColor : 'rgba(255,255,255,0.12)'}`,
+                    borderRadius: 2,
+                    background: isActive ? `${chainColor}14` : 'none',
+                    color: isActive ? chainColor : 'var(--text-dim)',
+                    cursor: loading ? 'default' : 'pointer',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  {c}
+                </button>
+              );
+            })}
           </div>
 
           <div
@@ -635,7 +643,7 @@ function HeroContent({
               onChange={e => setAddress(e.target.value)}
               onFocus={() => setInputFocused(true)}
               onBlur={() => setInputFocused(false)}
-              placeholder={selectedChain === 'BTC' ? '1A1zP1... or bc1q...' : '0x...'}
+              placeholder={selectedChain === 'BTC' ? '1A1zP1... or bc1q...' : selectedChain === 'TRX' ? 'T... Tron address' : '0x...'}
               spellCheck={false}
               autoComplete="off"
               autoCorrect="off"
@@ -733,9 +741,10 @@ function HeroContent({
         >
           {(() => {
             const STYLE_MAP = {
-              red:   { border: 'rgba(255,255,255,0.06)', color: 'var(--text-secondary)', bg: 'none',                    hoverBorder: 'rgba(255,59,59,0.35)',   hoverColor: '#ff6b6b' },
-              green: { border: 'rgba(0,255,136,0.2)',    color: 'rgba(0,255,136,0.8)',   bg: 'rgba(0,255,136,0.04)',    hoverBorder: 'rgba(0,255,136,0.4)',    hoverColor: '#00ff88' },
-              blue:  { border: 'rgba(59,130,246,0.25)',  color: 'rgba(96,165,250,0.8)',  bg: 'rgba(59,130,246,0.04)',   hoverBorder: 'rgba(59,130,246,0.5)',   hoverColor: '#60a5fa' },
+              red:    { border: 'rgba(255,255,255,0.06)', color: 'var(--text-secondary)', bg: 'none',                    hoverBorder: 'rgba(255,59,59,0.35)',    hoverColor: '#ff6b6b' },
+              green:  { border: 'rgba(0,255,136,0.2)',    color: 'rgba(0,255,136,0.8)',   bg: 'rgba(0,255,136,0.04)',    hoverBorder: 'rgba(0,255,136,0.4)',     hoverColor: '#00ff88' },
+              blue:   { border: 'rgba(59,130,246,0.25)',  color: 'rgba(96,165,250,0.8)',  bg: 'rgba(59,130,246,0.04)',   hoverBorder: 'rgba(59,130,246,0.5)',    hoverColor: '#60a5fa' },
+              orange: { border: 'rgba(255,69,0,0.25)',    color: 'rgba(255,100,0,0.8)',   bg: 'rgba(255,69,0,0.04)',     hoverBorder: 'rgba(255,69,0,0.5)',      hoverColor: '#ff4500' },
             };
             return (
               <>
@@ -907,7 +916,7 @@ function HeroContent({
         >
           {[
             { n: '01', title: 'PASTE ANY ADDRESS', body: 'Ethereum wallet, Bitcoin address, or ENS name. No wallet connection. No account required.' },
-            { n: '02', title: 'INTELLIGENCE IN SECONDS', body: 'Real-time OFAC screening, on-chain transaction analysis, AML typology matching — across ETH and BTC.' },
+            { n: '02', title: 'INTELLIGENCE IN SECONDS', body: 'Real-time OFAC screening, on-chain transaction analysis, AML typology matching — across ETH, BTC, and TRX.' },
             { n: '03', title: 'INVESTIGATION + COMPLIANCE', body: 'Click nodes to trace fund flows. Download the SAR draft. Save to a case. From raw address to filed-ready report.' },
           ].map(({ n, title, body }) => (
             <div key={n}>
@@ -1241,7 +1250,7 @@ function ResultsAddressBar({
 }: {
   address: string;
   analyzedAt: string;
-  chain?: 'ETH' | 'BTC';
+  chain?: 'ETH' | 'BTC' | 'TRX';
   onNewAnalysis: () => void;
   inputValue: string;
   setInputValue: (v: string) => void;
@@ -1293,23 +1302,30 @@ function ResultsAddressBar({
         >
           {address}
         </span>
-        {chain && (
-          <span
-            style={{
-              padding: '3px 10px',
-              border: chain === 'BTC' ? '1px solid rgba(249,115,22,0.35)' : '1px solid rgba(0,255,136,0.2)',
-              background: chain === 'BTC' ? 'rgba(249,115,22,0.07)' : 'rgba(0,255,136,0.05)',
-              borderRadius: 2,
-              fontFamily: 'var(--font-jetbrains-mono)',
-              fontSize: 9,
-              letterSpacing: '0.12em',
-              color: chain === 'BTC' ? '#f97316' : '#00ff88',
-              flexShrink: 0,
-            }}
-          >
-            {chain}
-          </span>
-        )}
+        {chain && (() => {
+          const chainStyle = chain === 'BTC'
+            ? { border: 'rgba(249,115,22,0.35)', bg: 'rgba(249,115,22,0.07)', color: '#f97316' }
+            : chain === 'TRX'
+            ? { border: 'rgba(255,69,0,0.35)',   bg: 'rgba(255,69,0,0.07)',   color: '#ff4500' }
+            : { border: 'rgba(0,255,136,0.2)',   bg: 'rgba(0,255,136,0.05)', color: '#00ff88' };
+          return (
+            <span
+              style={{
+                padding: '3px 10px',
+                border: `1px solid ${chainStyle.border}`,
+                background: chainStyle.bg,
+                borderRadius: 2,
+                fontFamily: 'var(--font-jetbrains-mono)',
+                fontSize: 9,
+                letterSpacing: '0.12em',
+                color: chainStyle.color,
+                flexShrink: 0,
+              }}
+            >
+              {chain}
+            </span>
+          );
+        })()}
         {(() => {
           const lbl = getLabel(address);
           if (!lbl) return null;
@@ -1436,7 +1452,7 @@ export default function HomePage() {
     const urlAddr = new URLSearchParams(window.location.search).get('address') ?? '';
     return /^0x[a-fA-F0-9]{40}$/.test(urlAddr) ? urlAddr : '';
   });
-  const [selectedChain, setSelectedChain] = useState<'ETH' | 'BTC'>('ETH');
+  const [selectedChain, setSelectedChain] = useState<'ETH' | 'BTC' | 'TRX'>('ETH');
   const [loading, setLoading]       = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
   const [error, setError]           = useState<string | null>(null);
@@ -1540,7 +1556,7 @@ export default function HomePage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showResults]);
 
-  async function runAnalysis(addr: string, chain?: 'ETH' | 'BTC') {
+  async function runAnalysis(addr: string, chain?: 'ETH' | 'BTC' | 'TRX') {
     const activeChain = chain ?? selectedChain;
     setLoading(true);
     setLoadingStep(0);
@@ -1605,6 +1621,9 @@ export default function HomePage() {
     if (selectedChain === 'BTC') {
       const isBtc = /^(1|3)[a-km-zA-HJ-NP-Z1-9]{25,34}$/.test(trimmed) || /^bc1[a-z0-9]{39,59}$/.test(trimmed);
       if (!isBtc) { setError('Invalid Bitcoin address format. Must start with 1, 3, or bc1.'); return; }
+    } else if (selectedChain === 'TRX') {
+      const isTrx = /^T[a-zA-Z0-9]{33}$/.test(trimmed);
+      if (!isTrx) { setError('Invalid Tron address format. Must start with T and be 34 characters.'); return; }
     } else {
       const isHexAddr = /^0x[a-fA-F0-9]{40}$/.test(trimmed);
       const isEns = trimmed.includes('.');
@@ -1757,6 +1776,21 @@ export default function HomePage() {
           >
             API DOCS
           </a>
+          <a
+            href="/intel"
+            style={{
+              fontFamily: 'var(--font-jetbrains-mono)',
+              fontSize: 10,
+              letterSpacing: '0.1em',
+              color: 'var(--text-dim)',
+              textDecoration: 'none',
+              transition: 'color 0.15s',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-secondary)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-dim)'; }}
+          >
+            INTEL →
+          </a>
 
           {/* Status indicator */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -1778,7 +1812,7 @@ export default function HomePage() {
               color: 'var(--text-dim)',
             }}
           >
-            ETH · BTC
+            ETH · BTC · TRX
           </span>
         </div>
 

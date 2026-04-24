@@ -11,6 +11,8 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { getTransactions, getTokenTransfers, resolveENS, getTopCounterparties } from '@/lib/etherscan';
 import { getBitcoinTransactions, getBitcoinRawTxs, detectBtcPatterns } from '@/lib/bitcoin';
+import { getTronTransactions, detectTrxPatterns } from '@/lib/tron';
+import OFAC_TRX from '@/data/ofac-trx-addresses.json';
 import { checkAddress } from '@/lib/ofac';
 import { computeRiskScore } from '@/lib/scoring';
 import { matchTypologies } from '@/lib/typology';
@@ -153,7 +155,9 @@ export async function POST(request: NextRequest) {
   }
 
   const rawAddress = ((body as Record<string, unknown>).address as string).trim();
-  const chain = (body as Record<string, unknown>).chain === 'BTC' ? 'BTC' : 'ETH';
+  const rawChain = (body as Record<string, unknown>).chain;
+  const chain: 'ETH' | 'BTC' | 'TRX' =
+    rawChain === 'BTC' ? 'BTC' : rawChain === 'TRX' ? 'TRX' : 'ETH';
 
   if (!rawAddress) {
     return NextResponse.json(
@@ -170,6 +174,15 @@ export async function POST(request: NextRequest) {
     if (!isBtcAddr) {
       return NextResponse.json(
         { success: false, error: 'Invalid Bitcoin address format', code: 'INVALID_ADDRESS' },
+        { status: 422, headers: CORS_HEADERS }
+      );
+    }
+    address = rawAddress;
+  } else if (chain === 'TRX') {
+    const isTrxAddr = /^T[a-zA-Z0-9]{33}$/.test(rawAddress);
+    if (!isTrxAddr) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid Tron address format. Must start with T and be 34 characters.', code: 'INVALID_ADDRESS' },
         { status: 422, headers: CORS_HEADERS }
       );
     }
@@ -322,6 +335,134 @@ export async function POST(request: NextRequest) {
       const btcErrMsg = err instanceof Error ? err.message : 'Failed to fetch Bitcoin transaction history';
       return NextResponse.json(
         { success: false, error: btcErrMsg, code: 'BTC_FETCH_ERROR' },
+        { status: 502, headers: CORS_HEADERS }
+      );
+    }
+  }
+
+  // ── TRX pipeline ──────────────────────────────────────────────────────────
+  if (chain === 'TRX') {
+    try {
+      const trxTxs = await getTronTransactions(address);
+      const TRX_SDN = new Map(
+        Object.entries(OFAC_TRX as Record<string, string>).map(([a, e]) => [a, e])
+      );
+      const trxOfacEntity = TRX_SDN.get(address);
+      const trxOfacResult = trxOfacEntity
+        ? { matched: true, matchedEntity: trxOfacEntity, confidence: 1.0 }
+        : { matched: false, confidence: 0 };
+
+      const patterns = detectTrxPatterns(address, trxTxs);
+
+      // Check counterparties against TRX OFAC list
+      const counterpartyHits = trxTxs.filter(tx =>
+        TRX_SDN.has(tx.from) || TRX_SDN.has(tx.to)
+      );
+      const hasCounterpartyRisk = counterpartyHits.length > 0 && !trxOfacResult.matched;
+
+      const trxSignals: ScoringSignal[] = [
+        {
+          name: 'ofac_match',
+          weight: 40,
+          triggered: trxOfacResult.matched,
+          score: trxOfacResult.matched ? 40 : 0,
+          detail: trxOfacResult.matched
+            ? `Address is listed on the OFAC SDN list as "${trxOfacEntity}". Mandatory SAR filing required for covered financial institutions.`
+            : 'No match found on OFAC TRX SDN list.',
+        },
+        {
+          name: 'rapid_fund_movement',
+          weight: 25,
+          triggered: patterns.rapidHops && (trxOfacResult.matched || hasCounterpartyRisk),
+          score: patterns.rapidHops && (trxOfacResult.matched || hasCounterpartyRisk) ? 25 : 0,
+          detail: patterns.rapidHops
+            ? trxOfacResult.matched || hasCounterpartyRisk
+              ? '≥3 outbound TRX transactions within 24 hours alongside OFAC exposure — consistent with rapid layering.'
+              : '≥3 outbound transactions in 24 hours detected, but no corroborating OFAC or counterparty risk (signal suppressed).'
+            : 'No rapid fund movement pattern detected.',
+        },
+        {
+          name: 'high_risk_counterparty',
+          weight: 20,
+          triggered: hasCounterpartyRisk,
+          score: hasCounterpartyRisk ? 20 : 0,
+          detail: hasCounterpartyRisk
+            ? `${counterpartyHits.length} transaction(s) with OFAC-sanctioned TRX counterparty addresses. Enhanced due diligence required.`
+            : 'No interactions with known sanctioned TRX counterparties.',
+        },
+        {
+          name: 'volume_anomaly',
+          weight: 15,
+          triggered: patterns.highVolume,
+          score: patterns.highVolume ? 15 : 0,
+          detail: patterns.highVolume
+            ? 'High TRX volume detected in a wallet less than 30 days old — inconsistent with normal wallet activity.'
+            : 'TRX volume within expected range for wallet age.',
+        },
+      ];
+
+      const totalScore = Math.min(100, trxSignals.reduce((s, sig) => s + sig.score, 0));
+      const level = totalScore >= 75 ? 'CRITICAL' : totalScore >= 50 ? 'HIGH' : totalScore >= 25 ? 'MEDIUM' : 'LOW';
+      const trxRiskScore: RiskScore = { total: totalScore, level, signals: trxSignals };
+
+      const analysis: WalletAnalysis = {
+        address,
+        chain: 'TRX',
+        riskScore: trxRiskScore,
+        typologies: [],
+        transactions: trxTxs,
+        ofacResult: trxOfacResult,
+        analyzedAt: new Date().toISOString(),
+      };
+
+      const { narrative, sarDraft: sarDraftRaw } = await generateAll(analysis);
+
+      // Save to Supabase
+      try {
+        const cookieStore = await cookies();
+        const supabase = createServerClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+          {
+            cookies: {
+              getAll() { return cookieStore.getAll(); },
+              setAll(s) { try { s.forEach(({ name, value, options }) => cookieStore.set(name, value, options)); } catch {} },
+            },
+          }
+        );
+        const { data: { user } } = await supabase.auth.getUser();
+        const saveUserId = user?.id ?? apiKeyUserId;
+        if (saveUserId) {
+          const { error: insertError } = await supabase.from('analyses').insert({
+            user_id: saveUserId,
+            address,
+            chain: 'TRX',
+            risk_score: trxRiskScore.total,
+            risk_level: trxRiskScore.level,
+            signals: trxRiskScore.signals,
+            typologies: [],
+            narrative,
+            sar_draft: sarDraftRaw,
+            analyzed_at: analysis.analyzedAt,
+          });
+          if (insertError) console.error('[ClearChain/analyze] TRX insert failed:', insertError.message);
+          else console.info('[ClearChain/analyze] TRX analysis saved for user', saveUserId);
+        }
+      } catch (err) {
+        console.error('[ClearChain/analyze] Supabase TRX save failed:', err);
+      }
+
+      analysisCache.set(cacheKey, { data: analysis, narrative, sarDraft: sarDraftRaw, hopData: [], cachedAt: Date.now() });
+
+      return NextResponse.json(
+        { success: true, data: analysis, narrative, sarDraft: sarDraftRaw, hopData: [], resolvedAddress: address },
+        { status: 200, headers: CORS_HEADERS }
+      );
+    } catch (err) {
+      console.error('[ClearChain/analyze] TRX fetch failed:', err);
+      const trxErrMsg = err instanceof Error ? err.message : 'Failed to fetch Tron transaction history';
+      return NextResponse.json(
+        { success: false, error: trxErrMsg, code: 'TRX_FETCH_ERROR' },
         { status: 502, headers: CORS_HEADERS }
       );
     }
