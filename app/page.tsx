@@ -561,11 +561,11 @@ function HeroContent({
         <h1
           className="hero-headline"
           style={{
-            fontFamily: 'var(--font-space-grotesk)',
-            fontWeight: 700,
+            fontFamily: 'var(--font-nunito)',
+            fontWeight: 900,
             lineHeight: 1.0,
             color: 'var(--text-primary)',
-            letterSpacing: '-0.03em',
+            letterSpacing: '-0.02em',
             margin: '0 0 24px',
             animation: 'fadeSlideUp 0.5s ease-out both',
             animationDelay: '0.1s',
@@ -1264,6 +1264,40 @@ function ResultsAddressBar({
   saveButton?: React.ReactNode;
 }) {
   const [overflowOpen, setOverflowOpen] = React.useState(false);
+  const [overflowPos, setOverflowPos] = React.useState({ top: 0, right: 0 });
+  const overflowBtnRef = React.useRef<HTMLButtonElement>(null);
+  const overflowDropRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (overflowOpen && overflowBtnRef.current) {
+      const rect = overflowBtnRef.current.getBoundingClientRect();
+      setOverflowPos({ top: rect.bottom + window.scrollY + 6, right: window.innerWidth - rect.right });
+    }
+  }, [overflowOpen]);
+
+  React.useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      const target = e.target as Node;
+      if (
+        overflowBtnRef.current && !overflowBtnRef.current.contains(target) &&
+        overflowDropRef.current && !overflowDropRef.current.contains(target)
+      ) setOverflowOpen(false);
+    }
+    if (overflowOpen) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [overflowOpen]);
+
+  const overflowPortal = overflowOpen && typeof document !== 'undefined' ? createPortal(
+    <div
+      ref={overflowDropRef}
+      style={{ position: 'absolute', top: overflowPos.top, right: overflowPos.right, zIndex: 9999, background: '#0d1220', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 4, padding: '6px 0', minWidth: 160, boxShadow: '0 8px 24px rgba(0,0,0,0.4)', display: 'flex', flexDirection: 'column' }}
+    >
+      <div onClick={() => setOverflowOpen(false)} style={{ display: 'contents' }}>{saveButton}</div>
+      <div onClick={() => setOverflowOpen(false)} style={{ display: 'contents' }}>{exportButton}</div>
+    </div>,
+    document.body
+  ) : null;
+
   return (
     <div
       style={{
@@ -1410,8 +1444,9 @@ function ResultsAddressBar({
       <ShareButton />
 
       {/* ··· overflow: Save + Export */}
-      <div style={{ position: 'relative', flexShrink: 0 }}>
+      <div style={{ flexShrink: 0 }}>
         <button
+          ref={overflowBtnRef}
           onClick={() => setOverflowOpen(o => !o)}
           style={{ background: 'none', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 3, color: 'var(--text-dim)', cursor: 'pointer', padding: '5px 10px', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, lineHeight: 1, letterSpacing: '0.05em', transition: 'border-color 0.15s, color 0.15s' }}
           onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; }}
@@ -1420,15 +1455,7 @@ function ResultsAddressBar({
         >
           ···
         </button>
-        {overflowOpen && (
-          <>
-            <div style={{ position: 'fixed', inset: 0, zIndex: 9998 }} onClick={() => setOverflowOpen(false)} />
-            <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 6, zIndex: 9999, background: '#0d1220', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 4, padding: '6px 0', minWidth: 160, boxShadow: '0 8px 24px rgba(0,0,0,0.4)', display: 'flex', flexDirection: 'column' }}>
-              <div onClick={() => setOverflowOpen(false)} style={{ display: 'contents' }}>{saveButton}</div>
-              <div onClick={() => setOverflowOpen(false)} style={{ display: 'contents' }}>{exportButton}</div>
-            </div>
-          </>
-        )}
+        {overflowPortal}
       </div>
 
       {/* New Analysis (primary) */}
@@ -1764,10 +1791,10 @@ export default function HomePage() {
           >
             <span
               style={{
-                fontFamily: 'var(--font-space-grotesk)',
+                fontFamily: 'var(--font-nunito)',
                 fontSize: 15,
-                fontWeight: 700,
-                letterSpacing: '0.12em',
+                fontWeight: 900,
+                letterSpacing: '0.08em',
                 color: 'var(--text-primary)',
               }}
             >
