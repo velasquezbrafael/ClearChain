@@ -6,7 +6,7 @@ _Maintained by Rocky (Cowork). Claude Code: read this before starting work, mark
 
 ## 🔴 Active (do these now)
 
-### [ACTIVE] Graph intelligence — connected node highlighting
+### [DONE] Graph intelligence — connected node highlighting
 When a node is expanded in Investigation Mode and new counterparties load, check each new counterparty against the existing node list. If a new counterparty address is ALREADY in the graph (from a different expansion path), render it with a distinct "overlap" indicator — a pulsing outer ring or double-border circle in yellow/gold (`#ffd60a`).
 
 This reveals when two separate wallets share a common counterparty — a critical money laundering pattern called "convergence." It should appear automatically without user action when the overlap is detected.
@@ -24,7 +24,7 @@ Add a new legend item: `● OVERLAP` in gold, shown when any overlap is detected
 
 ---
 
-### [ACTIVE] Case intelligence view
+### [DONE] Case intelligence view
 On the case detail page (`/dashboard/cases/[id]`), add a "NETWORK" section that shows all addresses in the case as a single combined D3 force-directed graph.
 
 - Each case address = a node, color-coded by its risk level (red=CRITICAL, orange=HIGH, yellow=MEDIUM, green=LOW/CLEAN)
@@ -37,7 +37,7 @@ This is the feature that shows investigators whether their case subjects are con
 
 ---
 
-### [ACTIVE] Dashboard polish
+### [DONE] Dashboard polish
 Three quick items:
 1. **Pagination** on the Recent Analyses table — currently capped at 10. Add "Load more" button or page numbers. Fetch next 10 from Supabase with `.range(offset, offset+9)`.
 2. **Status filter** on Cases list — dropdown filter: All / Open / Under Review / Escalated / SAR Filed / Closed. Filters the cases query client-side or adds a `.eq('status', filter)` to the Supabase query.

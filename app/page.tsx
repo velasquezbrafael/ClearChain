@@ -424,7 +424,7 @@ function HeroContent({
   const features = [
     {
       title: 'Risk Score',
-      desc: '0–100 weighted score with full signal breakdown. Every point explained.',
+      desc: '0–100 weighted score across 6 signals. OFAC match, mixer interaction, peel chains, coinjoin detection. Every point explained — no black box.',
       icon: (
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
           <path d="M3 14 A8 8 0 0 1 17 14" stroke="#00ff88" strokeWidth="1.5" strokeLinecap="round"/>
@@ -435,7 +435,7 @@ function HeroContent({
     },
     {
       title: 'AML Typologies',
-      desc: 'Maps patterns to FATF/FinCEN typologies: smurfing, layering, mixer obfuscation.',
+      desc: '7 FATF/FinCEN typologies automatically matched: smurfing, layering, mixer obfuscation, hop layering, convergence, peel chain, coinjoin. With regulatory citations.',
       icon: (
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
           <circle cx="10" cy="4" r="2" stroke="#00ff88" strokeWidth="1.5"/>
@@ -448,7 +448,7 @@ function HeroContent({
     },
     {
       title: 'Fund Flow Graph',
-      desc: 'Force-directed graph of all counterparties. OFAC entities flagged in red.',
+      desc: 'Click any node to follow the money. Trace funds across hops, identify OFAC entities in red, detect when two wallets share a counterparty.',
       icon: (
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
           <circle cx="10" cy="10" r="2" stroke="#00ff88" strokeWidth="1.5"/>
@@ -465,7 +465,7 @@ function HeroContent({
     },
     {
       title: 'SAR Draft',
-      desc: 'AI-generated FinCEN SAR narrative. Ready for compliance officer review.',
+      desc: 'FinCEN-format Suspicious Activity Report generated in seconds. The work that takes compliance teams 2–3 hours — automated.',
       icon: (
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
           <rect x="4" y="2" width="12" height="16" rx="1" stroke="#00ff88" strokeWidth="1.5"/>
@@ -477,7 +477,7 @@ function HeroContent({
     },
     {
       title: 'Simulator',
-      desc: 'Toggle risk signals on/off to model counterfactual scenarios. Generate AML narratives for training.',
+      desc: 'Toggle risk factors and watch the score update in real time. The only AML tool with what-if scenario modeling.',
       icon: (
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
           <line x1="3" y1="5" x2="17" y2="5" stroke="#00ff88" strokeWidth="1.5" strokeLinecap="round"/>
@@ -492,11 +492,14 @@ function HeroContent({
   ];
 
 
+  const BINANCE_BTC = '34xp4vRoCGJym3xR7yCVPFHoCNxv4Twseo';
+
   const quickFills = [
-    { label: 'Tornado Cash', sublabel: 'OFAC SDN · Router', addr: TORNADO_CASH, simulator: false, clean: false },
-    { label: 'Lazarus Group', sublabel: 'DPRK · OFAC SDN', addr: LAZARUS, simulator: false, clean: false },
-    { label: 'Vitalik.eth', sublabel: 'Clean baseline', addr: VITALIK, simulator: false, clean: true },
-    { label: 'Try the Simulator', sublabel: '', addr: TORNADO_CASH, simulator: true, clean: false },
+    { label: 'Tornado Cash', sublabel: 'OFAC SDN · Router', addr: TORNADO_CASH, simulator: false, clean: false, btc: false },
+    { label: 'Lazarus Group', sublabel: 'DPRK · OFAC SDN', addr: LAZARUS, simulator: false, clean: false, btc: false },
+    { label: 'Vitalik.eth', sublabel: 'Clean baseline', addr: VITALIK, simulator: false, clean: true, btc: false },
+    { label: 'Binance BTC', sublabel: 'Exchange', addr: BINANCE_BTC, simulator: false, clean: false, btc: true },
+    { label: 'Try the Simulator', sublabel: '', addr: TORNADO_CASH, simulator: true, clean: false, btc: false },
   ];
 
   return (
@@ -528,6 +531,7 @@ function HeroContent({
             animationDelay: '0s',
           }}
         >
+          {'ETH · BTC · '}
           <a
             href="https://github.com/velasquezbrafael-source/ClearChain"
             target="_blank"
@@ -543,7 +547,6 @@ function HeroContent({
           >
             OPEN SOURCE
           </a>
-          {' · ETHEREUM MAINNET'}
         </div>
 
         {/* Headline */}
@@ -576,8 +579,7 @@ function HeroContent({
             animationDelay: '0.25s',
           }}
         >
-          Know in 10 seconds whether a wallet is clean, connected to a mixer, or
-          on a government sanctions list — with the SAR draft written automatically.
+          Trace funds across Ethereum and Bitcoin. Identify OFAC-sanctioned wallets, detect mixer usage, and generate FinCEN SAR drafts automatically — the intelligence platform that used to cost $200K a year.
         </p>
 
         {/* Search bar */}
@@ -684,7 +686,7 @@ function HeroContent({
             animationDelay: '0.55s',
           }}
         >
-          {['OFAC SDN Database', 'FATF Typologies', 'AI-Powered SAR Drafts'].map(label => (
+          {['OFAC Screening', '7 AML Typologies', 'SAR Auto-Draft', 'ETH + BTC', 'Investigation Mode'].map(label => (
             <span
               key={label}
               style={{
@@ -700,22 +702,19 @@ function HeroContent({
               {label}
             </span>
           ))}
-          {(['Free · No API key required', 'Open source · MIT'] as const).map(label => (
-            <span
-              key={label}
-              style={{
-                padding: '6px 14px',
-                border: '1px solid rgba(0,255,136,0.12)',
-                borderRadius: 2,
-                fontFamily: 'var(--font-jetbrains-mono)',
-                fontSize: 10,
-                letterSpacing: '0.1em',
-                color: 'rgba(0,255,136,0.6)',
-              }}
-            >
-              {label}
-            </span>
-          ))}
+          <span
+            style={{
+              padding: '6px 14px',
+              border: '1px solid rgba(0,255,136,0.12)',
+              borderRadius: 2,
+              fontFamily: 'var(--font-jetbrains-mono)',
+              fontSize: 10,
+              letterSpacing: '0.1em',
+              color: 'rgba(0,255,136,0.6)',
+            }}
+          >
+            Free Forever
+          </span>
         </div>
 
         {/* Quick fills */}
@@ -730,14 +729,26 @@ function HeroContent({
             animationDelay: '0.65s',
           }}
         >
-          {quickFills.map(({ label, sublabel, addr, simulator, clean }) => {
-            const borderDefault = simulator || clean ? 'rgba(0,255,136,0.2)' : 'rgba(255,255,255,0.06)';
-            const colorDefault  = simulator || clean ? 'rgba(0,255,136,0.8)' : 'var(--text-secondary)';
-            const bgDefault     = simulator || clean ? 'rgba(0,255,136,0.04)' : 'none';
+          {quickFills.map(({ label, sublabel, addr, simulator, clean, btc }) => {
+            const borderDefault = btc
+              ? 'rgba(59,130,246,0.25)'
+              : simulator || clean ? 'rgba(0,255,136,0.2)' : 'rgba(255,255,255,0.06)';
+            const colorDefault = btc
+              ? 'rgba(96,165,250,0.8)'
+              : simulator || clean ? 'rgba(0,255,136,0.8)' : 'var(--text-secondary)';
+            const bgDefault = btc
+              ? 'rgba(59,130,246,0.04)'
+              : simulator || clean ? 'rgba(0,255,136,0.04)' : 'none';
+            const hoverBorder = btc ? 'rgba(59,130,246,0.5)' : 'rgba(0,255,136,0.4)';
+            const hoverColor  = btc ? '#60a5fa' : '#00ff88';
             return (
               <button
                 key={label}
-                onClick={() => simulator ? onSimulatorFill() : onQuickFill(addr)}
+                onClick={() => {
+                  if (simulator) { onSimulatorFill(); return; }
+                  if (btc) { setSelectedChain('BTC'); onQuickFill(addr); return; }
+                  onQuickFill(addr);
+                }}
                 disabled={loading}
                 style={{
                   padding: '6px 14px',
@@ -754,8 +765,8 @@ function HeroContent({
                   transition: 'border-color 0.2s, color 0.2s, background 0.2s',
                 }}
                 onMouseEnter={e => {
-                  e.currentTarget.style.borderColor = 'rgba(0,255,136,0.4)';
-                  e.currentTarget.style.color = '#00ff88';
+                  e.currentTarget.style.borderColor = hoverBorder;
+                  e.currentTarget.style.color = hoverColor;
                 }}
                 onMouseLeave={e => {
                   e.currentTarget.style.borderColor = borderDefault;
@@ -906,9 +917,9 @@ function HeroContent({
           }}
         >
           {[
-            { n: '01', title: 'PASTE ANY ETH ADDRESS', body: 'Drop in a wallet address or ENS name. ENS is resolved on-chain automatically.' },
-            { n: '02', title: 'ANALYSIS RUNS AUTOMATICALLY', body: 'On-chain data fetched from Alchemy. OFAC, mixer contacts, and risk signals scored in seconds.' },
-            { n: '03', title: 'GET THE FULL PICTURE', body: 'Risk score, typologies, fund flow graph, and a FinCEN-formatted SAR draft — all in one view.' },
+            { n: '01', title: 'PASTE ANY ADDRESS', body: 'Ethereum wallet, Bitcoin address, or ENS name. No wallet connection. No account required.' },
+            { n: '02', title: 'INTELLIGENCE IN SECONDS', body: 'Real-time OFAC screening, on-chain transaction analysis, AML typology matching — across ETH and BTC.' },
+            { n: '03', title: 'INVESTIGATION + COMPLIANCE', body: 'Click nodes to trace fund flows. Download the SAR draft. Save to a case. From raw address to filed-ready report.' },
           ].map(({ n, title, body }) => (
             <div key={n}>
               <div
@@ -1736,7 +1747,7 @@ export default function HomePage() {
               borderLeft: '1px solid rgba(255,255,255,0.06)',
             }}
           >
-            AML Intelligence Platform
+            Crypto Intelligence Platform
           </span>
         </div>
 
@@ -1778,7 +1789,7 @@ export default function HomePage() {
               color: 'var(--text-dim)',
             }}
           >
-            ETH MAINNET
+            ETH · BTC
           </span>
         </div>
 
@@ -2174,7 +2185,7 @@ export default function HomePage() {
                 color: 'var(--text-dim)',
               }}
             >
-              CLEARCHAIN v1 — AI-assisted analysis only. Not legal advice.
+              CLEARCHAIN v2 — Multi-chain AML intelligence. Not legal advice. SAR drafts require qualified BSA/AML officer review before filing.
             </span>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
               <a
