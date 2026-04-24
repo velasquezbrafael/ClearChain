@@ -63,6 +63,12 @@ function nodeColor(n: SourceNode): string {
   return '#4b5563';
 }
 
+function ribbonFill(n: SourceNode): string {
+  if (n.isMixer) return 'rgba(239,68,68,0.5)';
+  if (n.isHighRisk) return 'rgba(249,115,22,0.5)';
+  return 'rgba(75,85,99,0.6)';
+}
+
 export default function FundFlowDiagram({ transactions, queriedAddress, hopData }: FundFlowDiagramProps) {
   const qAddr = queriedAddress.toLowerCase();
 
@@ -191,7 +197,7 @@ export default function FundFlowDiagram({ transactions, queriedAddress, hopData 
 
   // Ribbon positions at queried node — packed, proportional to volume
   let qOffset = queriedY;
-  type Ribbon = { srcY: number; srcH: number; tgtY: number; tgtH: number; color: string; srcRight: number; tgtLeft: number };
+  type Ribbon = { srcY: number; srcH: number; tgtY: number; tgtH: number; color: string; fill: string; srcRight: number; tgtLeft: number };
   const ribbons: Ribbon[] = [];
 
   if (!has3Col) {
@@ -205,6 +211,7 @@ export default function FundFlowDiagram({ transactions, queriedAddress, hopData 
         tgtY: qOffset,
         tgtH: ribbonH,
         color: nodeColor(s),
+        fill: ribbonFill(s),
         srcRight: LEFT_X + NODE_W,
         tgtLeft: RIGHT_X,
       });
@@ -232,6 +239,7 @@ export default function FundFlowDiagram({ transactions, queriedAddress, hopData 
         tgtY: mid.ys[mixerIdx] + (mid.hs[mixerIdx] - midRibbonH),
         tgtH: midRibbonH,
         color: nodeColor(s),
+        fill: ribbonFill(s),
         srcRight: LEFT_X + NODE_W,
         tgtLeft: MID_X,
       });
@@ -248,6 +256,7 @@ export default function FundFlowDiagram({ transactions, queriedAddress, hopData 
         tgtY: qOffset,
         tgtH: ribbonH,
         color: nodeColor(m),
+        fill: ribbonFill(m),
         srcRight: MID_X + NODE_W,
         tgtLeft: RIGHT_X,
       });
@@ -264,6 +273,7 @@ export default function FundFlowDiagram({ transactions, queriedAddress, hopData 
         tgtY: qOffset,
         tgtH: ribbonH,
         color: nodeColor(s),
+        fill: ribbonFill(s),
         srcRight: LEFT_X + NODE_W,
         tgtLeft: RIGHT_X,
       });
@@ -333,11 +343,8 @@ export default function FundFlowDiagram({ transactions, queriedAddress, hopData 
                 `C ${cx} ${r.tgtY + r.tgtH}, ${cx} ${r.srcY + r.srcH}, ${r.srcRight} ${r.srcY + r.srcH}`,
                 'Z',
               ].join(' ')}
-              fill={r.color}
-              fillOpacity={0.14}
-              stroke={r.color}
-              strokeWidth={0.5}
-              strokeOpacity={0.35}
+              fill={r.fill}
+              stroke="none"
             />
           );
         })}

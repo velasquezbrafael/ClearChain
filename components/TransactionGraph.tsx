@@ -302,8 +302,14 @@ function initInvestigationD3({
     linkG.selectAll<SVGLineElement, typeof norm[0]>('line')
       .data(norm, d => `${d.source}|||${d.target}`)
       .join('line')
-      .attr('stroke', '#6b7280').attr('stroke-opacity', 0.35)
-      .attr('stroke-width', d => wScale(d.value)).attr('marker-end', 'url(#inv-arrow)');
+      .attr('stroke', d => {
+        const hot = MIXER_ADDRESSES.has(d.source) || MIXER_ADDRESSES.has(d.target)
+          || HIGH_RISK_ADDRESSES.has(d.source) || HIGH_RISK_ADDRESSES.has(d.target);
+        return hot ? 'rgba(239,68,68,0.35)' : 'rgba(255,255,255,0.25)';
+      })
+      .attr('stroke-width', d => wScale(d.value))
+      .attr('stroke-linecap', 'round')
+      .attr('marker-end', 'url(#inv-arrow)');
   }
 
   function renderNodes(data: InvNode[]) {
@@ -890,7 +896,33 @@ export default function TransactionGraph({
 
             {/* Detail panel */}
             <div style={{ flex: '0 0 25%', display: 'flex', flexDirection: 'column', overflowY: 'auto', padding: 24, gap: 20 }}>
-              {investigationMode ? renderInvNodePanel(true) : (
+              {investigationMode ? (
+                <>
+                  {/* Permanent status — never replaced */}
+                  <div>
+                    <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.15em', color: 'var(--text-dim)', marginBottom: 12 }}>INVESTIGATION STATUS</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: 'var(--text-secondary)' }}>
+                        {invNodeCount} nodes · {invEdgeCount} edges · depth {invMaxDepth}
+                      </div>
+                      {invRiskCount > 0 && (
+                        <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#ff3b3b' }}>{invRiskCount} HIGH-RISK NODES</div>
+                      )}
+                      {!invSelectedAddr && (
+                        <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.6, marginTop: 4 }}>
+                          Click any node to inspect. Dashed-ring nodes can be expanded.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  {/* Node info — appended below status, never replaces it */}
+                  {invSelectedAddr && invSelectedNode && (
+                    <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 16 }}>
+                      {renderInvNodePanel(true)}
+                    </div>
+                  )}
+                </>
+              ) : (
                 selectedNode ? (
                   <div>
                     <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.15em', color: 'var(--text-dim)', marginBottom: 12 }}>SELECTED NODE</div>
