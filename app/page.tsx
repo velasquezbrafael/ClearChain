@@ -1558,6 +1558,7 @@ export default function HomePage() {
       const res = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ address: addr, chain: activeChain }),
         signal: controller.signal,
       });

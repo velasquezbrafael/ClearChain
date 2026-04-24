@@ -246,7 +246,7 @@ export async function POST(request: NextRequest) {
         );
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
-          await supabase.from('analyses').insert({
+          const { error: insertError } = await supabase.from('analyses').insert({
             user_id: user.id,
             address,
             chain: 'BTC',
@@ -256,7 +256,12 @@ export async function POST(request: NextRequest) {
             typologies: [],
             narrative,
             sar_draft: sarDraftRaw,
+            analyzed_at: analysis.analyzedAt,
           });
+          if (insertError) console.error('[ClearChain/analyze] BTC insert failed:', insertError.message, insertError.code);
+          else console.info('[ClearChain/analyze] BTC analysis saved for user', user.id);
+        } else {
+          console.info('[ClearChain/analyze] No authenticated user — skipping BTC save');
         }
       } catch (err) {
         console.error('[ClearChain/analyze] Supabase BTC save failed:', err);
@@ -362,7 +367,7 @@ export async function POST(request: NextRequest) {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError) throw authError;
     if (user) {
-      await supabase.from('analyses').insert({
+      const { error: insertError } = await supabase.from('analyses').insert({
         user_id: user.id,
         address,
         chain: 'ETH',
@@ -372,7 +377,12 @@ export async function POST(request: NextRequest) {
         typologies: analysis.typologies,
         narrative,
         sar_draft: sarDraftRaw,
+        analyzed_at: analysis.analyzedAt,
       });
+      if (insertError) console.error('[ClearChain/analyze] ETH insert failed:', insertError.message, insertError.code);
+      else console.info('[ClearChain/analyze] ETH analysis saved for user', user.id);
+    } else {
+      console.info('[ClearChain/analyze] No authenticated user — skipping save');
     }
   } catch (err) {
     console.error('[ClearChain/analyze] Supabase save failed (non-blocking):', err);

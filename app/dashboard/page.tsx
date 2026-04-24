@@ -33,13 +33,17 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
 
-  const [{ data: analyses }, { data: cases }] = await Promise.all([
+  const [{ data: analyses }, { count: totalAnalysesCount }, { data: cases }] = await Promise.all([
     supabase
       .from('analyses')
-      .select('*')
+      .select('id, address, chain, risk_score, risk_level, analyzed_at')
       .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
+      .order('analyzed_at', { ascending: false })
       .limit(10),
+    supabase
+      .from('analyses')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id),
     supabase
       .from('cases')
       .select('*, case_addresses(count)')
@@ -47,7 +51,7 @@ export default async function DashboardPage() {
       .order('updated_at', { ascending: false }),
   ])
 
-  const totalAnalyses = analyses?.length ?? 0
+  const totalAnalyses = totalAnalysesCount ?? 0
   const activeCases = cases?.filter(c => c.status !== 'closed').length ?? 0
   const criticalFindings = analyses?.filter(a => a.risk_level === 'CRITICAL').length ?? 0
 
@@ -133,7 +137,7 @@ export default async function DashboardPage() {
                       <td style={cell}>{a.chain}</td>
                       <td style={cell}>{a.risk_score}</td>
                       <td style={{ ...cell }}><RiskBadge level={a.risk_level} /></td>
-                      <td style={{ ...cell, color: '#8892a4' }}>{fmtDate(a.created_at)}</td>
+                      <td style={{ ...cell, color: '#8892a4' }}>{fmtDate(a.analyzed_at)}</td>
                       <td style={{ padding: '12px 16px' }}>
                         <a
                           href={`/?address=${a.address}`}
