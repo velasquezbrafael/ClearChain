@@ -1902,7 +1902,7 @@ export default function HomePage() {
   const gridCols = isMobile ? '1fr' : isTablet ? '1fr 1fr' : '280px 1fr 280px';
 
   return (
-    <div style={{ minHeight: '100vh', background: '#03040a', position: 'relative', overflow: 'hidden' }}>
+    <div style={{ minHeight: '100vh', background: '#03040a', position: 'relative' }}>
 
       {/* Scanline */}
       <div
