@@ -18,6 +18,7 @@ import { computeRiskScore } from '@/lib/scoring';
 import { matchTypologies } from '@/lib/typology';
 import { generateAll } from '@/lib/claude';
 import { hashApiKey } from '@/lib/apikeys';
+import { fireWebhook } from '@/lib/webhook';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
@@ -98,6 +99,9 @@ export async function OPTIONS() {
 export async function POST(request: NextRequest) {
   // ── 0. API key authentication (optional — supplements cookie session) ───────
   let apiKeyUserId: string | null = null;
+  let apiKeyId: string | null = null;
+  let apiKeyWebhookUrl: string | null = null;
+  let apiKeyWebhookSecret: string | null = null;
   const authHeader = request.headers.get('authorization');
   if (authHeader?.startsWith('Bearer ck_live_')) {
     const rawKey = authHeader.slice(7);
@@ -117,7 +121,7 @@ export async function POST(request: NextRequest) {
 
     const { data: apiKey } = await anonSupabase
       .from('api_keys')
-      .select('id, user_id, tier, usage_count, is_active, daily_usage, daily_reset_date')
+      .select('id, user_id, tier, usage_count, is_active, daily_usage, daily_reset_date, webhook_url, webhook_secret')
       .eq('key_hash', keyHash)
       .eq('is_active', true)
       .single();
@@ -157,6 +161,9 @@ export async function POST(request: NextRequest) {
     }).eq('id', apiKey.id).then(() => {});
 
     apiKeyUserId = apiKey.user_id;
+    apiKeyId = apiKey.id as string;
+    apiKeyWebhookUrl = (apiKey as Record<string, unknown>).webhook_url as string | null ?? null;
+    apiKeyWebhookSecret = (apiKey as Record<string, unknown>).webhook_secret as string | null ?? null;
   }
 
   // ── 1. Parse body ──────────────────────────────────────────────────────────
@@ -353,6 +360,24 @@ export async function POST(request: NextRequest) {
 
       analysisCache.set(cacheKey, { data: analysis, narrative, sarDraft: sarDraftRaw, hopData: [], cachedAt: Date.now() });
 
+      if (apiKeyWebhookUrl && apiKeyId) {
+        fireWebhook(apiKeyWebhookUrl, apiKeyWebhookSecret, {
+          event: 'analysis.complete',
+          timestamp: new Date().toISOString(),
+          api_key_id: apiKeyId,
+          data: {
+            address, chain: 'BTC',
+            risk_score: btcRiskScore.total,
+            risk_level: btcRiskScore.level,
+            signals: Object.fromEntries(btcRiskScore.signals.map(s => [s.name, s.triggered])),
+            typologies: [],
+            narrative: narrative ?? '',
+            sar_draft: sarDraftRaw ?? '',
+            analyzed_at: analysis.analyzedAt,
+          },
+        });
+      }
+
       return NextResponse.json(
         { success: true, data: analysis, narrative, sarDraft: sarDraftRaw, hopData: [], resolvedAddress: address },
         { status: 200, headers: CORS_HEADERS }
@@ -481,6 +506,24 @@ export async function POST(request: NextRequest) {
       }
 
       analysisCache.set(cacheKey, { data: analysis, narrative, sarDraft: sarDraftRaw, hopData: [], cachedAt: Date.now() });
+
+      if (apiKeyWebhookUrl && apiKeyId) {
+        fireWebhook(apiKeyWebhookUrl, apiKeyWebhookSecret, {
+          event: 'analysis.complete',
+          timestamp: new Date().toISOString(),
+          api_key_id: apiKeyId,
+          data: {
+            address, chain: 'TRX',
+            risk_score: trxRiskScore.total,
+            risk_level: trxRiskScore.level,
+            signals: Object.fromEntries(trxRiskScore.signals.map(s => [s.name, s.triggered])),
+            typologies: [],
+            narrative: narrative ?? '',
+            sar_draft: sarDraftRaw ?? '',
+            analyzed_at: analysis.analyzedAt,
+          },
+        });
+      }
 
       console.info('[ClearChain/analyze] TRX response shape:', {
         address, chain: 'TRX',
@@ -617,7 +660,26 @@ export async function POST(request: NextRequest) {
     cachedAt: Date.now(),
   });
 
-  // ── 13. Respond ───────────────────────────────────────────────────────────
+  // ── 13. Webhook (fire-and-forget, API key requests only) ─────────────────
+  if (apiKeyWebhookUrl && apiKeyId) {
+    fireWebhook(apiKeyWebhookUrl, apiKeyWebhookSecret, {
+      event: 'analysis.complete',
+      timestamp: new Date().toISOString(),
+      api_key_id: apiKeyId,
+      data: {
+        address, chain: 'ETH',
+        risk_score: riskScore.total,
+        risk_level: riskScore.level,
+        signals: Object.fromEntries(riskScore.signals.map(s => [s.name, s.triggered])),
+        typologies: typologies.filter(t => t.triggered).map(t => t.name),
+        narrative: narrative ?? '',
+        sar_draft: sarDraftRaw ?? '',
+        analyzed_at: analysis.analyzedAt,
+      },
+    });
+  }
+
+  // ── 14. Respond ───────────────────────────────────────────────────────────
   return NextResponse.json(
     {
       success: true,

@@ -12,14 +12,18 @@ interface ApiKey {
   last_used_at: string | null
   created_at: string
   is_active: boolean
+  webhook_url: string | null
 }
 
-const TIER_LIMITS: Record<string, string> = {
-  free:     '100 req / day',
-  analyst:  '2,000 req / day',
-  team:     'Unlimited',
+interface WebhookEdit {
+  url: string
+  secret: string
+  secretVisible: boolean
+  saving: boolean
+  saved: boolean
+  testing: boolean
+  testResult: string | null
 }
-void TIER_LIMITS // used indirectly via JSX below
 
 function fmtDate(iso: string | null) {
   if (!iso) return '—'
@@ -36,6 +40,10 @@ function fmtRelative(iso: string | null) {
   return `${Math.floor(hrs / 24)}d ago`
 }
 
+function defaultWebhookEdit(key: ApiKey): WebhookEdit {
+  return { url: key.webhook_url ?? '', secret: '', secretVisible: false, saving: false, saved: false, testing: false, testResult: null }
+}
+
 export default function SettingsPage() {
   const router = useRouter()
   const supabase = createClient()
@@ -50,6 +58,9 @@ export default function SettingsPage() {
   const [revealedKey, setRevealedKey] = useState<string | null>(null)
   const [copiedKey, setCopiedKey] = useState(false)
   const [revoking, setRevoking] = useState<string | null>(null)
+
+  // Webhook edit state keyed by api key id
+  const [webhookEdits, setWebhookEdits] = useState<Record<string, WebhookEdit>>({})
 
   // 2FA state
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false)
@@ -68,17 +79,22 @@ export default function SettingsPage() {
       if (!user) { router.push('/auth/login'); return }
       setUserEmail(user.email ?? '')
 
-      // Load API keys + 2FA status in parallel
       const [{ data: keysData }, { data: factors }] = await Promise.all([
         supabase
           .from('api_keys')
-          .select('id, label, tier, usage_count, last_used_at, created_at, is_active')
+          .select('id, label, tier, usage_count, last_used_at, created_at, is_active, webhook_url')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false }),
         supabase.auth.mfa.listFactors(),
       ])
 
-      setKeys(keysData ?? [])
+      const loadedKeys = (keysData as ApiKey[] ?? [])
+      setKeys(loadedKeys)
+
+      // Init webhook edit state from loaded keys
+      const edits: Record<string, WebhookEdit> = {}
+      for (const k of loadedKeys) edits[k.id] = defaultWebhookEdit(k)
+      setWebhookEdits(edits)
 
       const totpFactors = factors?.totp ?? []
       if (totpFactors.length > 0) {
@@ -90,6 +106,71 @@ export default function SettingsPage() {
     }
     load()
   }, [])
+
+  // ── Webhook edit helpers ─────────────────────────────────────────────────
+
+  function patchWebhookEdit(id: string, patch: Partial<WebhookEdit>) {
+    setWebhookEdits(prev => ({ ...prev, [id]: { ...prev[id], ...patch } }))
+  }
+
+  async function handleSaveWebhook(keyId: string) {
+    const edit = webhookEdits[keyId]
+    if (!edit) return
+    patchWebhookEdit(keyId, { saving: true, testResult: null })
+
+    const body: Record<string, string | null> = { id: keyId, webhook_url: edit.url.trim() || null }
+    if (edit.secret.trim()) body.webhook_secret = edit.secret.trim()
+
+    const res = await fetch('/api/apikeys', {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    const json = await res.json()
+
+    if (json.success) {
+      const newUrl = (json.key as ApiKey).webhook_url
+      setKeys(prev => prev.map(k => k.id === keyId ? { ...k, webhook_url: newUrl } : k))
+      patchWebhookEdit(keyId, { saving: false, saved: true, url: newUrl ?? '', secret: '' })
+      setTimeout(() => patchWebhookEdit(keyId, { saved: false }), 2000)
+    } else {
+      patchWebhookEdit(keyId, { saving: false, testResult: `Error: ${json.error ?? 'Save failed'}` })
+    }
+  }
+
+  async function handleClearWebhook(keyId: string) {
+    patchWebhookEdit(keyId, { saving: true, testResult: null })
+    const res = await fetch('/api/apikeys', {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: keyId, webhook_url: null }),
+    })
+    const json = await res.json()
+    if (json.success) {
+      setKeys(prev => prev.map(k => k.id === keyId ? { ...k, webhook_url: null } : k))
+      patchWebhookEdit(keyId, { saving: false, url: '', secret: '', testResult: null })
+    } else {
+      patchWebhookEdit(keyId, { saving: false })
+    }
+  }
+
+  async function handleTestWebhook(keyId: string) {
+    patchWebhookEdit(keyId, { testing: true, testResult: null })
+    const res = await fetch('/api/apikeys/test-webhook', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: keyId }),
+    })
+    const json = await res.json()
+    if (json.ok) {
+      patchWebhookEdit(keyId, { testing: false, testResult: 'SENT — endpoint responded successfully.' })
+    } else {
+      patchWebhookEdit(keyId, { testing: false, testResult: `FAILED — ${json.error ?? 'Unknown error'}` })
+    }
+  }
 
   // ── API key handlers ──────────────────────────────────────────────────────
 
@@ -112,7 +193,9 @@ export default function SettingsPage() {
     const json = await res.json()
 
     if (json.success) {
-      setKeys(prev => [json.key, ...prev])
+      const newKey = { ...json.key, webhook_url: null } as ApiKey
+      setKeys(prev => [newKey, ...prev])
+      setWebhookEdits(prev => ({ ...prev, [newKey.id]: defaultWebhookEdit(newKey) }))
       setRevealedKey(rawKey)
       setNewLabel('')
       setShowForm(false)
@@ -156,9 +239,7 @@ export default function SettingsPage() {
     setVerifying(true)
     setVerifyError('')
 
-    const { data: challenge, error: challengeErr } = await supabase.auth.mfa.challenge({
-      factorId: enrollData.id,
-    })
+    const { data: challenge, error: challengeErr } = await supabase.auth.mfa.challenge({ factorId: enrollData.id })
     if (challengeErr || !challenge) {
       setVerifyError(challengeErr?.message ?? 'Challenge failed.')
       setVerifying(false)
@@ -208,6 +289,11 @@ export default function SettingsPage() {
     fontFamily: 'var(--font-jetbrains-mono)', width: '100%',
   }
 
+  const tierColor = (tier: string) =>
+    tier === 'team' ? '#00ff88' : tier === 'analyst' ? '#ffd60a' : '#8892a4'
+
+  const isPro = (tier: string) => tier !== 'free'
+
   return (
     <div style={{ minHeight: '100vh', background: '#03040a', color: '#f0f4ff', fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif' }}>
       {/* Nav */}
@@ -223,11 +309,11 @@ export default function SettingsPage() {
       <div style={{ maxWidth: 860, margin: '0 auto', padding: '48px 32px' }}>
         <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, letterSpacing: '0.2em', color: '#3d4a5c', marginBottom: 8 }}>ACCOUNT</div>
         <h1 style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 32, fontWeight: 700, color: '#f0f4ff', margin: '0 0 8px', letterSpacing: '-0.01em' }}>Settings</h1>
-        <p style={{ fontFamily: 'var(--font-inter)', fontSize: 14, color: '#8892a4', margin: '0 0 40px', lineHeight: 1.6 }}>
-          Manage your API keys and account security.
+        <p style={{ fontSize: 14, color: '#8892a4', margin: '0 0 40px', lineHeight: 1.6 }}>
+          Manage your API keys, webhooks, and account security.
         </p>
 
-        {/* One-time reveal modal */}
+        {/* One-time reveal */}
         {revealedKey && (
           <div style={{ background: 'rgba(0,255,136,0.04)', border: '1px solid rgba(0,255,136,0.2)', borderRadius: 4, padding: '20px 24px', marginBottom: 32 }}>
             <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: '#00ff88', marginBottom: 12 }}>
@@ -237,16 +323,10 @@ export default function SettingsPage() {
               <code style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 13, color: '#f0f4ff', background: '#080b14', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 4, padding: '8px 14px', flex: 1, wordBreak: 'break-all' }}>
                 {revealedKey}
               </code>
-              <button
-                onClick={handleCopyKey}
-                style={{ padding: '8px 18px', background: copiedKey ? 'rgba(0,255,136,0.15)' : 'rgba(0,255,136,0.1)', border: '1px solid rgba(0,255,136,0.3)', borderRadius: 4, color: '#00ff88', fontSize: 11, letterSpacing: '0.1em', cursor: 'pointer', fontFamily: 'var(--font-jetbrains-mono)', whiteSpace: 'nowrap', flexShrink: 0 }}
-              >
+              <button onClick={handleCopyKey} style={{ padding: '8px 18px', background: copiedKey ? 'rgba(0,255,136,0.15)' : 'rgba(0,255,136,0.1)', border: '1px solid rgba(0,255,136,0.3)', borderRadius: 4, color: '#00ff88', fontSize: 11, letterSpacing: '0.1em', cursor: 'pointer', fontFamily: 'var(--font-jetbrains-mono)', whiteSpace: 'nowrap', flexShrink: 0 }}>
                 {copiedKey ? 'COPIED' : 'COPY'}
               </button>
-              <button
-                onClick={() => setRevealedKey(null)}
-                style={{ padding: '8px 14px', background: 'none', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 4, color: '#8892a4', fontSize: 11, cursor: 'pointer', flexShrink: 0 }}
-              >
+              <button onClick={() => setRevealedKey(null)} style={{ padding: '8px 14px', background: 'none', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 4, color: '#8892a4', fontSize: 11, cursor: 'pointer', flexShrink: 0 }}>
                 Dismiss
               </button>
             </div>
@@ -259,7 +339,7 @@ export default function SettingsPage() {
         {/* Rate limits */}
         <div style={{ background: '#080b14', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 4, padding: '20px 24px', marginBottom: 32 }}>
           <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: '#8892a4', marginBottom: 16 }}>RATE LIMITS BY TIER</div>
-          <div style={{ display: 'flex', gap: 0 }}>
+          <div style={{ display: 'flex' }}>
             {[
               { tier: 'FREE', limit: '100 req / day', color: '#8892a4' },
               { tier: 'ANALYST', limit: '2,000 req / day', color: '#ffd60a' },
@@ -273,7 +353,7 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Header + generate button */}
+        {/* Generate header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.2em', color: '#8892a4' }}>YOUR KEYS</div>
           <button
@@ -289,33 +369,18 @@ export default function SettingsPage() {
           <form onSubmit={handleGenerate} style={{ background: '#080b14', border: '1px solid rgba(0,255,136,0.15)', borderRadius: 4, padding: '20px 24px', marginBottom: 16, display: 'flex', gap: 12, alignItems: 'flex-end' }}>
             <div style={{ flex: 1 }}>
               <label style={{ display: 'block', fontSize: 10, letterSpacing: '0.12em', color: '#3d4a5c', marginBottom: 8, fontFamily: 'var(--font-jetbrains-mono)' }}>KEY LABEL</label>
-              <input
-                type="text"
-                value={newLabel}
-                onChange={e => setNewLabel(e.target.value)}
-                placeholder="e.g. My App, CI/CD Pipeline..."
-                style={inputStyle}
-                autoFocus
-              />
+              <input type="text" value={newLabel} onChange={e => setNewLabel(e.target.value)} placeholder="e.g. My App, CI/CD Pipeline..." style={inputStyle} autoFocus />
             </div>
-            <button
-              type="submit"
-              disabled={generating || !newLabel.trim()}
-              style={{ padding: '8px 20px', background: 'rgba(0,255,136,0.1)', border: '1px solid rgba(0,255,136,0.3)', borderRadius: 4, color: '#00ff88', fontSize: 11, letterSpacing: '0.1em', cursor: generating ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-jetbrains-mono)', whiteSpace: 'nowrap', flexShrink: 0, opacity: !newLabel.trim() ? 0.5 : 1 }}
-            >
+            <button type="submit" disabled={generating || !newLabel.trim()} style={{ padding: '8px 20px', background: 'rgba(0,255,136,0.1)', border: '1px solid rgba(0,255,136,0.3)', borderRadius: 4, color: '#00ff88', fontSize: 11, letterSpacing: '0.1em', cursor: generating ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-jetbrains-mono)', whiteSpace: 'nowrap', flexShrink: 0, opacity: !newLabel.trim() ? 0.5 : 1 }}>
               {generating ? 'CREATING...' : 'CREATE'}
             </button>
-            <button
-              type="button"
-              onClick={() => setShowForm(false)}
-              style={{ padding: '8px 14px', background: 'none', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 4, color: '#8892a4', fontSize: 11, cursor: 'pointer', flexShrink: 0 }}
-            >
+            <button type="button" onClick={() => setShowForm(false)} style={{ padding: '8px 14px', background: 'none', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 4, color: '#8892a4', fontSize: 11, cursor: 'pointer', flexShrink: 0 }}>
               Cancel
             </button>
           </form>
         )}
 
-        {/* Keys table */}
+        {/* Key cards */}
         {loading ? (
           <div style={{ padding: '40px', textAlign: 'center', color: '#3d4a5c', fontSize: 13 }}>Loading...</div>
         ) : keys.length === 0 ? (
@@ -323,47 +388,180 @@ export default function SettingsPage() {
             No API keys yet. Generate one to start building.
           </div>
         ) : (
-          <div style={{ background: '#080b14', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 4, overflow: 'hidden' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                  {['Label', 'Tier', 'Usage', 'Last Used', 'Created', 'Status', ''].map(h => (
-                    <th key={h} style={{ padding: '10px 16px', textAlign: 'left', fontSize: 10, letterSpacing: '0.12em', color: '#3d4a5c', fontWeight: 600, fontFamily: 'var(--font-jetbrains-mono)' }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {keys.map(k => (
-                  <tr key={k.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)', opacity: k.is_active ? 1 : 0.4 }}>
-                    <td style={{ padding: '12px 16px', fontSize: 13, color: '#f0f4ff', fontFamily: 'var(--font-jetbrains-mono)' }}>{k.label}</td>
-                    <td style={{ padding: '12px 16px' }}>
-                      <span style={{ fontSize: 10, letterSpacing: '0.1em', color: k.tier === 'team' ? '#00ff88' : k.tier === 'analyst' ? '#ffd60a' : '#8892a4', fontFamily: 'var(--font-jetbrains-mono)' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {keys.map(k => {
+              const edit = webhookEdits[k.id] ?? defaultWebhookEdit(k)
+              const pro = isPro(k.tier)
+              return (
+                <div key={k.id} style={{ background: '#080b14', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 4, opacity: k.is_active ? 1 : 0.45 }}>
+                  {/* Key metadata row */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 0, padding: '14px 20px', flexWrap: 'wrap' }}>
+                    <div style={{ flex: 2, minWidth: 120 }}>
+                      <div style={{ fontSize: 13, color: '#f0f4ff', fontFamily: 'var(--font-jetbrains-mono)', marginBottom: 2 }}>{k.label}</div>
+                      <div style={{ fontSize: 10, color: '#3d4a5c', fontFamily: 'var(--font-jetbrains-mono)', letterSpacing: '0.08em' }}>{fmtDate(k.created_at)}</div>
+                    </div>
+                    <div style={{ flex: 1, minWidth: 80 }}>
+                      <span style={{ fontSize: 10, letterSpacing: '0.1em', color: tierColor(k.tier), fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 700 }}>
                         {k.tier.toUpperCase()}
                       </span>
-                    </td>
-                    <td style={{ padding: '12px 16px', fontSize: 12, color: '#8892a4', fontFamily: 'var(--font-jetbrains-mono)' }}>{k.usage_count.toLocaleString()}</td>
-                    <td style={{ padding: '12px 16px', fontSize: 12, color: '#8892a4', fontFamily: 'var(--font-jetbrains-mono)' }}>{fmtRelative(k.last_used_at)}</td>
-                    <td style={{ padding: '12px 16px', fontSize: 12, color: '#8892a4', fontFamily: 'var(--font-jetbrains-mono)' }}>{fmtDate(k.created_at)}</td>
-                    <td style={{ padding: '12px 16px' }}>
+                    </div>
+                    <div style={{ flex: 1, minWidth: 80 }}>
+                      <div style={{ fontSize: 10, color: '#3d4a5c', fontFamily: 'var(--font-jetbrains-mono)', letterSpacing: '0.08em', marginBottom: 2 }}>USAGE</div>
+                      <div style={{ fontSize: 12, color: '#8892a4', fontFamily: 'var(--font-jetbrains-mono)' }}>{k.usage_count.toLocaleString()}</div>
+                    </div>
+                    <div style={{ flex: 1, minWidth: 80 }}>
+                      <div style={{ fontSize: 10, color: '#3d4a5c', fontFamily: 'var(--font-jetbrains-mono)', letterSpacing: '0.08em', marginBottom: 2 }}>LAST USED</div>
+                      <div style={{ fontSize: 12, color: '#8892a4', fontFamily: 'var(--font-jetbrains-mono)' }}>{fmtRelative(k.last_used_at)}</div>
+                    </div>
+                    <div style={{ flex: 1, minWidth: 80 }}>
                       <span style={{ fontSize: 10, letterSpacing: '0.1em', color: k.is_active ? '#00ff88' : '#3d4a5c', fontFamily: 'var(--font-jetbrains-mono)' }}>
                         {k.is_active ? 'ACTIVE' : 'REVOKED'}
                       </span>
-                    </td>
-                    <td style={{ padding: '12px 16px' }}>
-                      {k.is_active && (
-                        <button
-                          onClick={() => handleRevoke(k.id)}
-                          disabled={revoking === k.id}
-                          style={{ fontSize: 11, color: '#ff3b3b', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: '0.08em', fontFamily: 'var(--font-jetbrains-mono)', opacity: revoking === k.id ? 0.5 : 1 }}
-                        >
-                          {revoking === k.id ? 'Revoking...' : 'Revoke'}
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </div>
+                    {k.is_active && (
+                      <button
+                        onClick={() => handleRevoke(k.id)}
+                        disabled={revoking === k.id}
+                        style={{ fontSize: 11, color: '#ff3b3b', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: '0.08em', fontFamily: 'var(--font-jetbrains-mono)', opacity: revoking === k.id ? 0.5 : 1, padding: 0 }}
+                      >
+                        {revoking === k.id ? 'Revoking...' : 'Revoke'}
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Webhook subsection */}
+                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.04)', padding: '16px 20px' }}>
+                    <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.18em', color: '#3d4a5c', marginBottom: 12 }}>WEBHOOK</div>
+
+                    {!pro ? (
+                      <div style={{ fontSize: 12, color: '#3d4a5c', fontFamily: 'var(--font-jetbrains-mono)', letterSpacing: '0.06em' }}>
+                        Webhooks available on Analyst &amp; Team tiers
+                      </div>
+                    ) : (
+                      <>
+                        {/* URL row */}
+                        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, marginBottom: 14 }}>
+                          <div style={{ flex: 1 }}>
+                            <label style={{ display: 'block', fontSize: 9, letterSpacing: '0.14em', color: '#3d4a5c', marginBottom: 6, fontFamily: 'var(--font-jetbrains-mono)' }}>WEBHOOK URL</label>
+                            <input
+                              type="text"
+                              value={edit.url}
+                              onChange={e => patchWebhookEdit(k.id, { url: e.target.value, testResult: null })}
+                              placeholder="https://your-server.com/webhook"
+                              disabled={!k.is_active}
+                              style={{ ...inputStyle, fontSize: 12 }}
+                            />
+                          </div>
+                          {/* Clear button */}
+                          {edit.url.trim() && (
+                            <button
+                              onClick={() => patchWebhookEdit(k.id, { url: '' })}
+                              title="Clear URL"
+                              style={{ padding: '8px 10px', background: 'none', border: 'none', color: '#3d4a5c', fontSize: 14, cursor: 'pointer', lineHeight: 1, flexShrink: 0, paddingBottom: 9 }}
+                            >
+                              ×
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Secret row */}
+                        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, marginBottom: 16 }}>
+                          <div style={{ flex: 1 }}>
+                            <label style={{ display: 'block', fontSize: 9, letterSpacing: '0.14em', color: '#3d4a5c', marginBottom: 6, fontFamily: 'var(--font-jetbrains-mono)' }}>SIGNING SECRET</label>
+                            <input
+                              type={edit.secretVisible ? 'text' : 'password'}
+                              value={edit.secret}
+                              onChange={e => patchWebhookEdit(k.id, { secret: e.target.value })}
+                              placeholder="Optional — used to verify payloads"
+                              disabled={!k.is_active}
+                              style={{ ...inputStyle, fontSize: 12 }}
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => patchWebhookEdit(k.id, { secretVisible: !edit.secretVisible })}
+                            style={{ padding: '8px 10px', background: 'none', border: 'none', color: '#3d4a5c', fontSize: 10, cursor: 'pointer', fontFamily: 'var(--font-jetbrains-mono)', letterSpacing: '0.08em', flexShrink: 0, paddingBottom: 9 }}
+                          >
+                            {edit.secretVisible ? 'HIDE' : 'SHOW'}
+                          </button>
+                        </div>
+
+                        {/* Action buttons */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                          <button
+                            onClick={() => handleSaveWebhook(k.id)}
+                            disabled={edit.saving || !k.is_active}
+                            style={{
+                              padding: '7px 16px',
+                              background: edit.saved ? 'rgba(0,255,136,0.15)' : 'rgba(0,255,136,0.08)',
+                              border: `1px solid ${edit.saved ? 'rgba(0,255,136,0.4)' : 'rgba(0,255,136,0.25)'}`,
+                              borderRadius: 4,
+                              color: '#00ff88',
+                              fontSize: 10,
+                              letterSpacing: '0.12em',
+                              cursor: edit.saving ? 'not-allowed' : 'pointer',
+                              fontFamily: 'var(--font-jetbrains-mono)',
+                              opacity: edit.saving ? 0.6 : 1,
+                            }}
+                          >
+                            {edit.saving ? 'SAVING...' : edit.saved ? 'SAVED' : 'SAVE'}
+                          </button>
+
+                          {k.webhook_url && (
+                            <button
+                              onClick={() => handleTestWebhook(k.id)}
+                              disabled={edit.testing || !k.is_active}
+                              style={{
+                                padding: '7px 16px',
+                                background: 'rgba(255,255,255,0.03)',
+                                border: '1px solid rgba(255,255,255,0.08)',
+                                borderRadius: 4,
+                                color: '#8892a4',
+                                fontSize: 10,
+                                letterSpacing: '0.12em',
+                                cursor: edit.testing ? 'not-allowed' : 'pointer',
+                                fontFamily: 'var(--font-jetbrains-mono)',
+                                opacity: edit.testing ? 0.6 : 1,
+                              }}
+                            >
+                              {edit.testing ? 'SENDING...' : 'TEST'}
+                            </button>
+                          )}
+
+                          {k.webhook_url && (
+                            <button
+                              onClick={() => handleClearWebhook(k.id)}
+                              disabled={edit.saving}
+                              style={{ padding: '7px 12px', background: 'none', border: 'none', color: '#3d4a5c', fontSize: 10, letterSpacing: '0.1em', cursor: 'pointer', fontFamily: 'var(--font-jetbrains-mono)' }}
+                            >
+                              Clear URL
+                            </button>
+                          )}
+                        </div>
+
+                        {edit.testResult && (
+                          <div style={{
+                            marginTop: 10,
+                            fontSize: 11,
+                            fontFamily: 'var(--font-jetbrains-mono)',
+                            color: edit.testResult.startsWith('SENT') ? '#00ff88' : '#ff3b3b',
+                            letterSpacing: '0.04em',
+                          }}>
+                            {edit.testResult}
+                          </div>
+                        )}
+
+                        {k.webhook_url && (
+                          <div style={{ marginTop: 8, fontSize: 10, color: '#3d4a5c', fontFamily: 'var(--font-jetbrains-mono)', letterSpacing: '0.04em' }}>
+                            Active: {k.webhook_url}
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
           </div>
         )}
 
@@ -388,7 +586,6 @@ export default function SettingsPage() {
           <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, letterSpacing: '0.2em', color: '#8892a4', marginBottom: 20 }}>SECURITY</div>
 
           <div style={{ background: '#080b14', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 4, padding: '24px' }}>
-            {/* Section label + status */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
               <div>
                 <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: '#8892a4', marginBottom: 6 }}>
@@ -400,7 +597,6 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            {/* State B — 2FA enabled */}
             {!loading && twoFactorEnabled && !enrollData && (
               <>
                 <div style={{ fontSize: 13, color: '#8892a4', marginBottom: 20, lineHeight: 1.6 }}>
@@ -409,25 +605,12 @@ export default function SettingsPage() {
                 <button
                   onClick={handleDisable}
                   disabled={disabling}
-                  style={{
-                    padding: '8px 18px',
-                    background: 'rgba(255,59,59,0.06)',
-                    border: '1px solid rgba(255,59,59,0.2)',
-                    borderRadius: 4,
-                    color: '#ff3b3b',
-                    fontSize: 11,
-                    letterSpacing: '0.1em',
-                    cursor: disabling ? 'not-allowed' : 'pointer',
-                    fontFamily: 'var(--font-jetbrains-mono)',
-                    opacity: disabling ? 0.5 : 1,
-                  }}
-                >
+                  style={{ padding: '8px 18px', background: 'rgba(255,59,59,0.06)', border: '1px solid rgba(255,59,59,0.2)', borderRadius: 4, color: '#ff3b3b', fontSize: 11, letterSpacing: '0.1em', cursor: disabling ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-jetbrains-mono)', opacity: disabling ? 0.5 : 1 }}>
                   {disabling ? 'DISABLING...' : 'DISABLE 2FA'}
                 </button>
               </>
             )}
 
-            {/* State A — 2FA disabled, no enrollment in progress */}
             {!loading && !twoFactorEnabled && !enrollData && (
               <>
                 <div style={{ fontSize: 13, color: '#8892a4', marginBottom: 20, lineHeight: 1.6 }}>
@@ -436,18 +619,7 @@ export default function SettingsPage() {
                 <button
                   onClick={handleStartEnroll}
                   disabled={enrolling}
-                  style={{
-                    padding: '8px 18px',
-                    background: enrolling ? 'rgba(255,255,255,0.03)' : 'rgba(0,255,136,0.1)',
-                    border: `1px solid ${enrolling ? 'rgba(255,255,255,0.06)' : 'rgba(0,255,136,0.3)'}`,
-                    borderRadius: 4,
-                    color: enrolling ? '#3d4a5c' : '#00ff88',
-                    fontSize: 11,
-                    letterSpacing: '0.1em',
-                    cursor: enrolling ? 'not-allowed' : 'pointer',
-                    fontFamily: 'var(--font-jetbrains-mono)',
-                  }}
-                >
+                  style={{ padding: '8px 18px', background: enrolling ? 'rgba(255,255,255,0.03)' : 'rgba(0,255,136,0.1)', border: `1px solid ${enrolling ? 'rgba(255,255,255,0.06)' : 'rgba(0,255,136,0.3)'}`, borderRadius: 4, color: enrolling ? '#3d4a5c' : '#00ff88', fontSize: 11, letterSpacing: '0.1em', cursor: enrolling ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-jetbrains-mono)' }}>
                   {enrolling ? 'LOADING...' : 'ENABLE 2FA'}
                 </button>
                 {verifyError && !enrollData && (
@@ -456,130 +628,47 @@ export default function SettingsPage() {
               </>
             )}
 
-            {/* Enrollment flow — inline */}
             {enrollData && (
               <div style={{ marginTop: 8 }}>
                 <div style={{ fontSize: 13, color: '#8892a4', marginBottom: 20, lineHeight: 1.6 }}>
                   Scan this QR code with your authenticator app, then enter the 6-digit code to activate.
                 </div>
-
-                {/* QR code — white bg for scannability */}
                 <div style={{ marginBottom: 20 }}>
-                  <img
-                    src={enrollData.qrCode}
-                    alt="2FA QR Code"
-                    style={{
-                      width: 160,
-                      height: 160,
-                      borderRadius: 4,
-                      background: '#fff',
-                      padding: 8,
-                      display: 'block',
-                    }}
-                  />
+                  <img src={enrollData.qrCode} alt="2FA QR Code" style={{ width: 160, height: 160, borderRadius: 4, background: '#fff', padding: 8, display: 'block' }} />
                 </div>
-
-                {/* Backup secret */}
                 <div style={{ marginBottom: 24 }}>
-                  <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.12em', color: '#3d4a5c', marginBottom: 8 }}>
-                    BACKUP SECRET — save this somewhere safe
-                  </div>
+                  <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.12em', color: '#3d4a5c', marginBottom: 8 }}>BACKUP SECRET — save this somewhere safe</div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <code style={{
-                      fontFamily: 'var(--font-jetbrains-mono)',
-                      fontSize: 12,
-                      color: '#8892a4',
-                      background: 'rgba(255,255,255,0.03)',
-                      border: '1px solid rgba(255,255,255,0.06)',
-                      borderRadius: 4,
-                      padding: '8px 12px',
-                      letterSpacing: '0.08em',
-                      flex: 1,
-                      wordBreak: 'break-all',
-                    }}>
+                    <code style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: '#8892a4', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 4, padding: '8px 12px', letterSpacing: '0.08em', flex: 1, wordBreak: 'break-all' }}>
                       {enrollData.secret}
                     </code>
-                    <button
-                      onClick={handleCopySecret}
-                      style={{
-                        padding: '8px 14px',
-                        background: secretCopied ? 'rgba(0,255,136,0.15)' : 'rgba(255,255,255,0.04)',
-                        border: '1px solid rgba(255,255,255,0.08)',
-                        borderRadius: 4,
-                        color: secretCopied ? '#00ff88' : '#8892a4',
-                        fontSize: 10,
-                        letterSpacing: '0.1em',
-                        cursor: 'pointer',
-                        fontFamily: 'var(--font-jetbrains-mono)',
-                        whiteSpace: 'nowrap',
-                        flexShrink: 0,
-                      }}
-                    >
+                    <button onClick={handleCopySecret} style={{ padding: '8px 14px', background: secretCopied ? 'rgba(0,255,136,0.15)' : 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 4, color: secretCopied ? '#00ff88' : '#8892a4', fontSize: 10, letterSpacing: '0.1em', cursor: 'pointer', fontFamily: 'var(--font-jetbrains-mono)', whiteSpace: 'nowrap', flexShrink: 0 }}>
                       {secretCopied ? 'COPIED' : 'COPY'}
                     </button>
                   </div>
                 </div>
-
-                {/* 6-digit code input */}
                 <div style={{ marginBottom: 16 }}>
-                  <label style={{ display: 'block', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.12em', color: '#3d4a5c', marginBottom: 8 }}>
-                    ENTER CODE FROM APP
-                  </label>
+                  <label style={{ display: 'block', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.12em', color: '#3d4a5c', marginBottom: 8 }}>ENTER CODE FROM APP</label>
                   <input
                     type="text"
                     inputMode="numeric"
                     maxLength={6}
                     value={totpCode}
-                    onChange={e => {
-                      const val = e.target.value.replace(/\D/g, '').slice(0, 6)
-                      setTotpCode(val)
-                      setVerifyError('')
-                    }}
+                    onChange={e => { setTotpCode(e.target.value.replace(/\D/g, '').slice(0, 6)); setVerifyError('') }}
                     placeholder="000000"
                     autoFocus
-                    style={{
-                      background: 'transparent',
-                      border: 'none',
-                      borderBottom: `1px solid ${verifyError ? 'rgba(255,59,59,0.4)' : 'rgba(255,255,255,0.12)'}`,
-                      color: '#f0f4ff',
-                      fontSize: 22,
-                      fontFamily: 'var(--font-jetbrains-mono)',
-                      letterSpacing: '0.3em',
-                      padding: '8px 0',
-                      outline: 'none',
-                      width: 160,
-                    }}
+                    style={{ background: 'transparent', border: 'none', borderBottom: `1px solid ${verifyError ? 'rgba(255,59,59,0.4)' : 'rgba(255,255,255,0.12)'}`, color: '#f0f4ff', fontSize: 22, fontFamily: 'var(--font-jetbrains-mono)', letterSpacing: '0.3em', padding: '8px 0', outline: 'none', width: 160 }}
                   />
                 </div>
-
-                {verifyError && (
-                  <div style={{ marginBottom: 16, fontSize: 12, color: '#ff3b3b', fontFamily: 'var(--font-jetbrains-mono)' }}>
-                    {verifyError}
-                  </div>
-                )}
-
-                <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                {verifyError && <div style={{ marginBottom: 16, fontSize: 12, color: '#ff3b3b', fontFamily: 'var(--font-jetbrains-mono)' }}>{verifyError}</div>}
+                <div style={{ display: 'flex', gap: 10 }}>
                   <button
                     onClick={handleVerifyAndActivate}
                     disabled={verifying || totpCode.length !== 6}
-                    style={{
-                      padding: '9px 20px',
-                      background: totpCode.length === 6 && !verifying ? 'rgba(0,255,136,0.1)' : 'rgba(255,255,255,0.03)',
-                      border: `1px solid ${totpCode.length === 6 && !verifying ? 'rgba(0,255,136,0.3)' : 'rgba(255,255,255,0.06)'}`,
-                      borderRadius: 4,
-                      color: totpCode.length === 6 && !verifying ? '#00ff88' : '#3d4a5c',
-                      fontSize: 11,
-                      letterSpacing: '0.12em',
-                      cursor: totpCode.length === 6 && !verifying ? 'pointer' : 'not-allowed',
-                      fontFamily: 'var(--font-jetbrains-mono)',
-                    }}
-                  >
+                    style={{ padding: '9px 20px', background: totpCode.length === 6 && !verifying ? 'rgba(0,255,136,0.1)' : 'rgba(255,255,255,0.03)', border: `1px solid ${totpCode.length === 6 && !verifying ? 'rgba(0,255,136,0.3)' : 'rgba(255,255,255,0.06)'}`, borderRadius: 4, color: totpCode.length === 6 && !verifying ? '#00ff88' : '#3d4a5c', fontSize: 11, letterSpacing: '0.12em', cursor: totpCode.length === 6 && !verifying ? 'pointer' : 'not-allowed', fontFamily: 'var(--font-jetbrains-mono)' }}>
                     {verifying ? 'VERIFYING...' : 'VERIFY & ACTIVATE'}
                   </button>
-                  <button
-                    onClick={() => { setEnrollData(null); setTotpCode(''); setVerifyError('') }}
-                    style={{ padding: '9px 14px', background: 'none', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 4, color: '#8892a4', fontSize: 11, cursor: 'pointer', fontFamily: 'var(--font-jetbrains-mono)' }}
-                  >
+                  <button onClick={() => { setEnrollData(null); setTotpCode(''); setVerifyError('') }} style={{ padding: '9px 14px', background: 'none', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 4, color: '#8892a4', fontSize: 11, cursor: 'pointer', fontFamily: 'var(--font-jetbrains-mono)' }}>
                     Cancel
                   </button>
                 </div>

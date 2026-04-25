@@ -18,8 +18,8 @@ _Nothing active. See Planned for next priorities._
 ### ~~API rate limiting — SQL migration required~~ [DONE]
 `daily_usage` and `daily_reset_date` columns added to `api_keys` in Supabase. Free tier now enforced at 10 req/day.
 
-### Webhook support for API users
-Pro-tier API keys should support a `webhook_url` field on the `api_keys` table. When set, POST the full analysis JSON to the webhook URL after each `/api/analyze` call (non-blocking, fire-and-forget). Useful for enterprise customers building automated pipelines.
+### ~~Webhook support for API users~~ [DONE]
+`webhook_url` + `webhook_secret` columns on `api_keys` (see `supabase/migrations/webhook.sql`). `lib/webhook.ts` fires HMAC-signed POST with 5s timeout, fire-and-forget. Wired into all three pipelines (ETH/BTC/TRX) in `/api/analyze`. Settings page shows webhook form per key card (Analyst/Team tier only). `PATCH /api/apikeys` handles URL + secret updates. `POST /api/apikeys/test-webhook` fires a test payload and returns upstream status.
 
 ### ~~Two-factor auth (2FA)~~ [DONE]
 Security section added to `/dashboard/settings`. MFA challenge page at `/auth/mfa`. Login flow redirects to MFA when `nextLevel === 'aal2'`.
@@ -27,6 +27,14 @@ Security section added to `/dashboard/settings`. MFA challenge page at `/auth/mf
 ---
 
 ## ✅ Completed
+
+### Webhook Support for API Users
+- `supabase/migrations/webhook.sql` — adds `webhook_url text` + `webhook_secret text` to `api_keys`
+- `lib/webhook.ts` — `fireWebhook(url, secret, payload)`: HMAC-SHA256 signing (`X-ClearChain-Signature: sha256=<sig>`), 5s AbortController timeout, silent error handling, fire-and-forget
+- `app/api/analyze/route.ts` — hoists `apiKeyId`, `apiKeyWebhookUrl`, `apiKeyWebhookSecret`; adds `webhook_url, webhook_secret` to API key select; fires webhook before return in all three pipelines (ETH/BTC/TRX)
+- `app/api/apikeys/route.ts` — adds `PATCH` handler: validates `https://` URL, updates `webhook_url` + `webhook_secret`, returns updated key
+- `app/api/apikeys/test-webhook/route.ts` — `POST` handler: auth + ownership check, fires test payload with `event: 'test'`, returns `{ ok, status }` or `{ ok: false, error }`
+- `app/dashboard/settings/page.tsx` — keys converted from table to cards; each card has webhook subsection (URL input, password secret input with show/hide toggle, SAVE, TEST, Clear URL buttons, result feedback line); free-tier keys show dim "available on Analyst & Team tiers" note
 
 ### Two-Factor Authentication (TOTP)
 - `app/dashboard/settings/page.tsx` — Security section below API Keys: State A (DISABLED + ENABLE 2FA button), enrollment flow inline (QR code with white padding bg, backup secret + copy button, 6-digit code input, VERIFY & ACTIVATE), State B (ENABLED + DISABLE 2FA button). `listFactors()` on load to determine initial state.
