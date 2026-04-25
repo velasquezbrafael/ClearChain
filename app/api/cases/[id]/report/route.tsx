@@ -4,14 +4,20 @@
  * Generates and streams a branded PDF case report using @react-pdf/renderer.
  * Auth-gated — returns 401 if not logged in, 404 if case not found or doesn't
  * belong to the authenticated user.
+ *
+ * Uses dynamic imports for @react-pdf/renderer so it is never touched by the
+ * bundler at build time (only loaded at runtime on Node.js).
  */
 
+import React from 'react'
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createServerClient } from '@supabase/ssr'
-import { renderToBuffer } from '@react-pdf/renderer'
 
-import { CaseReportPDF } from '@/components/CaseReportPDF'
+// Force Node.js runtime — @react-pdf/renderer requires fs, canvas, etc.
+export const runtime = 'nodejs'
+
+// Type-only imports are erased at build time — safe to keep static
 import type { AddressForReport, NoteForReport } from '@/components/CaseReportPDF'
 
 // ---------------------------------------------------------------------------
@@ -111,7 +117,6 @@ export async function GET(
   // Normalize addresses — Supabase may return analyses as object or array
   const addrRows = (rawAddrs as unknown as CaseAddressRow[]) ?? []
   const addresses: AddressForReport[] = addrRows.map(row => {
-    // Supabase returns the related record as an object or array depending on relation type
     const a: AnalysisJoin | null = Array.isArray(row.analyses)
       ? (row.analyses[0] ?? null)
       : (row.analyses ?? null)
@@ -134,18 +139,24 @@ export async function GET(
     author_name: n.author_name,
   }))
 
-  // Render PDF using JSX (requires .tsx extension)
+  // Dynamically import @react-pdf/renderer and CaseReportPDF so the bundler
+  // never processes these packages at build time.
   try {
-    const element = (
-      <CaseReportPDF
-        caseData={caseRow}
-        addresses={addresses}
-        notes={notes}
-      />
-    )
+    const [{ renderToBuffer }, { CaseReportPDF }] = await Promise.all([
+      import('@react-pdf/renderer'),
+      import('@/components/CaseReportPDF'),
+    ])
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const element = React.createElement(CaseReportPDF as any, {
+      caseData: caseRow,
+      addresses,
+      notes,
+    })
 
     // renderToBuffer returns a Node Buffer — convert to Uint8Array for Response
-    const nodeBuffer = await renderToBuffer(element)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const nodeBuffer = await renderToBuffer(element as any)
     const buffer = new Uint8Array(nodeBuffer)
 
     const safeTitle = (caseRow.title as string)
