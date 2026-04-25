@@ -107,7 +107,7 @@ async function scoreAddress(address: string, chain: string): Promise<{
     riskLevel: riskScore.level,
     riskScore: riskScore.total,
     ofacMatch: ofacResult.matched,
-    mixerInteraction: riskScore.signals.some(s => s.name === 'mixer_interaction' && s.triggered),
+    mixerInteraction: riskScore.signals['mixer_interaction']?.triggered ?? false,
   };
 }
 

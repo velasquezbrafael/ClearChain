@@ -158,11 +158,12 @@ export default function BulkPage() {
           } : r))
         } else {
           const data = json.data
-          const signals: Array<{ name: string; score: number; triggered: boolean }> = data.riskScore?.signals ?? []
+          const signalsMap: Record<string, { name: string; score: number; triggered: boolean }> = data.riskScore?.signals ?? {}
+          const signals = Object.values(signalsMap)
           const topSig = signals.filter(s => s.triggered).sort((a, b) => b.score - a.score)[0]
           const topSignal = topSig ? topSig.name.replace(/_/g, ' ').toUpperCase() : null
-          const ofacMatch = signals.some(s => s.name === 'ofac_match' && s.triggered)
-          const mixerInteraction = signals.some(s => s.name === 'mixer_interaction' && s.triggered)
+          const ofacMatch = signalsMap['ofac_match']?.triggered ?? false
+          const mixerInteraction = signalsMap['mixer_interaction']?.triggered ?? false
           setRows(prev => prev.map(r => r.index === i ? {
             ...r,
             status: 'done',

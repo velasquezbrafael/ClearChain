@@ -125,7 +125,11 @@ export async function GET(
       chain: row.chain,
       risk_score: a?.risk_score ?? 0,
       risk_level: a?.risk_level ?? 'LOW',
-      signals: Array.isArray(a?.signals) ? (a.signals as AddressForReport['signals']) : [],
+      signals: Array.isArray(a?.signals)
+        ? (a.signals as AddressForReport['signals'])
+        : a?.signals && typeof a.signals === 'object'
+          ? (Object.values(a.signals) as AddressForReport['signals'])
+          : [],
       typologies: Array.isArray(a?.typologies) ? (a.typologies as AddressForReport['typologies']) : [],
       sar_draft: a?.sar_draft ?? null,
       narrative: a?.narrative ?? null,

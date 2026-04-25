@@ -23,7 +23,7 @@ function buildReport(analysis: WalletAnalysis, narrative: string | null, sarDraf
   const date = new Date(analysis.analyzedAt).toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' });
   const caseId = `CLR-${new Date().toISOString().split('T')[0]}-${analysis.address.slice(2, 8).toUpperCase()}`;
 
-  const signalRows = [...analysis.riskScore.signals]
+  const signalRows = Object.values(analysis.riskScore.signals)
     .sort((a, b) => {
       if (a.triggered && !b.triggered) return -1;
       if (!a.triggered && b.triggered) return 1;
@@ -64,7 +64,7 @@ function buildReport(analysis: WalletAnalysis, narrative: string | null, sarDraf
     'RISK ASSESSMENT',
     hr,
     `Risk Score:  ${analysis.riskScore.total} / 100  [${analysis.riskScore.level} RISK]`,
-    `Signals:     ${analysis.riskScore.signals.filter(s => s.triggered).length} of ${analysis.riskScore.signals.length} triggered`,
+    `Signals:     ${Object.values(analysis.riskScore.signals).filter(s => s.triggered).length} of ${Object.values(analysis.riskScore.signals).length} triggered`,
     '',
     'SIGNAL BREAKDOWN',
     signalRows,

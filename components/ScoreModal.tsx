@@ -40,7 +40,7 @@ export default function ScoreModal({ riskScore, onClose }: ScoreModalProps) {
     return () => document.removeEventListener('keydown', handleKey);
   }, [onClose]);
 
-  const sorted = [...riskScore.signals].sort((a, b) => {
+  const sorted = Object.values(riskScore.signals).sort((a, b) => {
     if (a.triggered && !b.triggered) return -1;
     if (!a.triggered && b.triggered) return 1;
     return b.weight - a.weight;

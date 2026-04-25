@@ -211,10 +211,10 @@ function useWindowWidth() {
 // Signal list — col 3
 // ---------------------------------------------------------------------------
 
-function SignalList({ signals, isMobile, riskLevel }: { signals: ScoringSignal[]; isMobile?: boolean; riskLevel?: RiskLevel }) {
+function SignalList({ signals, isMobile, riskLevel }: { signals: Record<string, ScoringSignal>; isMobile?: boolean; riskLevel?: RiskLevel }) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
-  const sorted = [...signals].sort((a, b) => {
+  const sorted = Object.values(signals).sort((a, b) => {
     if (a.triggered && !b.triggered) return -1;
     if (!a.triggered && b.triggered) return 1;
     return b.weight - a.weight;

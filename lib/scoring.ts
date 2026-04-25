@@ -566,7 +566,7 @@ export function computeRiskScore(params: {
   const mixerSignal   = evaluateMixerSignal(transactions, address);
   const rapidSignal   = evaluateRapidHopSignal(transactions, ofacResult, mixerSignal.triggered);
 
-  const signals: ScoringSignal[] = [
+  const signalList: ScoringSignal[] = [
     ofacSignal,
     mixerSignal,
     rapidSignal,
@@ -576,8 +576,13 @@ export function computeRiskScore(params: {
   ];
 
   // Sum triggered scores, cap at 100
-  const rawTotal = signals.reduce((sum, signal) => sum + signal.score, 0);
+  const rawTotal = signalList.reduce((sum, signal) => sum + signal.score, 0);
   const total = Math.min(100, rawTotal);
+
+  // Convert to dict keyed by signal name
+  const signals: Record<string, ScoringSignal> = Object.fromEntries(
+    signalList.map(s => [s.name, s])
+  );
 
   return {
     total,

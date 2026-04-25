@@ -307,7 +307,11 @@ export async function POST(request: NextRequest) {
 
       const totalScore = Math.min(100, btcSignals.reduce((s, sig) => s + sig.score, 0));
       const level = totalScore >= 75 ? 'CRITICAL' : totalScore >= 50 ? 'HIGH' : totalScore >= 25 ? 'MEDIUM' : 'LOW';
-      const btcRiskScore: RiskScore = { total: totalScore, level, signals: btcSignals };
+      const btcRiskScore: RiskScore = {
+        total: totalScore,
+        level,
+        signals: Object.fromEntries(btcSignals.map(s => [s.name, s])),
+      };
 
       const analysis: WalletAnalysis = {
         address,
@@ -369,7 +373,7 @@ export async function POST(request: NextRequest) {
             address, chain: 'BTC',
             risk_score: btcRiskScore.total,
             risk_level: btcRiskScore.level,
-            signals: Object.fromEntries(btcRiskScore.signals.map(s => [s.name, s.triggered])),
+            signals: Object.fromEntries(Object.entries(btcRiskScore.signals).map(([k, s]) => [k, s.triggered])),
             typologies: [],
             narrative: narrative ?? '',
             sar_draft: sarDraftRaw ?? '',
@@ -457,7 +461,11 @@ export async function POST(request: NextRequest) {
 
       const totalScore = Math.min(100, trxSignals.reduce((s, sig) => s + sig.score, 0));
       const level = totalScore >= 75 ? 'CRITICAL' : totalScore >= 50 ? 'HIGH' : totalScore >= 25 ? 'MEDIUM' : 'LOW';
-      const trxRiskScore: RiskScore = { total: totalScore, level, signals: trxSignals };
+      const trxRiskScore: RiskScore = {
+        total: totalScore,
+        level,
+        signals: Object.fromEntries(trxSignals.map(s => [s.name, s])),
+      };
 
       const analysis: WalletAnalysis = {
         address,
@@ -517,7 +525,7 @@ export async function POST(request: NextRequest) {
             address, chain: 'TRX',
             risk_score: trxRiskScore.total,
             risk_level: trxRiskScore.level,
-            signals: Object.fromEntries(trxRiskScore.signals.map(s => [s.name, s.triggered])),
+            signals: Object.fromEntries(Object.entries(trxRiskScore.signals).map(([k, s]) => [k, s.triggered])),
             typologies: [],
             narrative: narrative ?? '',
             sar_draft: sarDraftRaw ?? '',
@@ -528,7 +536,7 @@ export async function POST(request: NextRequest) {
 
       console.info('[ClearChain/analyze] TRX response shape:', {
         address, chain: 'TRX',
-        riskScore: { total: trxRiskScore.total, level: trxRiskScore.level, signalCount: trxRiskScore.signals.length },
+        riskScore: { total: trxRiskScore.total, level: trxRiskScore.level, signalCount: Object.keys(trxRiskScore.signals).length },
         typologiesLength: 0, txCount: trxTxs.length, ofacMatched: trxOfacResult.matched,
       });
 
@@ -672,7 +680,7 @@ export async function POST(request: NextRequest) {
         address, chain: 'ETH',
         risk_score: riskScore.total,
         risk_level: riskScore.level,
-        signals: Object.fromEntries(riskScore.signals.map(s => [s.name, s.triggered])),
+        signals: Object.fromEntries(Object.entries(riskScore.signals).map(([k, s]) => [k, s.triggered])),
         typologies: typologies.filter(t => t.triggered).map(t => t.name),
         narrative: narrative ?? '',
         sar_draft: sarDraftRaw ?? '',

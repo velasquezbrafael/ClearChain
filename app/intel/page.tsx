@@ -79,8 +79,10 @@ export default async function IntelPage() {
   // Today's stats
   const screenedToday  = today.length;
   const ofacToday      = flags.filter(r => {
-    const sigs = r.signals as Array<{ name: string; triggered: boolean }> | null;
-    return sigs?.some(s => s.name === 'ofac_match' && s.triggered);
+    const raw = r.signals as Array<{ name: string; triggered: boolean }> | Record<string, { triggered: boolean }> | null;
+    if (!raw) return false;
+    if (Array.isArray(raw)) return raw.some(s => s.name === 'ofac_match' && s.triggered);
+    return raw['ofac_match']?.triggered ?? false;
   }).length;
   const highRiskToday  = today.filter(r => r.risk_level === 'HIGH' || r.risk_level === 'CRITICAL').length;
   const cleanToday     = today.filter(r => r.risk_level === 'LOW').length;
@@ -190,8 +192,12 @@ export default async function IntelPage() {
                 </thead>
                 <tbody>
                   {flags.map((r, i) => {
-                    const sigs = r.signals as Array<{ name: string; triggered: boolean }> | null;
-                    const ofacHit = sigs?.some(s => s.name === 'ofac_match' && s.triggered) ?? false;
+                    const rawSigs = r.signals as Array<{ name: string; triggered: boolean }> | Record<string, { triggered: boolean }> | null;
+                    const ofacHit = rawSigs
+                      ? Array.isArray(rawSigs)
+                        ? rawSigs.some(s => s.name === 'ofac_match' && s.triggered)
+                        : rawSigs['ofac_match']?.triggered ?? false
+                      : false;
                     return (
                       <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
                         <td style={{ ...cell, color: '#f0f4ff' }} title={r.address}>{truncate(r.address)}</td>

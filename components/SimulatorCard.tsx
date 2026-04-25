@@ -29,14 +29,15 @@ function riskColor(level: RiskLevel): string {
 }
 
 interface SimulatorCardProps {
-  signals: ScoringSignal[];
+  signals: Record<string, ScoringSignal>;
   address: string;
   baselineScore: number;
   baselineLevel: RiskLevel;
 }
 
 export default function SimulatorCard({ signals, address, baselineScore, baselineLevel }: SimulatorCardProps) {
-  const initialActive = new Set(signals.filter(s => s.triggered).map(s => s.name));
+  const signalList = Object.values(signals);
+  const initialActive = new Set(signalList.filter(s => s.triggered).map(s => s.name));
   const [active, setActive] = useState<Set<string>>(initialActive);
   const [generating, setGenerating] = useState(false);
   const [scenarioNarrative, setScenarioNarrative] = useState<string | null>(null);
@@ -52,14 +53,14 @@ export default function SimulatorCard({ signals, address, baselineScore, baselin
   }
 
   function reset() {
-    setActive(new Set(signals.filter(s => s.triggered).map(s => s.name)));
+    setActive(new Set(signalList.filter(s => s.triggered).map(s => s.name)));
     setScenarioNarrative(null);
   }
 
   const simulatedScore = Math.min(
     100,
     [...active].reduce((sum, name) => {
-      const sig = signals.find(s => s.name === name);
+      const sig = signals[name];
       return sum + (sig?.weight ?? 0);
     }, 0),
   );
@@ -85,7 +86,7 @@ export default function SimulatorCard({ signals, address, baselineScore, baselin
     }
   }
 
-  const allSignals = [...signals].sort((a, b) => b.weight - a.weight);
+  const allSignals = [...signalList].sort((a, b) => b.weight - a.weight);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>

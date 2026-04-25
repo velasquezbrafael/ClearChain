@@ -112,8 +112,12 @@ export interface RiskScore {
   total: number;
   /** Qualitative risk band */
   level: RiskLevel;
-  /** All evaluated signals — both triggered and clean, for full transparency */
-  signals: ScoringSignal[];
+  /**
+   * All evaluated signals keyed by signal name — both triggered and clean,
+   * for full transparency.
+   * e.g. { "ofac_match": { triggered: true, score: 40, ... }, ... }
+   */
+  signals: Record<string, ScoringSignal>;
 }
 
 // ---------------------------------------------------------------------------

@@ -98,7 +98,7 @@ ${sarTemplate}
 WALLET DATA:
 - Risk Score: ${analysis.riskScore.total}/100 (${analysis.riskScore.level})
 - OFAC Match: ${analysis.ofacResult.matched ? `YES — ${analysis.ofacResult.matchedEntity}` : 'No'}
-- Signals: ${analysis.riskScore.signals.filter(s => s.triggered).map(s => s.name).join(', ') || 'none'}
+- Signals: ${Object.values(analysis.riskScore.signals).filter((s: {triggered: boolean}) => s.triggered).map((s: {name: string}) => s.name).join(', ') || 'none'}
 - Top Typology: ${analysis.typologies.filter(t => t.triggered).sort((a, b) => b.confidence - a.confidence)[0]?.name ?? 'none'}
 - Transactions: ${analysis.transactions.length} total
 - Key txs: ${analysis.transactions.slice(0, 5).map(tx => `${new Date(tx.timestamp * 1000).toISOString().split('T')[0]} ${tx.value.toFixed(4)} ETH ${tx.from.slice(0,8)}→${tx.to.slice(0,8)}`).join(' | ')}
