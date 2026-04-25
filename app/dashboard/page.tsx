@@ -112,7 +112,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
   const hour = new Date().getHours()
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
-  const displayName = (user.email ?? '').split('@')[0]
+  const displayName = (user.email ?? '').split('@')[0].split('.')[0]
 
   async function signOut() {
     'use server'
