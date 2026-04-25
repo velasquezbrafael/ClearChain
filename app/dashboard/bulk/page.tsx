@@ -338,6 +338,29 @@ export default function BulkPage() {
           </div>
         </div>
 
+        {/* Empty state — shown before any screening has been run */}
+        {rows.length === 0 && (
+          <div style={{ background: '#080b14', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 4, padding: '56px 32px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="4" y="4" width="10" height="10" rx="1.5" stroke="#1e2430" strokeWidth="1.5"/>
+              <rect x="19" y="4" width="10" height="10" rx="1.5" stroke="#1e2430" strokeWidth="1.5"/>
+              <rect x="4" y="19" width="10" height="10" rx="1.5" stroke="#1e2430" strokeWidth="1.5"/>
+              <rect x="19" y="19" width="10" height="10" rx="1.5" stroke="#1e2430" strokeWidth="1.5"/>
+              <rect x="4" y="34" width="10" height="4" rx="1" stroke="#1e2430" strokeWidth="1.5"/>
+              <rect x="19" y="34" width="10" height="4" rx="1" stroke="#1e2430" strokeWidth="1.5"/>
+              <rect x="34" y="4" width="4" height="10" rx="1" stroke="#1e2430" strokeWidth="1.5"/>
+              <rect x="34" y="19" width="4" height="10" rx="1" stroke="#1e2430" strokeWidth="1.5"/>
+            </svg>
+            <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.2em', color: '#3d4a5c', textTransform: 'uppercase' as const }}>
+              Paste addresses above to begin
+            </div>
+            <div style={{ fontSize: 13, color: '#3d4a5c', textAlign: 'center', lineHeight: 1.6, maxWidth: 340 }}>
+              Supports ETH, BTC, and TRX. One address per line, or <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11 }}>address,CHAIN</span> format.
+              <br />Up to 500 addresses per batch.
+            </div>
+          </div>
+        )}
+
         {/* Results section */}
         {rows.length > 0 && (
           <div>

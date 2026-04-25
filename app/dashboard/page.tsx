@@ -77,16 +77,27 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const ethCount      = summary.filter(a => a.chain === 'ETH').length
   const btcCount      = summary.filter(a => a.chain === 'BTC').length
   const trxCount      = summary.filter(a => a.chain === 'TRX').length
-  const highRiskCount = summary.filter(a => a.risk_level === 'HIGH' || a.risk_level === 'CRITICAL').length
+  // Deduplicate: per address+chain, keep only the highest risk level seen
+  const uniqueRiskMap = new Map<string, string>()
+  const priority: Record<string, number> = { CRITICAL: 4, HIGH: 3, MEDIUM: 2, LOW: 1 }
+  summary.forEach(a => {
+    const key = `${a.address}-${a.chain}`
+    const existing = uniqueRiskMap.get(key)
+    if (!existing || (priority[a.risk_level] ?? 0) > (priority[existing] ?? 0)) {
+      uniqueRiskMap.set(key, a.risk_level)
+    }
+  })
+  const uniqueRiskValues = Array.from(uniqueRiskMap.values())
+  const highRiskCount = uniqueRiskValues.filter(l => l === 'HIGH' || l === 'CRITICAL').length
 
-  // Risk distribution
+  // Risk distribution (unique addresses only)
   const riskDist = {
-    LOW:      summary.filter(a => a.risk_level === 'LOW').length,
-    MEDIUM:   summary.filter(a => a.risk_level === 'MEDIUM').length,
-    HIGH:     summary.filter(a => a.risk_level === 'HIGH').length,
-    CRITICAL: summary.filter(a => a.risk_level === 'CRITICAL').length,
+    LOW:      uniqueRiskValues.filter(l => l === 'LOW').length,
+    MEDIUM:   uniqueRiskValues.filter(l => l === 'MEDIUM').length,
+    HIGH:     uniqueRiskValues.filter(l => l === 'HIGH').length,
+    CRITICAL: uniqueRiskValues.filter(l => l === 'CRITICAL').length,
   }
-  const riskTotal = summary.length
+  const riskTotal = uniqueRiskValues.length
 
   // ── Cases stats ──────────────────────────────────────────────────────────
   const lastAnalysis = recentRaw && recentRaw.length > 0 ? recentRaw[0] : null

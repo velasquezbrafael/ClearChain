@@ -1457,7 +1457,6 @@ function ResultsAddressBar({
       style={{ position: 'absolute', top: overflowPos.top, right: overflowPos.right, zIndex: 9999, background: '#0d1220', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 4, padding: '6px 0', minWidth: 160, boxShadow: '0 8px 24px rgba(0,0,0,0.4)', display: 'flex', flexDirection: 'column' }}
     >
       <div onClick={() => setOverflowOpen(false)} style={{ display: 'contents' }}>{saveButton}</div>
-      <div onClick={() => setOverflowOpen(false)} style={{ display: 'contents' }}>{watchlistButton}</div>
       <div onClick={() => setOverflowOpen(false)} style={{ display: 'contents' }}>{exportButton}</div>
     </div>,
     document.body
@@ -1608,7 +1607,10 @@ function ResultsAddressBar({
       {/* Share (primary) */}
       <ShareButton />
 
-      {/* ··· overflow: Save + Export */}
+      {/* Watchlist (primary — visible directly in row) */}
+      {watchlistButton}
+
+      {/* MORE ▾ overflow: Save + Export */}
       <div style={{ flexShrink: 0 }}>
         <button
           ref={overflowBtnRef}
@@ -1618,7 +1620,7 @@ function ResultsAddressBar({
           onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-dim)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
           title="More actions"
         >
-          ···
+          MORE ▾
         </button>
         {overflowPortal}
       </div>
