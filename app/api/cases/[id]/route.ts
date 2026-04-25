@@ -14,7 +14,7 @@ import { cookies } from 'next/headers';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'PATCH, OPTIONS',
+  'Access-Control-Allow-Methods': 'GET, PATCH, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type',
 };
 
@@ -117,6 +117,32 @@ async function sendStatusEmail(to: string, caseTitle: string, newStatus: string,
 
 export async function OPTIONS() {
   return new NextResponse(null, { status: 204, headers: CORS });
+}
+
+export async function GET(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+
+  const supabase = await getSupabase();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: CORS });
+  }
+
+  const { data: caseRow, error } = await supabase
+    .from('cases')
+    .select('*')
+    .eq('id', id)
+    .eq('user_id', user.id)
+    .single();
+
+  if (error || !caseRow) {
+    return NextResponse.json({ error: 'Case not found' }, { status: 404, headers: CORS });
+  }
+
+  return NextResponse.json({ case: caseRow }, { headers: CORS });
 }
 
 export async function PATCH(

@@ -208,7 +208,7 @@ export async function POST(request: NextRequest) {
     if (!isBtcAddr) {
       return NextResponse.json(
         { success: false, error: 'Invalid Bitcoin address format', code: 'INVALID_ADDRESS' },
-        { status: 422, headers: CORS_HEADERS }
+        { status: 400, headers: CORS_HEADERS }
       );
     }
     address = rawAddress;
@@ -217,7 +217,7 @@ export async function POST(request: NextRequest) {
     if (!isTrxAddr) {
       return NextResponse.json(
         { success: false, error: 'Invalid Tron address format. Must start with T and be 34 characters.', code: 'INVALID_ADDRESS' },
-        { status: 422, headers: CORS_HEADERS }
+        { status: 400, headers: CORS_HEADERS }
       );
     }
     address = rawAddress;
@@ -228,7 +228,7 @@ export async function POST(request: NextRequest) {
       const message = err instanceof Error ? err.message : 'Could not resolve address or ENS name';
       return NextResponse.json(
         { success: false, error: message, code: 'ENS_RESOLUTION_FAILED' },
-        { status: 422, headers: CORS_HEADERS }
+        { status: 400, headers: CORS_HEADERS }
       );
     }
   }
