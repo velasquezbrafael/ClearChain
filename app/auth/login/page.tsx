@@ -20,10 +20,18 @@ export default function LoginPage() {
     if (err) {
       setError(err.message)
       setLoading(false)
-    } else {
-      router.push('/dashboard')
-      router.refresh()
+      return
     }
+
+    // MFA check — if user has 2FA enrolled and hasn't satisfied aal2 yet, redirect to challenge
+    const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+    if (aal?.nextLevel === 'aal2' && aal.nextLevel !== aal.currentLevel) {
+      router.push('/auth/mfa')
+      return
+    }
+
+    router.push('/dashboard')
+    router.refresh()
   }
 
   return (

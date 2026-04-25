@@ -19,6 +19,7 @@ const TIER_LIMITS: Record<string, string> = {
   analyst:  '2,000 req / day',
   team:     'Unlimited',
 }
+void TIER_LIMITS // used indirectly via JSX below
 
 function fmtDate(iso: string | null) {
   if (!iso) return '—'
@@ -39,6 +40,7 @@ export default function SettingsPage() {
   const router = useRouter()
   const supabase = createClient()
 
+  // API keys state
   const [keys, setKeys] = useState<ApiKey[]>([])
   const [loading, setLoading] = useState(true)
   const [userEmail, setUserEmail] = useState('')
@@ -49,23 +51,47 @@ export default function SettingsPage() {
   const [copiedKey, setCopiedKey] = useState(false)
   const [revoking, setRevoking] = useState<string | null>(null)
 
+  // 2FA state
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false)
+  const [factorId, setFactorId] = useState<string | null>(null)
+  const [enrollData, setEnrollData] = useState<{ id: string; qrCode: string; secret: string } | null>(null)
+  const [totpCode, setTotpCode] = useState('')
+  const [enrolling, setEnrolling] = useState(false)
+  const [verifying, setVerifying] = useState(false)
+  const [verifyError, setVerifyError] = useState('')
+  const [disabling, setDisabling] = useState(false)
+  const [secretCopied, setSecretCopied] = useState(false)
+
   useEffect(() => {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/auth/login'); return }
       setUserEmail(user.email ?? '')
 
-      const { data } = await supabase
-        .from('api_keys')
-        .select('id, label, tier, usage_count, last_used_at, created_at, is_active')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
+      // Load API keys + 2FA status in parallel
+      const [{ data: keysData }, { data: factors }] = await Promise.all([
+        supabase
+          .from('api_keys')
+          .select('id, label, tier, usage_count, last_used_at, created_at, is_active')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false }),
+        supabase.auth.mfa.listFactors(),
+      ])
 
-      setKeys(data ?? [])
+      setKeys(keysData ?? [])
+
+      const totpFactors = factors?.totp ?? []
+      if (totpFactors.length > 0) {
+        setTwoFactorEnabled(true)
+        setFactorId(totpFactors[0].id)
+      }
+
       setLoading(false)
     }
     load()
   }, [])
+
+  // ── API key handlers ──────────────────────────────────────────────────────
 
   async function handleGenerate(e: React.FormEvent) {
     e.preventDefault()
@@ -77,7 +103,6 @@ export default function SettingsPage() {
 
     const rawKey = `ck_live_${Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b => b.toString(16).padStart(2, '0')).join('')}`
 
-    // Hash via API route to keep crypto.createHash server-side
     const res = await fetch('/api/apikeys', {
       method: 'POST',
       credentials: 'include',
@@ -111,6 +136,71 @@ export default function SettingsPage() {
     })
   }
 
+  // ── 2FA handlers ──────────────────────────────────────────────────────────
+
+  async function handleStartEnroll() {
+    setEnrolling(true)
+    setVerifyError('')
+    const { data, error } = await supabase.auth.mfa.enroll({ factorType: 'totp' })
+    if (error || !data) {
+      setVerifyError(error?.message ?? 'Enrollment failed.')
+      setEnrolling(false)
+      return
+    }
+    setEnrollData({ id: data.id, qrCode: data.totp.qr_code, secret: data.totp.secret })
+    setEnrolling(false)
+  }
+
+  async function handleVerifyAndActivate() {
+    if (!enrollData || totpCode.length !== 6) return
+    setVerifying(true)
+    setVerifyError('')
+
+    const { data: challenge, error: challengeErr } = await supabase.auth.mfa.challenge({
+      factorId: enrollData.id,
+    })
+    if (challengeErr || !challenge) {
+      setVerifyError(challengeErr?.message ?? 'Challenge failed.')
+      setVerifying(false)
+      return
+    }
+
+    const { error: verifyErr } = await supabase.auth.mfa.verify({
+      factorId: enrollData.id,
+      challengeId: challenge.id,
+      code: totpCode,
+    })
+    if (verifyErr) {
+      setVerifyError('Invalid code. Please try again.')
+      setTotpCode('')
+      setVerifying(false)
+      return
+    }
+
+    setTwoFactorEnabled(true)
+    setFactorId(enrollData.id)
+    setEnrollData(null)
+    setTotpCode('')
+    setVerifying(false)
+  }
+
+  async function handleDisable() {
+    if (!factorId) return
+    setDisabling(true)
+    await supabase.auth.mfa.unenroll({ factorId })
+    setTwoFactorEnabled(false)
+    setFactorId(null)
+    setDisabling(false)
+  }
+
+  function handleCopySecret() {
+    if (!enrollData?.secret) return
+    navigator.clipboard.writeText(enrollData.secret).then(() => {
+      setSecretCopied(true)
+      setTimeout(() => setSecretCopied(false), 1500)
+    })
+  }
+
   const inputStyle: React.CSSProperties = {
     background: 'transparent', border: 'none',
     borderBottom: '1px solid rgba(255,255,255,0.12)', color: '#f0f4ff',
@@ -132,17 +222,16 @@ export default function SettingsPage() {
 
       <div style={{ maxWidth: 860, margin: '0 auto', padding: '48px 32px' }}>
         <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, letterSpacing: '0.2em', color: '#3d4a5c', marginBottom: 8 }}>ACCOUNT</div>
-        <h1 style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 32, fontWeight: 700, color: '#f0f4ff', margin: '0 0 8px', letterSpacing: '-0.01em' }}>API Keys</h1>
+        <h1 style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 32, fontWeight: 700, color: '#f0f4ff', margin: '0 0 8px', letterSpacing: '-0.01em' }}>Settings</h1>
         <p style={{ fontFamily: 'var(--font-inter)', fontSize: 14, color: '#8892a4', margin: '0 0 40px', lineHeight: 1.6 }}>
-          Generate keys to call <code style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: '#00ff88' }}>/api/analyze</code> programmatically.
-          Include your key as <code style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: '#8892a4' }}>Authorization: Bearer ck_live_...</code>
+          Manage your API keys and account security.
         </p>
 
         {/* One-time reveal modal */}
         {revealedKey && (
-          <div style={{ background: 'rgba(0,255,136,0.04)', border: '1px solid rgba(0,255,136,0.2)', borderRadius: 8, padding: '20px 24px', marginBottom: 32 }}>
+          <div style={{ background: 'rgba(0,255,136,0.04)', border: '1px solid rgba(0,255,136,0.2)', borderRadius: 4, padding: '20px 24px', marginBottom: 32 }}>
             <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: '#00ff88', marginBottom: 12 }}>
-              API KEY GENERATED — COPY NOW. IT WON'T BE SHOWN AGAIN.
+              API KEY GENERATED — COPY NOW. IT WON&apos;T BE SHOWN AGAIN.
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
               <code style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 13, color: '#f0f4ff', background: '#080b14', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 4, padding: '8px 14px', flex: 1, wordBreak: 'break-all' }}>
@@ -152,7 +241,7 @@ export default function SettingsPage() {
                 onClick={handleCopyKey}
                 style={{ padding: '8px 18px', background: copiedKey ? 'rgba(0,255,136,0.15)' : 'rgba(0,255,136,0.1)', border: '1px solid rgba(0,255,136,0.3)', borderRadius: 4, color: '#00ff88', fontSize: 11, letterSpacing: '0.1em', cursor: 'pointer', fontFamily: 'var(--font-jetbrains-mono)', whiteSpace: 'nowrap', flexShrink: 0 }}
               >
-                {copiedKey ? 'COPIED ✓' : 'COPY'}
+                {copiedKey ? 'COPIED' : 'COPY'}
               </button>
               <button
                 onClick={() => setRevealedKey(null)}
@@ -164,8 +253,11 @@ export default function SettingsPage() {
           </div>
         )}
 
+        {/* ── API Keys section ── */}
+        <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, letterSpacing: '0.2em', color: '#8892a4', marginBottom: 20 }}>API KEYS</div>
+
         {/* Rate limits */}
-        <div style={{ background: '#080b14', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, padding: '20px 24px', marginBottom: 32 }}>
+        <div style={{ background: '#080b14', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 4, padding: '20px 24px', marginBottom: 32 }}>
           <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: '#8892a4', marginBottom: 16 }}>RATE LIMITS BY TIER</div>
           <div style={{ display: 'flex', gap: 0 }}>
             {[
@@ -194,7 +286,7 @@ export default function SettingsPage() {
 
         {/* Generate form */}
         {showForm && (
-          <form onSubmit={handleGenerate} style={{ background: '#080b14', border: '1px solid rgba(0,255,136,0.15)', borderRadius: 8, padding: '20px 24px', marginBottom: 16, display: 'flex', gap: 12, alignItems: 'flex-end' }}>
+          <form onSubmit={handleGenerate} style={{ background: '#080b14', border: '1px solid rgba(0,255,136,0.15)', borderRadius: 4, padding: '20px 24px', marginBottom: 16, display: 'flex', gap: 12, alignItems: 'flex-end' }}>
             <div style={{ flex: 1 }}>
               <label style={{ display: 'block', fontSize: 10, letterSpacing: '0.12em', color: '#3d4a5c', marginBottom: 8, fontFamily: 'var(--font-jetbrains-mono)' }}>KEY LABEL</label>
               <input
@@ -227,11 +319,11 @@ export default function SettingsPage() {
         {loading ? (
           <div style={{ padding: '40px', textAlign: 'center', color: '#3d4a5c', fontSize: 13 }}>Loading...</div>
         ) : keys.length === 0 ? (
-          <div style={{ padding: '40px', textAlign: 'center', color: '#3d4a5c', fontSize: 13, background: '#080b14', borderRadius: 8, border: '1px solid rgba(255,255,255,0.06)' }}>
+          <div style={{ padding: '40px', textAlign: 'center', color: '#3d4a5c', fontSize: 13, background: '#080b14', borderRadius: 4, border: '1px solid rgba(255,255,255,0.06)' }}>
             No API keys yet. Generate one to start building.
           </div>
         ) : (
-          <div style={{ background: '#080b14', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, overflow: 'hidden' }}>
+          <div style={{ background: '#080b14', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 4, overflow: 'hidden' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
@@ -276,7 +368,7 @@ export default function SettingsPage() {
         )}
 
         {/* Usage example */}
-        <div style={{ marginTop: 48, padding: '24px', background: '#080b14', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8 }}>
+        <div style={{ marginTop: 48, padding: '24px', background: '#080b14', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 4 }}>
           <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: '#8892a4', marginBottom: 14 }}>USAGE EXAMPLE</div>
           <pre style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: '#8892a4', margin: 0, lineHeight: 1.7, overflowX: 'auto' }}>
             <span style={{ color: '#3d4a5c' }}>curl</span>{` -X POST https://clear-chain-peach.vercel.app/api/analyze \\
@@ -290,6 +382,212 @@ export default function SettingsPage() {
             </a>
           </div>
         </div>
+
+        {/* ── Security section ── */}
+        <div style={{ marginTop: 64, borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 48 }}>
+          <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, letterSpacing: '0.2em', color: '#8892a4', marginBottom: 20 }}>SECURITY</div>
+
+          <div style={{ background: '#080b14', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 4, padding: '24px' }}>
+            {/* Section label + status */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <div>
+                <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: '#8892a4', marginBottom: 6 }}>
+                  TWO-FACTOR AUTHENTICATION
+                </div>
+                <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, letterSpacing: '0.12em', color: twoFactorEnabled ? '#00ff88' : '#3d4a5c', fontWeight: 700 }}>
+                  {loading ? '...' : twoFactorEnabled ? 'ENABLED' : 'DISABLED'}
+                </div>
+              </div>
+            </div>
+
+            {/* State B — 2FA enabled */}
+            {!loading && twoFactorEnabled && !enrollData && (
+              <>
+                <div style={{ fontSize: 13, color: '#8892a4', marginBottom: 20, lineHeight: 1.6 }}>
+                  Your account is protected with TOTP authentication.
+                </div>
+                <button
+                  onClick={handleDisable}
+                  disabled={disabling}
+                  style={{
+                    padding: '8px 18px',
+                    background: 'rgba(255,59,59,0.06)',
+                    border: '1px solid rgba(255,59,59,0.2)',
+                    borderRadius: 4,
+                    color: '#ff3b3b',
+                    fontSize: 11,
+                    letterSpacing: '0.1em',
+                    cursor: disabling ? 'not-allowed' : 'pointer',
+                    fontFamily: 'var(--font-jetbrains-mono)',
+                    opacity: disabling ? 0.5 : 1,
+                  }}
+                >
+                  {disabling ? 'DISABLING...' : 'DISABLE 2FA'}
+                </button>
+              </>
+            )}
+
+            {/* State A — 2FA disabled, no enrollment in progress */}
+            {!loading && !twoFactorEnabled && !enrollData && (
+              <>
+                <div style={{ fontSize: 13, color: '#8892a4', marginBottom: 20, lineHeight: 1.6 }}>
+                  Add an extra layer of security. You&apos;ll need an authenticator app (Google Authenticator, Authy, 1Password).
+                </div>
+                <button
+                  onClick={handleStartEnroll}
+                  disabled={enrolling}
+                  style={{
+                    padding: '8px 18px',
+                    background: enrolling ? 'rgba(255,255,255,0.03)' : 'rgba(0,255,136,0.1)',
+                    border: `1px solid ${enrolling ? 'rgba(255,255,255,0.06)' : 'rgba(0,255,136,0.3)'}`,
+                    borderRadius: 4,
+                    color: enrolling ? '#3d4a5c' : '#00ff88',
+                    fontSize: 11,
+                    letterSpacing: '0.1em',
+                    cursor: enrolling ? 'not-allowed' : 'pointer',
+                    fontFamily: 'var(--font-jetbrains-mono)',
+                  }}
+                >
+                  {enrolling ? 'LOADING...' : 'ENABLE 2FA'}
+                </button>
+                {verifyError && !enrollData && (
+                  <div style={{ marginTop: 12, fontSize: 12, color: '#ff3b3b', fontFamily: 'var(--font-jetbrains-mono)' }}>{verifyError}</div>
+                )}
+              </>
+            )}
+
+            {/* Enrollment flow — inline */}
+            {enrollData && (
+              <div style={{ marginTop: 8 }}>
+                <div style={{ fontSize: 13, color: '#8892a4', marginBottom: 20, lineHeight: 1.6 }}>
+                  Scan this QR code with your authenticator app, then enter the 6-digit code to activate.
+                </div>
+
+                {/* QR code — white bg for scannability */}
+                <div style={{ marginBottom: 20 }}>
+                  <img
+                    src={enrollData.qrCode}
+                    alt="2FA QR Code"
+                    style={{
+                      width: 160,
+                      height: 160,
+                      borderRadius: 4,
+                      background: '#fff',
+                      padding: 8,
+                      display: 'block',
+                    }}
+                  />
+                </div>
+
+                {/* Backup secret */}
+                <div style={{ marginBottom: 24 }}>
+                  <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.12em', color: '#3d4a5c', marginBottom: 8 }}>
+                    BACKUP SECRET — save this somewhere safe
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <code style={{
+                      fontFamily: 'var(--font-jetbrains-mono)',
+                      fontSize: 12,
+                      color: '#8892a4',
+                      background: 'rgba(255,255,255,0.03)',
+                      border: '1px solid rgba(255,255,255,0.06)',
+                      borderRadius: 4,
+                      padding: '8px 12px',
+                      letterSpacing: '0.08em',
+                      flex: 1,
+                      wordBreak: 'break-all',
+                    }}>
+                      {enrollData.secret}
+                    </code>
+                    <button
+                      onClick={handleCopySecret}
+                      style={{
+                        padding: '8px 14px',
+                        background: secretCopied ? 'rgba(0,255,136,0.15)' : 'rgba(255,255,255,0.04)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        borderRadius: 4,
+                        color: secretCopied ? '#00ff88' : '#8892a4',
+                        fontSize: 10,
+                        letterSpacing: '0.1em',
+                        cursor: 'pointer',
+                        fontFamily: 'var(--font-jetbrains-mono)',
+                        whiteSpace: 'nowrap',
+                        flexShrink: 0,
+                      }}
+                    >
+                      {secretCopied ? 'COPIED' : 'COPY'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* 6-digit code input */}
+                <div style={{ marginBottom: 16 }}>
+                  <label style={{ display: 'block', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.12em', color: '#3d4a5c', marginBottom: 8 }}>
+                    ENTER CODE FROM APP
+                  </label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    value={totpCode}
+                    onChange={e => {
+                      const val = e.target.value.replace(/\D/g, '').slice(0, 6)
+                      setTotpCode(val)
+                      setVerifyError('')
+                    }}
+                    placeholder="000000"
+                    autoFocus
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      borderBottom: `1px solid ${verifyError ? 'rgba(255,59,59,0.4)' : 'rgba(255,255,255,0.12)'}`,
+                      color: '#f0f4ff',
+                      fontSize: 22,
+                      fontFamily: 'var(--font-jetbrains-mono)',
+                      letterSpacing: '0.3em',
+                      padding: '8px 0',
+                      outline: 'none',
+                      width: 160,
+                    }}
+                  />
+                </div>
+
+                {verifyError && (
+                  <div style={{ marginBottom: 16, fontSize: 12, color: '#ff3b3b', fontFamily: 'var(--font-jetbrains-mono)' }}>
+                    {verifyError}
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                  <button
+                    onClick={handleVerifyAndActivate}
+                    disabled={verifying || totpCode.length !== 6}
+                    style={{
+                      padding: '9px 20px',
+                      background: totpCode.length === 6 && !verifying ? 'rgba(0,255,136,0.1)' : 'rgba(255,255,255,0.03)',
+                      border: `1px solid ${totpCode.length === 6 && !verifying ? 'rgba(0,255,136,0.3)' : 'rgba(255,255,255,0.06)'}`,
+                      borderRadius: 4,
+                      color: totpCode.length === 6 && !verifying ? '#00ff88' : '#3d4a5c',
+                      fontSize: 11,
+                      letterSpacing: '0.12em',
+                      cursor: totpCode.length === 6 && !verifying ? 'pointer' : 'not-allowed',
+                      fontFamily: 'var(--font-jetbrains-mono)',
+                    }}
+                  >
+                    {verifying ? 'VERIFYING...' : 'VERIFY & ACTIVATE'}
+                  </button>
+                  <button
+                    onClick={() => { setEnrollData(null); setTotpCode(''); setVerifyError('') }}
+                    style={{ padding: '9px 14px', background: 'none', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 4, color: '#8892a4', fontSize: 11, cursor: 'pointer', fontFamily: 'var(--font-jetbrains-mono)' }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
       </div>
     </div>
   )

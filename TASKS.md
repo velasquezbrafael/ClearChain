@@ -21,12 +21,17 @@ _Nothing active. See Planned for next priorities._
 ### Webhook support for API users
 Pro-tier API keys should support a `webhook_url` field on the `api_keys` table. When set, POST the full analysis JSON to the webhook URL after each `/api/analyze` call (non-blocking, fire-and-forget). Useful for enterprise customers building automated pipelines.
 
-### Two-factor auth (2FA)
-Supabase supports TOTP-based 2FA. Add a "Security" subsection to `/dashboard/settings` with enable/disable 2FA flow. Compliance teams (the target user) will expect this before paying.
+### ~~Two-factor auth (2FA)~~ [DONE]
+Security section added to `/dashboard/settings`. MFA challenge page at `/auth/mfa`. Login flow redirects to MFA when `nextLevel === 'aal2'`.
 
 ---
 
 ## ✅ Completed
+
+### Two-Factor Authentication (TOTP)
+- `app/dashboard/settings/page.tsx` — Security section below API Keys: State A (DISABLED + ENABLE 2FA button), enrollment flow inline (QR code with white padding bg, backup secret + copy button, 6-digit code input, VERIFY & ACTIVATE), State B (ENABLED + DISABLE 2FA button). `listFactors()` on load to determine initial state.
+- `app/auth/mfa/page.tsx` — Standalone challenge page: centered dark layout matching auth pages, large mono code input, auto-submits on 6th digit, `listFactors → challenge → verify` flow, error state with input clear.
+- `app/auth/login/page.tsx` — Added `getAuthenticatorAssuranceLevel()` check after successful `signInWithPassword`; redirects to `/auth/mfa` if `nextLevel === 'aal2' && nextLevel !== currentLevel`.
 
 ### PDF Case Reports
 - `components/CaseReportPDF.tsx` — @react-pdf/renderer Document component: dark-themed (bg #03040a, accent #00ff88), Cover + Case Summary + Addresses (signals table, typologies) + Notes + SAR Drafts sections, fixed footer with page N of M on every page
