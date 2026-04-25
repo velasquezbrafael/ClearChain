@@ -387,7 +387,7 @@ export async function POST(request: NextRequest) {
       const btcErrMsg = err instanceof Error ? err.message : 'Failed to fetch Bitcoin transaction history';
       return NextResponse.json(
         { success: false, error: btcErrMsg, code: 'BTC_FETCH_ERROR' },
-        { status: 502, headers: CORS_HEADERS }
+        { status: 422, headers: CORS_HEADERS }
       );
     }
   }
@@ -540,7 +540,7 @@ export async function POST(request: NextRequest) {
       const trxErrMsg = err instanceof Error ? err.message : 'Failed to fetch Tron transaction history';
       return NextResponse.json(
         { success: false, error: trxErrMsg, code: 'TRX_FETCH_ERROR' },
-        { status: 502, headers: CORS_HEADERS }
+        { status: 422, headers: CORS_HEADERS }
       );
     }
   }
@@ -558,7 +558,7 @@ export async function POST(request: NextRequest) {
     console.error('[ClearChain/analyze] Alchemy fetch failed:', err);
     return NextResponse.json(
       { success: false, error: 'Failed to fetch transaction history', code: 'ALCHEMY_ERROR' },
-      { status: 502, headers: CORS_HEADERS }
+      { status: 503, headers: CORS_HEADERS }
     );
   }
 
