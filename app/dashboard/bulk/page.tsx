@@ -292,7 +292,7 @@ export default function BulkPage() {
           <textarea
             value={textarea}
             onChange={e => setTextarea(e.target.value)}
-            placeholder={'0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045\n0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045,BTC\n1A1zP1eP5QGefi2DMPTfTL5SLmv7Divf5n,BTC'}
+            placeholder={'0xAbc123...  (ETH, default chain)\n0xDef456...,BTC  (override chain per row)\nbc1qxy2kgdyfoo...  (BTC address)'}
             rows={8}
             style={{
               width: '100%',

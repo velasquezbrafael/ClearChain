@@ -147,6 +147,12 @@ body {
   animation: caretBlink 1s step-end infinite;
 }
 
+/* Placeholder text — dim so it's visually distinct from real input */
+::placeholder {
+  color: var(--text-dim);
+  opacity: 1;
+}
+
 .skeleton {
   background: linear-gradient(
     90deg,
