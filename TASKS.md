@@ -6,124 +6,110 @@ _Maintained by Rocky (Cowork). Claude Code: read this before starting work, mark
 
 ## 🔴 Active (do these now)
 
-### [DONE] Graph intelligence — connected node highlighting
-When a node is expanded in Investigation Mode and new counterparties load, check each new counterparty against the existing node list. If a new counterparty address is ALREADY in the graph (from a different expansion path), render it with a distinct "overlap" indicator — a pulsing outer ring or double-border circle in yellow/gold (`#ffd60a`).
-
-This reveals when two separate wallets share a common counterparty — a critical money laundering pattern called "convergence." It should appear automatically without user action when the overlap is detected.
-
-In `TransactionGraph.tsx`, in the `expandNode` function, after fetching new counterparties:
-```typescript
-// For each new node coming in, check if it's already in the graph
-const overlapping = data.nodes.filter(n => 
-  graphNodes.some(existing => existing.id === n.address.toLowerCase())
-);
-// Mark overlapping nodes with state: 'overlap' and apply gold ring style
-```
-
-Add a new legend item: `● OVERLAP` in gold, shown when any overlap is detected.
-
----
-
-### [DONE] Case intelligence view
-On the case detail page (`/dashboard/cases/[id]`), add a "NETWORK" section that shows all addresses in the case as a single combined D3 force-directed graph.
-
-- Each case address = a node, color-coded by its risk level (red=CRITICAL, orange=HIGH, yellow=MEDIUM, green=LOW/CLEAN)
-- If two addresses in the case share a known common counterparty (from their stored analyses), draw an edge between them with label "shared counterparty"
-- Use the same `TransactionGraph` component with `investigationMode={false}` and `showCaseLinks={true}`
-- Node click opens that address's full analysis in a new tab
-- Empty state: "Add addresses to this case to see the network graph"
-
-This is the feature that shows investigators whether their case subjects are connected.
-
----
-
-### [DONE] Dashboard polish
-Three quick items:
-1. **Pagination** on the Recent Analyses table — currently capped at 10. Add "Load more" button or page numbers. Fetch next 10 from Supabase with `.range(offset, offset+9)`.
-2. **Status filter** on Cases list — dropdown filter: All / Open / Under Review / Escalated / SAR Filed / Closed. Filters the cases query client-side or adds a `.eq('status', filter)` to the Supabase query.
-3. **Critical Findings count** on dashboard — currently shows 0. Fix: count analyses where `risk_level = 'CRITICAL'` from the `analyses` table for this user.
-
-After all three active items: `npx tsc --noEmit` → `git add . && git commit -m "feat: overlap detection, case network graph, dashboard polish" && git push && vercel --prod`
+_Nothing active. See Planned for next priorities._
 
 ---
 
 ## 🔵 Planned
 
-### [DONE] Tron (TRX) chain support
-- `lib/tron.ts` — TronGrid API, hex→base58 address conversion, getTronTransactions(), detectTrxPatterns()
-- `data/ofac-trx-addresses.json` — known OFAC-designated TRX addresses
-- `/api/analyze` — TRX pipeline with 4-signal scoring (OFAC, rapid hops, counterparty, volume)
-- `app/page.tsx` — [ETH][BTC][TRX] toggle, TRX quick fills, validation, badge, INTEL nav link
-- `app/intel/page.tsx` — public intelligence feed (/intel), no auth required
-- **REQUIRED: Run this SQL in Supabase if /intel shows empty data:**
-  ```sql
-  create policy "Public can read aggregate intel" on analyses
-    for select using (true);
-  ```
+### ~~Email notifications — env vars required~~ [DONE]
+`RESEND_API_KEY` added to Vercel. Deployment auto-triggered. Emails fire on `escalated` / `sar_filed` status changes.
 
-### [DONE] API key system + monetization
-- `lib/apikeys.ts` — key generation + SHA-256 hashing
-- `app/api/apikeys/route.ts` — server-side POST handler (create action)
-- `app/dashboard/settings/page.tsx` — full Settings UI (list keys, generate, revoke, rate limits, curl example)
-- `app/api/analyze/route.ts` — Bearer token auth in step 0; `apiKeyUserId` fallback saves analyses to key owner's account
-- `app/api-docs/page.tsx` — AUTHENTICATION section with curl example and tier table
-- **REQUIRED: Run this SQL in Supabase dashboard before deploying:**
-  ```sql
-  create table if not exists api_keys (
-    id uuid primary key default gen_random_uuid(),
-    user_id uuid references auth.users(id) on delete cascade not null,
-    key_hash text not null unique,
-    label text not null,
-    tier text not null default 'free',
-    usage_count integer not null default 0,
-    last_used_at timestamptz,
-    is_active boolean not null default true,
-    created_at timestamptz not null default now()
-  );
-  alter table api_keys enable row level security;
-  create policy "Users manage own keys" on api_keys
-    for all using (auth.uid() = user_id);
-  ```
+### ~~API rate limiting — SQL migration required~~ [DONE]
+`daily_usage` and `daily_reset_date` columns added to `api_keys` in Supabase. Free tier now enforced at 10 req/day.
 
-### Remove unused dependencies [DONE]
-- Ran `npm uninstall jspdf html2canvas` — 22 packages removed, zero source imports existed
+### Webhook support for API users
+Pro-tier API keys should support a `webhook_url` field on the `api_keys` table. When set, POST the full analysis JSON to the webhook URL after each `/api/analyze` call (non-blocking, fire-and-forget). Useful for enterprise customers building automated pipelines.
 
-### Email notifications
-- When case status changes to `escalated` or `sar_filed`, send email to case owner
-- Use Supabase Edge Functions + Resend for email delivery
-- Template: branded HTML, same style as the auth confirmation email
-
-### Remove unused dependencies
-- `jspdf` and `html2canvas` are in package.json but unused (PDF export was replaced with .txt)
-- Run: `npm uninstall jspdf html2canvas`
+### Two-factor auth (2FA)
+Supabase supports TOTP-based 2FA. Add a "Security" subsection to `/dashboard/settings` with enable/disable 2FA flow. Compliance teams (the target user) will expect this before paying.
 
 ---
 
 ## ✅ Completed
 
-- [x] Investigation Mode formatting — header layout, legend, badge color, header bar, height
+### Bulk Address Screening (`/dashboard/bulk`)
+- New client component at `app/dashboard/bulk/page.tsx`
+- Paste addresses one per line (`address` or `address,CHAIN`); CSV/TXT file upload populates textarea
+- Default chain selector (ETH / BTC / TRX) applies to rows without explicit chain
+- Parsed preview: "N addresses detected — ETH: X · BTC: Y · TRX: Z"
+- Sequential processing with 300ms delay between calls; deduplication before scan
+- Live results table: queued → scanning (pulsing dot) → score + risk level when done
+- Progress bar with N/total + % counter
+- Summary row on completion: screened · high/critical (orange if >0) · clean
+- Export CSV: address, chain, risk_score, risk_level, top_signal, ofac_match, mixer_interaction
+- "Bulk Screen" nav link added to dashboard main nav
 
+### Visual QA sweep — 9 fixes (commit `0188edc`)
+- Mobile nav: breakpoint widened 640→768px. Below 768px, nav hides subtitle, API DOCS, INTEL, and status indicator. Only logo + auth button remain — single row at all widths.
+- Mobile results blank space: 3-column layout stacks to single column below 768px. TransactionGraph capped at 280px height on mobile, eliminating the dead black void.
+- Intel feed deduplication: `recentFlags` deduped by address in JS (Map keyed on address, keep latest `analyzed_at`).
+- API Docs copy: description updated to "Ethereum, Bitcoin, or Tron"; `chain` field added to request schema; BTC and TRX curl examples added.
+- API Docs nav: `← Back to Tool` link added.
+- Activity Timeline: dotted vertical grid lines at 25/50/75% width (`rgba(255,255,255,0.04)`, dasharray `3 4`) eliminate empty space.
+- Hero gap: feature grid bottom padding 48→16px, How It Works top padding 56→32px.
+- Intel stat cards: `borderRadius` 8→4 (design system compliance).
+- Intel nav: shows `DASHBOARD →` or `SIGN IN →` based on server-side session.
+
+### QA bug fixes (this session)
+- Dashboard "View →" link now includes `&chain=` param — BTC/TRX analyses no longer re-analyze as ETH.
+- Dashboard Addresses Analyzed stat now shows ETH / BTC / TRX counts (TRX was missing).
+- `aria-label` on address input is now dynamic per selected chain.
+- OG meta description updated to include Bitcoin and Tron.
+- Language scramble animation: chars changed to lowercase, staggered left-to-right resolution (char 0 resolves at 15%, last at 85%) — smooth morph instead of simultaneous uppercase glitch.
+
+### Feature sprint (this session)
+- INTEL nav link added to dashboard, cases list, and case detail page navs.
+- Dashboard pagination: server-side URL-based (`?page=N`), 10 rows per page with Prev/Next controls.
+- API rate limiting: free tier capped at 10 req/day in `/api/analyze` (requires SQL migration above).
+- Email notifications: `PATCH /api/cases/[id]` route handles status updates + fires branded HTML email via Resend on `escalated` / `sar_filed`.
+
+### Graph intelligence — overlap detection
+Connected node highlighting in Investigation Mode. Expanded counterparties that already exist in the graph render with a gold pulsing ring (`#ffd60a`), revealing "convergence" — two wallets sharing a counterparty. Gold `● OVERLAP` legend item appears automatically.
+
+### Case intelligence — network graph
+Case detail page shows all case addresses as a combined D3 force-directed graph. Nodes color-coded by risk level. Shared counterparty edges drawn between case subjects. Node click opens full analysis.
+
+### Dashboard polish
+- Pagination on Recent Analyses (Load More / page numbers)
+- Status filter dropdown on Cases list
+- Critical Findings count fixed (was always 0)
+
+### Tron (TRX) chain support
+- `lib/tron.ts`, `data/ofac-trx-addresses.json`
+- `/api/analyze` TRX pipeline (4-signal scoring)
+- ETH/BTC/TRX toggle on hero, TRX quick fills, `/intel` feed
+
+### API key system + monetization
+- `lib/apikeys.ts`, `/api/apikeys`, `/dashboard/settings`
+- Bearer token auth in `/api/analyze`
+- Free / Pro tier table in API docs
+
+### Email notifications infrastructure
+- `PATCH /api/cases/[id]/route.ts` — status update + Resend email trigger
+- Branded dark HTML template matching ClearChain design
+
+### Core platform
 - [x] Core analysis engine (Alchemy, OFAC, scoring, typology)
 - [x] Claude Haiku integration (narrative + SAR draft in one call)
 - [x] Transaction graph (D3 force-directed, 1/2 hop toggle)
-- [x] Investigation Mode (click-to-expand, breadcrumb trail, stats bar)
-- [x] Activity timeline (smart bucketing by week/month/quarter/year)
-- [x] Counterfactual simulator (toggle signals, real-time score update)
+- [x] Investigation Mode (click-to-expand, breadcrumb, stats bar, depth limit)
+- [x] Activity timeline (smart bucketing: week/month/quarter/year)
+- [x] Counterfactual simulator (toggle signals, real-time score)
 - [x] SAR draft export (.txt download)
 - [x] Supabase auth (signup, login, email confirmation, session)
-- [x] Dashboard (stats, recent analyses, active cases)
-- [x] Case management (create, add addresses, notes, status, report)
+- [x] Dashboard (stats, recent analyses, active cases, risk distribution)
+- [x] Case management (create, add addresses, notes, status, export)
 - [x] Save to Case from main tool (portal dropdown)
-- [x] Search history (localStorage, recent addresses as pills)
-- [x] Wallet label badges (Tornado Cash Router, Vitalik Buterin, etc.)
-- [x] Hero animations (staggered fadeUp, single-line headline)
-- [x] API docs page (/api-docs)
+- [x] Search history (localStorage, recent address pills)
+- [x] Wallet label badges (Tornado Cash, Lazarus Group, Binance, Vitalik…)
+- [x] Hero animations (staggered fadeUp, language scramble)
+- [x] API docs page (/api-docs) with auth section + tier table
 - [x] OG/Twitter social meta tags + og-image.png
-- [x] GitHub links in nav and footer
+- [x] ENS resolution (vitalik.eth → 0x…)
 - [x] Vitalik false positive fix (rapid movement contextual gate)
-- [x] ENS resolution (vitalik.eth → 0x...)
-- [x] Mobile layout (responsive collapse, horizontal scrolling tabs)
 - [x] Risk percentile ("Higher risk than X% of analyzed wallets")
 - [x] Comparable cases row (similar risk profiles)
-- [x] "Try the Simulator" quick-fill button
-- [x] "How it works" 3-step section on hero
+- [x] Fund Flow diagram (Sankey-style inbound sources)
+- [x] Remove unused deps (jspdf, html2canvas)
+- [x] Mobile layout — responsive collapse, horizontal scrolling tabs
