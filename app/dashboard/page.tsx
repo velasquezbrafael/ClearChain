@@ -89,6 +89,18 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const riskTotal = summary.length
 
   // ── Cases stats ──────────────────────────────────────────────────────────
+  const lastAnalysis = recentRaw && recentRaw.length > 0 ? recentRaw[0] : null
+  const lastAnalysisAgo = lastAnalysis
+    ? (() => {
+        const diff = Date.now() - new Date(lastAnalysis.analyzed_at).getTime()
+        const mins = Math.floor(diff / 60000)
+        if (mins < 60) return `${mins}m ago`
+        const hrs = Math.floor(mins / 60)
+        if (hrs < 24) return `${hrs}h ago`
+        return `${Math.floor(hrs / 24)}d ago`
+      })()
+    : null
+
   const activeCases = cases?.filter(c => c.status !== 'closed') ?? []
   const activeCaseCount = activeCases.length
   const oldestOpen = activeCases.length > 0
@@ -97,6 +109,10 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       )
     : null
   const oldestOpenDays = oldestOpen ? daysAgo(oldestOpen.created_at) : null
+
+  const hour = new Date().getHours()
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
+  const displayName = (user.email ?? '').split('@')[0]
 
   async function signOut() {
     'use server'
@@ -122,7 +138,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       {/* Nav */}
       <nav style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 56 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
-          <span style={{ fontSize: 15, letterSpacing: '0.15em', color: '#00ff88', fontFamily: 'var(--font-rubik-glitch)', fontWeight: 400 }}>CLEARCHAIN</span>
+          <a href="/" style={{ fontSize: 15, letterSpacing: '0.15em', color: '#f0f4ff', fontFamily: 'var(--font-rubik-glitch)', fontWeight: 400, textDecoration: 'none' }}>CLEARCHAIN</a>
           <a href="/" style={{ fontSize: 12, color: '#8892a4', textDecoration: 'none', letterSpacing: '0.08em' }}>← Back to Tool</a>
           <a href="/dashboard/cases" style={{ fontSize: 12, color: '#8892a4', textDecoration: 'none', letterSpacing: '0.08em' }}>Cases</a>
           <a href="/dashboard/settings" style={{ fontSize: 12, color: '#8892a4', textDecoration: 'none', letterSpacing: '0.08em' }}>Settings</a>
@@ -139,11 +155,93 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       </nav>
 
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '48px 32px' }}>
-        <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, letterSpacing: '0.2em', color: '#3d4a5c', marginBottom: 8, textTransform: 'uppercase' }}>Overview</div>
-        <h1 style={{ fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif', fontSize: 32, fontWeight: 700, color: '#f0f4ff', margin: '0 0 40px', letterSpacing: '-0.01em' }}>Dashboard</h1>
+
+        {/* Greeting + Quick Actions */}
+        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 40, flexWrap: 'wrap', gap: 20 }}>
+          <div>
+            <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, letterSpacing: '0.2em', color: '#3d4a5c', marginBottom: 8, textTransform: 'uppercase' }}>Overview</div>
+            <h1 style={{ fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif', fontSize: 32, fontWeight: 700, color: '#f0f4ff', margin: 0, letterSpacing: '-0.01em' }}>
+              {greeting},{' '}
+              <span style={{ color: '#00ff88' }}>{displayName}</span>
+              <span style={{ fontSize: 32 }}>.</span>
+            </h1>
+          </div>
+
+          {/* Quick Actions */}
+          <div style={{ display: 'flex', gap: 10, flexShrink: 0 }}>
+            <a
+              href="/"
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                padding: '10px 18px',
+                background: 'rgba(0,255,136,0.08)',
+                border: '1px solid rgba(0,255,136,0.25)',
+                borderRadius: 4,
+                color: '#00ff88',
+                fontSize: 11,
+                letterSpacing: '0.1em',
+                fontFamily: 'var(--font-jetbrains-mono)',
+                textDecoration: 'none',
+                transition: 'background 0.15s',
+              }}
+            >
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <circle cx="6" cy="6" r="5" stroke="#00ff88" strokeWidth="1.2"/>
+                <line x1="6" y1="3" x2="6" y2="9" stroke="#00ff88" strokeWidth="1.2" strokeLinecap="round"/>
+                <line x1="3" y1="6" x2="9" y2="6" stroke="#00ff88" strokeWidth="1.2" strokeLinecap="round"/>
+              </svg>
+              ANALYZE WALLET
+            </a>
+            <a
+              href="/dashboard/cases"
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                padding: '10px 18px',
+                background: '#080b14',
+                border: '1px solid rgba(255,255,255,0.08)',
+                borderRadius: 4,
+                color: '#8892a4',
+                fontSize: 11,
+                letterSpacing: '0.1em',
+                fontFamily: 'var(--font-jetbrains-mono)',
+                textDecoration: 'none',
+              }}
+            >
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <rect x="1.5" y="1.5" width="9" height="9" rx="1" stroke="#8892a4" strokeWidth="1.2"/>
+                <line x1="4" y1="4.5" x2="8" y2="4.5" stroke="#8892a4" strokeWidth="1.2" strokeLinecap="round"/>
+                <line x1="4" y1="6.5" x2="8" y2="6.5" stroke="#8892a4" strokeWidth="1.2" strokeLinecap="round"/>
+                <line x1="4" y1="8.5" x2="6" y2="8.5" stroke="#8892a4" strokeWidth="1.2" strokeLinecap="round"/>
+              </svg>
+              NEW CASE
+            </a>
+            <a
+              href="/intel"
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                padding: '10px 18px',
+                background: '#080b14',
+                border: '1px solid rgba(255,255,255,0.08)',
+                borderRadius: 4,
+                color: '#8892a4',
+                fontSize: 11,
+                letterSpacing: '0.1em',
+                fontFamily: 'var(--font-jetbrains-mono)',
+                textDecoration: 'none',
+              }}
+            >
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <circle cx="6" cy="6" r="4.5" stroke="#8892a4" strokeWidth="1.2"/>
+                <line x1="6" y1="4" x2="6" y2="6.5" stroke="#8892a4" strokeWidth="1.4" strokeLinecap="round"/>
+                <circle cx="6" cy="8" r="0.7" fill="#8892a4"/>
+              </svg>
+              INTEL FEED
+            </a>
+          </div>
+        </div>
 
         {/* Stats row */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 24 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
           {/* Card 1: Unique addresses */}
           <div style={{ background: '#080b14', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, padding: '24px 28px' }}>
             <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: '#8892a4', marginBottom: 14, textTransform: 'uppercase' }}>Addresses Analyzed</div>
@@ -176,6 +274,17 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
             <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 40, fontWeight: 700, color: highRiskCount > 0 ? '#ff8c00' : '#00ff88', lineHeight: 1, letterSpacing: '-0.02em', marginBottom: 10 }}>{highRiskCount}</div>
             <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#3d4a5c', letterSpacing: '0.08em' }}>
               HIGH + CRITICAL combined
+            </div>
+          </div>
+
+          {/* Card 4: Last Analysis */}
+          <div style={{ background: '#080b14', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, padding: '24px 28px' }}>
+            <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: '#8892a4', marginBottom: 14, textTransform: 'uppercase' }}>Last Analysis</div>
+            <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 40, fontWeight: 700, color: '#00ff88', lineHeight: 1, letterSpacing: '-0.02em', marginBottom: 10 }}>
+              {lastAnalysisAgo ?? '—'}
+            </div>
+            <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#3d4a5c', letterSpacing: '0.08em' }}>
+              {lastAnalysis ? `${lastAnalysis.address.slice(0, 8)}...` : '—'}
             </div>
           </div>
         </div>
