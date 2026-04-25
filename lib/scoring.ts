@@ -37,6 +37,7 @@ const KNOWN_MIXER_ADDRESSES = new Set([
   '0x03893a7c7463ae47d46bc7f091665f1893656003', // TC cSAI pool
   '0x2717c5e28cf931547b621a5dddb772ab6a35b701', // TC cDAI 100 pool
   '0xca0840578f57fe71599d29375e16783424023357', // TC cDAI 10 pool
+  '0xd882cfc20f52f2599d84b8e8d58c7fb62cfe344b', // Blender.io — OFAC SDN designated mixer
 ]);
 
 /**

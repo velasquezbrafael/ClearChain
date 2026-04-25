@@ -54,9 +54,16 @@ export async function getBitcoinTransactions(address: string): Promise<WalletTra
     next: { revalidate: 60 },
   });
   if (!res.ok) {
-    if (res.status === 400) throw new Error('Invalid Bitcoin address — not recognized by Blockstream API');
-    if (res.status === 429) throw new Error('Rate limited by Blockstream API; please try again in a few seconds');
-    throw new Error(`Blockstream.info tx fetch failed: ${res.status}`);
+    if (res.status === 400) {
+      const e = Object.assign(new Error('Bitcoin address not found or has no transaction history'), { statusCode: 400 });
+      throw e;
+    }
+    if (res.status === 429) {
+      const e = Object.assign(new Error('Blockstream rate limit reached. Please retry in a few seconds.'), { statusCode: 429 });
+      throw e;
+    }
+    const e = Object.assign(new Error(`Blockstream.info tx fetch failed: ${res.status}`), { statusCode: 422 });
+    throw e;
   }
   const txs: MempoolTx[] = await res.json();
 
@@ -180,8 +187,16 @@ export async function getBitcoinRawTxs(address: string): Promise<MempoolTx[]> {
     next: { revalidate: 60 },
   });
   if (!res.ok) {
-    if (res.status === 400) throw new Error('Invalid Bitcoin address — not recognized by Blockstream API');
-    throw new Error(`Blockstream.info raw tx fetch failed: ${res.status}`);
+    if (res.status === 400) {
+      const e = Object.assign(new Error('Bitcoin address not found or has no transaction history'), { statusCode: 400 });
+      throw e;
+    }
+    if (res.status === 429) {
+      const e = Object.assign(new Error('Blockstream rate limit reached. Please retry in a few seconds.'), { statusCode: 429 });
+      throw e;
+    }
+    const e = Object.assign(new Error(`Blockstream.info raw tx fetch failed: ${res.status}`), { statusCode: 422 });
+    throw e;
   }
   try {
     return await res.json();

@@ -385,9 +385,10 @@ export async function POST(request: NextRequest) {
     } catch (err) {
       console.error('[ClearChain/analyze] Bitcoin fetch failed:', err);
       const btcErrMsg = err instanceof Error ? err.message : 'Failed to fetch Bitcoin transaction history';
+      const btcStatus = (err instanceof Error && (err as Error & { statusCode?: number }).statusCode) || 422;
       return NextResponse.json(
         { success: false, error: btcErrMsg, code: 'BTC_FETCH_ERROR' },
-        { status: 422, headers: CORS_HEADERS }
+        { status: btcStatus, headers: CORS_HEADERS }
       );
     }
   }
@@ -538,9 +539,10 @@ export async function POST(request: NextRequest) {
     } catch (err) {
       console.error('[ClearChain/analyze] TRX fetch failed:', err);
       const trxErrMsg = err instanceof Error ? err.message : 'Failed to fetch Tron transaction history';
+      const trxStatus = (err instanceof Error && (err as Error & { statusCode?: number }).statusCode) || 422;
       return NextResponse.json(
         { success: false, error: trxErrMsg, code: 'TRX_FETCH_ERROR' },
-        { status: 422, headers: CORS_HEADERS }
+        { status: trxStatus, headers: CORS_HEADERS }
       );
     }
   }

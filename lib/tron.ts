@@ -104,13 +104,20 @@ export async function getTronTransactions(address: string): Promise<WalletTransa
   );
 
   if (!res.ok) {
-    if (res.status === 400 || res.status === 404) {
-      throw new Error('Invalid Tron address or account not found on TronGrid API');
+    if (res.status === 400) {
+      const e = Object.assign(new Error('Invalid Tron address format'), { statusCode: 400 });
+      throw e;
+    }
+    if (res.status === 404) {
+      const e = Object.assign(new Error('Tron address not found on-chain'), { statusCode: 404 });
+      throw e;
     }
     if (res.status === 429) {
-      throw new Error('Rate limited by TronGrid API; please try again in a few seconds');
+      const e = Object.assign(new Error('TronGrid rate limit reached. Please retry in a few seconds.'), { statusCode: 429 });
+      throw e;
     }
-    throw new Error(`TronGrid tx fetch failed: ${res.status}`);
+    const e = Object.assign(new Error(`TronGrid tx fetch failed: ${res.status}`), { statusCode: 422 });
+    throw e;
   }
 
   let json: TronApiResponse;
