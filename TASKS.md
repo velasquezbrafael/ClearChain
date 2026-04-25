@@ -28,6 +28,12 @@ Supabase supports TOTP-based 2FA. Add a "Security" subsection to `/dashboard/set
 
 ## ✅ Completed
 
+### PDF Case Reports
+- `components/CaseReportPDF.tsx` — @react-pdf/renderer Document component: dark-themed (bg #03040a, accent #00ff88), Cover + Case Summary + Addresses (signals table, typologies) + Notes + SAR Drafts sections, fixed footer with page N of M on every page
+- `app/api/cases/[id]/report/route.tsx` — GET handler: auth + case ownership check, fetches addresses joined with analyses + notes from Supabase, renders PDF via `renderToBuffer`, returns `application/pdf` with `Content-Disposition: attachment`
+- `app/dashboard/cases/[id]/page.tsx` — replaced `.txt` export with "Download Report" button (`window.open('/api/cases/[id]/report', '_blank')`), button added to header row next to status selector, old `handleGenerateReport` removed
+- Dependency: `@react-pdf/renderer@4.5.1`
+
 ### Watchlist + Alerts
 - `supabase/migrations/watchlist.sql` — run once in Supabase SQL Editor
 - `app/dashboard/watchlist/page.tsx` — list, add (address + chain + label), remove entries

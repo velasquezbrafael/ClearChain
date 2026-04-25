@@ -173,35 +173,8 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
     router.push('/dashboard/cases')
   }
 
-  function handleGenerateReport() {
-    if (!caseData) return
-    const lines: string[] = [
-      `CLEARCHAIN CASE REPORT`,
-      `${'='.repeat(60)}`,
-      `Case: ${caseData.title}`,
-      `Status: ${caseData.status.toUpperCase().replace('_', ' ')}`,
-      `Created: ${fmtDate(caseData.created_at)}`,
-      `Generated: ${fmtDate(new Date().toISOString())}`,
-      '',
-      `ADDRESSES (${addresses.length})`,
-      `${'-'.repeat(40)}`,
-    ]
-    for (const a of addresses) {
-      lines.push(`${a.address}  |  Chain: ${a.chain}  |  Score: ${a.risk_score}  |  Level: ${a.risk_level}`)
-    }
-    if (notes.length > 0) {
-      lines.push('', `NOTES (${notes.length})`, `${'-'.repeat(40)}`)
-      for (const n of notes) {
-        lines.push(`[${fmtTime(n.created_at)}] ${n.author_name ?? 'Analyst'}: ${n.content}`)
-      }
-    }
-    const blob = new Blob([lines.join('\n')], { type: 'text/plain' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `clearchain-case-${id.slice(0, 8)}.txt`
-    a.click()
-    URL.revokeObjectURL(url)
+  function handleDownloadReport() {
+    window.open(`/api/cases/${id}/report`, '_blank')
   }
 
   const inputStyle: React.CSSProperties = {
@@ -249,6 +222,12 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
             >
               {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s.toUpperCase().replace('_', ' ')}</option>)}
             </select>
+            <button
+              onClick={handleDownloadReport}
+              style={{ padding: '8px 16px', background: 'rgba(0,255,136,0.1)', border: '1px solid rgba(0,255,136,0.3)', borderRadius: 4, color: '#00ff88', fontSize: 11, cursor: 'pointer', letterSpacing: '0.1em', fontFamily: 'var(--font-jetbrains-mono)', whiteSpace: 'nowrap' }}
+            >
+              Download Report
+            </button>
             <button onClick={handleDelete} disabled={deleting} style={{ padding: '8px 14px', background: 'rgba(255,59,59,0.08)', border: '1px solid rgba(255,59,59,0.2)', borderRadius: 4, color: '#ff3b3b', fontSize: 11, cursor: 'pointer', letterSpacing: '0.08em' }}>
               Delete
             </button>
@@ -359,16 +338,6 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
           </form>
         </div>
 
-        {/* Generate Report */}
-        <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 32 }}>
-          <button
-            onClick={handleGenerateReport}
-            style={{ padding: '12px 28px', background: 'rgba(0,255,136,0.08)', border: '1px solid rgba(0,255,136,0.2)', borderRadius: 4, color: '#00ff88', fontSize: 12, letterSpacing: '0.12em', cursor: 'pointer', fontFamily: 'var(--font-jetbrains-mono)' }}
-          >
-            Generate Case Report →
-          </button>
-          <div style={{ marginTop: 8, fontSize: 12, color: '#3d4a5c' }}>Downloads a .txt file with all addresses, scores, and notes.</div>
-        </div>
       </div>
     </div>
   )
