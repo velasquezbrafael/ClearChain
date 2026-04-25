@@ -28,6 +28,17 @@ Supabase supports TOTP-based 2FA. Add a "Security" subsection to `/dashboard/set
 
 ## ✅ Completed
 
+### Watchlist + Alerts
+- `supabase/migrations/watchlist.sql` — run once in Supabase SQL Editor
+- `app/dashboard/watchlist/page.tsx` — list, add (address + chain + label), remove entries
+- `app/api/watchlist/route.ts` — GET / POST / DELETE (409 on duplicate)
+- `app/api/watchlist/check/route.ts` — daily cron handler: re-scores all watched addresses, emails owner on risk level change, new OFAC match, or new mixer interaction
+- `components/AddToWatchlistButton.tsx` — idle → loading → WATCHING / ALREADY WATCHING
+- `vercel.json` — cron schedule `0 9 * * *` for `/api/watchlist/check`
+- Dashboard nav + watchlist page nav: Watchlist link added
+- "Watch" button wired into ResultsAddressBar overflow menu (alongside Save to Case + Export)
+- Required env vars: `CRON_SECRET`, `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`
+
 ### Bulk Address Screening (`/dashboard/bulk`)
 - New client component at `app/dashboard/bulk/page.tsx`
 - Paste addresses one per line (`address` or `address,CHAIN`); CSV/TXT file upload populates textarea

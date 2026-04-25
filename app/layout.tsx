@@ -44,7 +44,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'ClearChain — Crypto AML Intelligence',
     description:
-      'Free OFAC screening, AML typology matching, transaction graph, and AI-generated SAR drafts for any Ethereum wallet.',
+      'Free OFAC screening, AML typology matching, transaction graph, and AI-generated SAR drafts for any Ethereum, Bitcoin, or Tron wallet.',
     url: 'https://clear-chain-peach.vercel.app',
     siteName: 'ClearChain',
     type: 'website',

@@ -14,6 +14,7 @@ import FundFlowDiagram from '@/components/FundFlowDiagram';
 import TransactionTimeline from '@/components/TransactionTimeline';
 import SkeletonLoader from '@/components/SkeletonLoader';
 import ExportButton from '@/components/ExportButton';
+import AddToWatchlistButton from '@/components/AddToWatchlistButton';
 import InfoTooltip from '@/components/InfoTooltip';
 import { getLabel } from '@/lib/labels';
 import { createClient } from '@/lib/supabase/client';
@@ -674,16 +675,16 @@ function HeroContent({
         <p
           style={{
             fontFamily: 'var(--font-inter)',
-            fontSize: 18,
+            fontSize: 17,
             color: 'var(--text-secondary)',
-            lineHeight: 1.6,
+            lineHeight: 1.55,
             margin: '0 0 48px',
-            maxWidth: 560,
+            maxWidth: 620,
             animation: 'fadeSlideUp 0.5s ease-out both',
             animationDelay: '0.25s',
           }}
         >
-          Real-time OFAC screening, AML typology detection, and SAR draft generation — across Ethereum, Bitcoin, and Tron. In seconds, not days.
+          Real-time OFAC screening, typology detection, and AI SAR drafts — across Ethereum, Bitcoin, and Tron. Seconds, not days.
         </p>
 
         {/* Search bar */}
@@ -1410,6 +1411,7 @@ function ResultsAddressBar({
   onSubmit,
   exportButton,
   saveButton,
+  watchlistButton,
 }: {
   address: string;
   analyzedAt: string;
@@ -1423,6 +1425,7 @@ function ResultsAddressBar({
   onSubmit: (e: React.FormEvent) => void;
   exportButton?: React.ReactNode;
   saveButton?: React.ReactNode;
+  watchlistButton?: React.ReactNode;
 }) {
   const [overflowOpen, setOverflowOpen] = React.useState(false);
   const [overflowPos, setOverflowPos] = React.useState({ top: 0, right: 0 });
@@ -1454,6 +1457,7 @@ function ResultsAddressBar({
       style={{ position: 'absolute', top: overflowPos.top, right: overflowPos.right, zIndex: 9999, background: '#0d1220', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 4, padding: '6px 0', minWidth: 160, boxShadow: '0 8px 24px rgba(0,0,0,0.4)', display: 'flex', flexDirection: 'column' }}
     >
       <div onClick={() => setOverflowOpen(false)} style={{ display: 'contents' }}>{saveButton}</div>
+      <div onClick={() => setOverflowOpen(false)} style={{ display: 'contents' }}>{watchlistButton}</div>
       <div onClick={() => setOverflowOpen(false)} style={{ display: 'contents' }}>{exportButton}</div>
     </div>,
     document.body
@@ -2182,6 +2186,7 @@ export default function HomePage() {
             onSubmit={handleAnalyze}
             exportButton={<ExportButton analysis={analysis} narrative={narrative} sarDraft={sarDraft} />}
             saveButton={<SaveToCaseButton address={analysis.address} />}
+            watchlistButton={<AddToWatchlistButton address={analysis.address} chain={analysis.chain} />}
           />
 
           {/* Row 2: 3-col layout */}
