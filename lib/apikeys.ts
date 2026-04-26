@@ -105,6 +105,88 @@ export async function validateApiKey(rawKey: string, supabase: SupabaseClient<an
 //   usage_count++, last_used_at = now) and returns { allowed: true }.
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Batch capacity helpers
+// ---------------------------------------------------------------------------
+
+export interface BatchCapacityAllowed {
+  allowed: true
+  limit: number
+  /** Remaining calls AFTER the batch is consumed. Infinity for team tier. */
+  remaining: number
+  resetAt: string
+  /** Window-reset timestamp tracked locally (may differ from keyRow if window rolled over) */
+  effectiveResetAt: string
+  /** Current usage count (pre-batch, after any window expiry) */
+  currentUsage: number
+}
+
+export interface BatchCapacityDenied {
+  allowed: false
+  limit: number
+  /** Remaining calls currently available (< n). Infinity for team tier. */
+  remaining: number
+  resetAt: string
+}
+
+export type BatchCapacityResult = BatchCapacityAllowed | BatchCapacityDenied
+
+/**
+ * checkBatchCapacity — pre-flight check for batch requests.
+ *
+ * Checks whether the key has at least `n` calls remaining in the current
+ * 24h window. Does NOT increment any counters — call incrementBatchUsage
+ * after processing completes.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function checkBatchCapacity(keyRow: ApiKeyRow, n: number, supabase: SupabaseClient<any>): BatchCapacityResult {
+  void supabase // not used here — kept for API symmetry / future use
+  const limit    = TIER_LIMITS[keyRow.tier] ?? TIER_LIMITS.free
+  const now      = Date.now()
+  const windowMs = 24 * 60 * 60 * 1000
+
+  const windowStart   = new Date(keyRow.daily_reset_at).getTime()
+  const windowExpired = (now - windowStart) > windowMs
+  const currentUsage  = windowExpired ? 0 : keyRow.daily_usage_count
+  const effectiveResetAt = windowExpired ? new Date().toISOString() : keyRow.daily_reset_at
+  const resetAt = new Date(new Date(effectiveResetAt).getTime() + windowMs).toISOString()
+
+  const remaining = limit === Infinity ? Infinity : limit - currentUsage
+
+  if (limit !== Infinity && currentUsage + n > limit) {
+    return { allowed: false, limit, remaining, resetAt }
+  }
+
+  return {
+    allowed:          true,
+    limit,
+    remaining:        limit === Infinity ? Infinity : remaining - n,
+    resetAt,
+    effectiveResetAt,
+    currentUsage,
+  }
+}
+
+/**
+ * incrementBatchUsage — fire-and-forget bulk counter update.
+ *
+ * Increments daily_usage_count by `n` in a single UPDATE. Call this after
+ * processing completes. Never awaited — errors are silently ignored.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function incrementBatchUsage(keyRow: ApiKeyRow, n: number, capacity: BatchCapacityAllowed, supabase: SupabaseClient<any>): void {
+  supabase
+    .from('api_keys')
+    .update({
+      daily_usage_count: capacity.currentUsage + n,
+      daily_reset_at:    capacity.effectiveResetAt,
+      usage_count:       keyRow.usage_count + n,
+      last_used_at:      new Date().toISOString(),
+    })
+    .eq('id', keyRow.id)
+    .then(() => {})
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function checkAndIncrementUsage(keyRow: ApiKeyRow, supabase: SupabaseClient<any>): Promise<UsageResult> {
   const limit     = TIER_LIMITS[keyRow.tier] ?? TIER_LIMITS.free

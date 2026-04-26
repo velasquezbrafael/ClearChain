@@ -3,7 +3,7 @@
  *
  * Server component. Client children: CodeTabs, CopyButton.
  * Sections: Hero / Quickstart / Authentication / Endpoint Reference /
- *           Risk Signals / Error Codes / Rate Limits / Footer CTA
+ *           Batch Screening / Risk Signals / Error Codes / Rate Limits / Footer CTA
  */
 
 import { createClient } from '@/lib/supabase/server'
@@ -434,6 +434,158 @@ export default async function DocsPage() {
             <p style={{ fontSize: 13, color: '#8892a4', lineHeight: 1.6, margin: 0 }}>
               For <code style={inlineCode}>chain: ETH</code>, the API automatically resolves ENS names (e.g. <code style={inlineCode}>vitalik.eth</code>) to their on-chain addresses. The resolved address is returned in <code style={inlineCode}>data.resolvedAddress</code>.
             </p>
+          </div>
+        </section>
+
+        <hr style={divider} />
+
+        {/* ── Batch Screening ─────────────────────────────────────────────────── */}
+        <section id="batch">
+          <div style={sectionLabel}>Batch Screening</div>
+          <h2 style={sectionH2}>POST /api/v1/batch</h2>
+          <p style={prose}>
+            Screen up to 100 addresses in a single request. Results are processed in parallel and returned sorted by risk score (highest first) — ideal for bulk compliance checks, watchlist ingestion, or portfolio screening.
+          </p>
+
+          {/* Rate limit callout */}
+          <div style={{ background: 'rgba(255,214,10,0.04)', border: '1px solid rgba(255,214,10,0.15)', borderRadius: 4, padding: '14px 18px', display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 28 }}>
+            <span style={{ color: '#ffd60a', flexShrink: 0, marginTop: 1 }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </span>
+            <p style={{ fontSize: 13, color: '#8892a4', lineHeight: 1.6, margin: 0 }}>
+              A batch of N addresses counts as <strong style={{ color: '#f0f4ff' }}>N calls</strong> against your daily quota. If you have fewer than N calls remaining, the entire request returns <code style={inlineCode}>429</code> with no partial consumption. Individual address failures (invalid format, upstream error) are reported inline — other addresses still process.
+            </p>
+          </div>
+
+          <CodeTabs tabs={[
+            {
+              label: 'CURL',
+              code: `curl -X POST ${BASE}/api/v1/batch \\
+  -H "Authorization: Bearer ck_live_your_key_here" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "addresses": [
+      { "address": "0xd882cfc20f52f2599d84b8e8d58c7fb62cfe344b", "chain": "ETH" },
+      { "address": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045", "chain": "ETH" },
+      { "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7Divf5n", "chain": "BTC" }
+    ]
+  }'`,
+            },
+            {
+              label: 'JAVASCRIPT',
+              code: `const res = await fetch('${BASE}/api/v1/batch', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer ck_live_your_key_here',
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    addresses: [
+      { address: '0xd882cfc20f52f2599d84b8e8d58c7fb62cfe344b', chain: 'ETH' },
+      { address: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045', chain: 'ETH' },
+      { address: '1A1zP1eP5QGefi2DMPTfTL5SLmv7Divf5n', chain: 'BTC' },
+    ],
+  }),
+})
+
+const data = await res.json()
+// Sorted by risk_score DESC — highest risk first
+const flagged = data.data.results.filter(r => r.risk_score !== null && r.risk_score >= 50)
+console.log(\`\${flagged.length} high-risk addresses found\`)`,
+            },
+            {
+              label: 'PYTHON',
+              code: `import requests
+
+resp = requests.post(
+    '${BASE}/api/v1/batch',
+    headers={
+        'Authorization': 'Bearer ck_live_your_key_here',
+        'Content-Type': 'application/json',
+    },
+    json={
+        'addresses': [
+            {'address': '0xd882cfc20f52f2599d84b8e8d58c7fb62cfe344b', 'chain': 'ETH'},
+            {'address': '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045', 'chain': 'ETH'},
+            {'address': '1A1zP1eP5QGefi2DMPTfTL5SLmv7Divf5n', 'chain': 'BTC'},
+        ]
+    }
+)
+
+data = resp.json()
+for r in data['data']['results']:
+    if r['error']:
+        print(f"{r['address']}: ERROR — {r['error']}")
+    else:
+        print(f"{r['address']}: {r['risk_level']} ({r['risk_score']})")`,
+            },
+          ]} />
+
+          {/* Response fields */}
+          <div style={{ ...MONO, fontSize: 10, letterSpacing: '0.15em', color: '#3d4a5c', textTransform: 'uppercase', margin: '28px 0 12px' }}>Response Fields</div>
+          <div style={{ border: '1px solid rgba(255,255,255,0.06)', borderRadius: 4, overflow: 'hidden' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ background: '#080b14' }}>
+                  <th style={thStyle}>Field</th>
+                  <th style={thStyle}>Type</th>
+                  <th style={thStyle}>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                {([
+                  { field: 'data.total',       type: 'number',       desc: 'Total addresses submitted.' },
+                  { field: 'data.processed',   type: 'number',       desc: 'Addresses that were successfully analyzed.' },
+                  { field: 'data.failed',      type: 'number',       desc: 'Addresses that failed (invalid format, upstream error).' },
+                  { field: 'data.results',     type: 'BatchResult[]', desc: 'Per-address results sorted by risk_score DESC. Failed addresses last.' },
+                  { field: 'data.summary',     type: 'object',       desc: 'Counts of { critical, high, medium, low, clean } across the batch.' },
+                  { field: 'meta.rate_limit',  type: 'object',       desc: '{ limit, remaining, reset_at } — reflects quota state after the batch.' },
+                ] as const).map((row, i, arr) => (
+                  <tr key={row.field}>
+                    <td style={{ ...tdStyle, borderBottom: i < arr.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
+                      <code style={{ ...inlineCode, background: 'transparent', border: 'none', padding: 0, fontSize: 12 }}>{row.field}</code>
+                    </td>
+                    <td style={{ ...tdStyle, color: '#3d4a5c', fontSize: 11, borderBottom: i < arr.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>{row.type}</td>
+                    <td style={{ ...tdMuted, borderBottom: i < arr.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>{row.desc}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Per-result fields */}
+          <div style={{ ...MONO, fontSize: 10, letterSpacing: '0.15em', color: '#3d4a5c', textTransform: 'uppercase', margin: '24px 0 12px' }}>Per-Address Result (BatchResult)</div>
+          <div style={{ border: '1px solid rgba(255,255,255,0.06)', borderRadius: 4, overflow: 'hidden' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ background: '#080b14' }}>
+                  <th style={thStyle}>Field</th>
+                  <th style={thStyle}>Type</th>
+                  <th style={thStyle}>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                {([
+                  { field: 'address',           type: 'string',         desc: 'The address as submitted.' },
+                  { field: 'chain',             type: 'ETH|BTC|TRX',   desc: 'Chain analyzed.' },
+                  { field: 'risk_score',        type: 'number|null',    desc: 'Aggregate score 0–100. null if analysis failed.' },
+                  { field: 'risk_level',        type: 'string|null',    desc: 'LOW / MEDIUM / HIGH / CRITICAL. null if analysis failed.' },
+                  { field: 'ofac_match',        type: 'boolean|null',   desc: 'OFAC SDN list match. null if analysis failed.' },
+                  { field: 'mixer_interaction', type: 'boolean|null',   desc: 'Mixer or CoinJoin interaction detected. null if analysis failed.' },
+                  { field: 'top_signal',        type: 'string|null',    desc: 'Name of the highest-scoring triggered risk signal. null if none.' },
+                  { field: 'typologies',        type: 'string[]|null',  desc: 'Triggered AML typology names. Empty array if none. null if failed.' },
+                  { field: 'error',             type: 'string|null',    desc: 'Error code if this address failed (e.g. INVALID_ADDRESS). null on success.' },
+                ] as const).map((row, i, arr) => (
+                  <tr key={row.field}>
+                    <td style={{ ...tdStyle, borderBottom: i < arr.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
+                      <code style={{ ...inlineCode, background: 'transparent', border: 'none', padding: 0, fontSize: 11 }}>{row.field}</code>
+                    </td>
+                    <td style={{ ...tdStyle, color: '#3d4a5c', fontSize: 11, borderBottom: i < arr.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>{row.type}</td>
+                    <td style={{ ...tdMuted, borderBottom: i < arr.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>{row.desc}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </section>
 

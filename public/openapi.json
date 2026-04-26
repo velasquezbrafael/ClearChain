@@ -174,6 +174,97 @@
             }
           }
         }
+      },
+      "BatchRequest": {
+        "type": "object",
+        "required": ["addresses"],
+        "properties": {
+          "addresses": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 100,
+            "description": "1–100 addresses to screen in a single request.",
+            "items": {
+              "type": "object",
+              "required": ["address"],
+              "properties": {
+                "address": {
+                  "type": "string",
+                  "description": "Wallet address or ENS name (ETH only).",
+                  "examples": ["0xd882cfc20f52f2599d84b8e8d58c7fb62cfe344b", "vitalik.eth", "1A1zP1eP5QGefi2DMPTfTL5SLmv7Divf5n"]
+                },
+                "chain": {
+                  "type": "string",
+                  "enum": ["ETH", "BTC", "TRX"],
+                  "default": "ETH",
+                  "description": "Chain to analyze. Defaults to ETH if omitted."
+                }
+              }
+            }
+          }
+        }
+      },
+      "BatchResult": {
+        "type": "object",
+        "required": ["address", "chain", "risk_score", "risk_level", "ofac_match", "mixer_interaction", "top_signal", "typologies", "error"],
+        "properties": {
+          "address":           { "type": "string", "description": "The address as submitted." },
+          "chain":             { "type": "string", "enum": ["ETH", "BTC", "TRX"] },
+          "risk_score":        { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "description": "Aggregate risk score. null if analysis failed." },
+          "risk_level":        { "type": ["string", "null"], "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL", null], "description": "Risk band. null if analysis failed." },
+          "ofac_match":        { "type": ["boolean", "null"], "description": "OFAC SDN match. null if analysis failed." },
+          "mixer_interaction": { "type": ["boolean", "null"], "description": "Mixer/CoinJoin interaction detected. null if analysis failed." },
+          "top_signal":        { "type": ["string", "null"], "description": "Name of the highest-scoring triggered signal. null if none or failed." },
+          "typologies":        { "type": ["array", "null"], "items": { "type": "string" }, "description": "Triggered AML typology names. null if analysis failed." },
+          "error":             { "type": ["string", "null"], "description": "Error code if analysis failed, otherwise null." }
+        }
+      },
+      "BatchResponse": {
+        "type": "object",
+        "required": ["success", "data", "meta"],
+        "properties": {
+          "success": { "type": "boolean", "const": true },
+          "data": {
+            "type": "object",
+            "required": ["total", "processed", "failed", "results", "summary"],
+            "properties": {
+              "total":     { "type": "integer", "description": "Total addresses submitted." },
+              "processed": { "type": "integer", "description": "Successfully analyzed addresses." },
+              "failed":    { "type": "integer", "description": "Addresses that failed analysis." },
+              "results":   {
+                "type": "array",
+                "items": { "$ref": "#/components/schemas/BatchResult" },
+                "description": "Per-address results, sorted by risk_score DESC. Failed addresses appear last."
+              },
+              "summary": {
+                "type": "object",
+                "required": ["critical", "high", "medium", "low", "clean"],
+                "properties": {
+                  "critical": { "type": "integer" },
+                  "high":     { "type": "integer" },
+                  "medium":   { "type": "integer" },
+                  "low":      { "type": "integer" },
+                  "clean":    { "type": "integer", "description": "Addresses with risk_score === 0." }
+                }
+              }
+            }
+          },
+          "meta": {
+            "type": "object",
+            "required": ["rate_limit"],
+            "properties": {
+              "rate_limit": {
+                "type": "object",
+                "required": ["limit", "remaining", "reset_at"],
+                "properties": {
+                  "limit":     { "type": ["integer", "null"], "description": "Tier daily limit. null = unlimited (team tier)." },
+                  "remaining": { "type": ["integer", "null"], "description": "Remaining calls after this batch. null = unlimited." },
+                  "reset_at":  { "type": "string", "format": "date-time", "description": "ISO timestamp when the current 24h window resets." }
+                }
+              }
+            }
+          }
+        }
       }
     }
   },
@@ -353,6 +444,163 @@
                   "success": false,
                   "error": { "code": "ANALYSIS_FAILED", "message": "Failed to fetch transaction history from Alchemy" }
                 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/batch": {
+      "post": {
+        "operationId": "batchScreenAddresses",
+        "summary": "Screen multiple wallet addresses",
+        "description": "Screens up to 100 wallet addresses in a single request. Analyses run in parallel (concurrency cap: 5). Results are sorted by risk_score DESC.\n\n**Rate limiting:** A batch of N addresses counts as N calls against your daily quota. If you have fewer than N calls remaining, the entire request is rejected with a 429 — no partial consumption.\n\n**Partial results:** If individual address analyses fail (invalid format, upstream error), the remaining addresses still process. Failed entries appear in results[] with error set and all score fields null.\n\n**Session auth:** Supported for dashboard usage (no API key required when signed in). Rate limit meta will have null values in session mode.",
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/BatchRequest" },
+              "examples": {
+                "mixed_batch": {
+                  "summary": "Mixed ETH + BTC batch",
+                  "value": {
+                    "addresses": [
+                      { "address": "0xd882cfc20f52f2599d84b8e8d58c7fb62cfe344b", "chain": "ETH" },
+                      { "address": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045", "chain": "ETH" },
+                      { "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7Divf5n", "chain": "BTC" }
+                    ]
+                  }
+                },
+                "eth_only": {
+                  "summary": "ETH-only batch (chain defaults to ETH)",
+                  "value": {
+                    "addresses": [
+                      { "address": "0xd882cfc20f52f2599d84b8e8d58c7fb62cfe344b" },
+                      { "address": "vitalik.eth" }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Batch processed. Check individual results[].error for per-address failures.",
+            "headers": {
+              "X-RateLimit-Limit":     { "schema": { "type": "string" }, "description": "Tier daily limit. '∞' for Team tier." },
+              "X-RateLimit-Remaining": { "schema": { "type": "string" }, "description": "Remaining calls after this batch. '∞' for Team tier." },
+              "X-RateLimit-Reset":     { "schema": { "type": "integer" }, "description": "Unix epoch timestamp when the window resets." }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/BatchResponse" },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "total": 3,
+                    "processed": 3,
+                    "failed": 0,
+                    "results": [
+                      {
+                        "address": "0xd882cfc20f52f2599d84b8e8d58c7fb62cfe344b",
+                        "chain": "ETH",
+                        "risk_score": 65,
+                        "risk_level": "HIGH",
+                        "ofac_match": false,
+                        "mixer_interaction": true,
+                        "top_signal": "mixer_interaction",
+                        "typologies": ["Mixer Usage"],
+                        "error": null
+                      },
+                      {
+                        "address": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+                        "chain": "ETH",
+                        "risk_score": 0,
+                        "risk_level": "LOW",
+                        "ofac_match": false,
+                        "mixer_interaction": false,
+                        "top_signal": null,
+                        "typologies": [],
+                        "error": null
+                      },
+                      {
+                        "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7Divf5n",
+                        "chain": "BTC",
+                        "risk_score": 0,
+                        "risk_level": "LOW",
+                        "ofac_match": false,
+                        "mixer_interaction": false,
+                        "top_signal": null,
+                        "typologies": [],
+                        "error": null
+                      }
+                    ],
+                    "summary": { "critical": 0, "high": 1, "medium": 0, "low": 0, "clean": 2 }
+                  },
+                  "meta": {
+                    "rate_limit": { "limit": 100, "remaining": 97, "reset_at": "2026-04-27T10:00:00.000Z" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request — batch too large, empty, or malformed entries.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "examples": {
+                  "BATCH_TOO_LARGE": {
+                    "summary": "Exceeds 100-address limit",
+                    "value": { "success": false, "error": { "code": "BATCH_TOO_LARGE", "message": "Batch size 150 exceeds the maximum of 100 addresses per request" } }
+                  },
+                  "BATCH_EMPTY": {
+                    "summary": "Empty addresses array",
+                    "value": { "success": false, "error": { "code": "BATCH_EMPTY", "message": "The \"addresses\" array must not be empty" } }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required or API key invalid/revoked.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded — not enough quota remaining for the full batch.",
+            "headers": {
+              "Retry-After":           { "schema": { "type": "integer" } },
+              "X-RateLimit-Limit":     { "schema": { "type": "string" } },
+              "X-RateLimit-Remaining": { "schema": { "type": "string" } },
+              "X-RateLimit-Reset":     { "schema": { "type": "integer" } }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": {
+                  "success": false,
+                  "error": {
+                    "code": "RATE_LIMIT_EXCEEDED",
+                    "message": "Rate limit exceeded. Only 8 calls remain, but this batch requires 20. Tier: free (100 req/24h). Resets at 2026-04-27T10:00:00.000Z.",
+                    "limit": 100,
+                    "remaining": 8,
+                    "reset_at": "2026-04-27T10:00:00.000Z"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error. Individual address failures are returned inline (HTTP 200 with error field set), not as 500.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
               }
             }
           }

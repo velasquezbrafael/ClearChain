@@ -28,6 +28,13 @@ Security section added to `/dashboard/settings`. MFA challenge page at `/auth/mf
 
 ## ✅ Completed
 
+### Batch Screening API — POST /api/v1/batch (v2.6)
+- `lib/types.ts` — `SupportedChain`, `BatchAddressInput`, `BatchRequest`, `BatchResult`, `BatchSummary`, `BatchRateLimitMeta`, `BatchResponseData`, `BatchResponse`
+- `lib/apikeys.ts` — `checkBatchCapacity()`: pre-flight check for N calls (no increment); `incrementBatchUsage()`: single UPDATE for N-call bulk increment after processing
+- `app/api/v1/batch/route.ts` — POST handler: auth (Bearer or session cookie), `BATCH_EMPTY`/`BATCH_TOO_LARGE` validation, pre-flight rate limit check for N calls, concurrency-capped analysis (5 workers), partial results on per-address failure, results sorted by risk_score DESC, single bulk usage increment, rate limit headers
+- `public/openapi.json` — `/api/v1/batch` path + `BatchRequest`/`BatchResult`/`BatchResponse` schemas
+- `app/docs/page.tsx` — Batch Screening section (rate limit callout, curl/JS/Python CodeTabs, response + per-result field tables)
+
 ### Webhook Support for API Users
 - `supabase/migrations/webhook.sql` — adds `webhook_url text` + `webhook_secret text` to `api_keys`
 - `lib/webhook.ts` — `fireWebhook(url, secret, payload)`: HMAC-SHA256 signing (`X-ClearChain-Signature: sha256=<sig>`), 5s AbortController timeout, silent error handling, fire-and-forget
