@@ -38,7 +38,7 @@ export default function SignupPage() {
     background: 'transparent',
     border: 'none',
     borderBottom: '1px solid rgba(255,255,255,0.12)',
-    color: '#f0f4ff',
+    color: '#ecfeff',
     fontSize: 14,
     padding: '8px 0',
     outline: 'none',
@@ -48,7 +48,7 @@ export default function SignupPage() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: '#03040a',
+      background: '#00080f',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -56,10 +56,10 @@ export default function SignupPage() {
     }}>
       <div style={{ width: '100%', maxWidth: 400, padding: '0 24px' }}>
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
-          <div style={{ fontSize: 13, letterSpacing: '0.2em', color: '#00ff88', fontFamily: 'var(--font-jetbrains-mono)', marginBottom: 8 }}>
+          <div style={{ fontSize: 13, letterSpacing: '0.2em', color: '#06b6d4', fontFamily: 'var(--font-jetbrains-mono)', marginBottom: 8 }}>
             CLEARCHAIN
           </div>
-          <div style={{ fontSize: 22, fontWeight: 600, color: '#f0f4ff' }}>
+          <div style={{ fontSize: 22, fontWeight: 600, color: '#ecfeff' }}>
             Create your account
           </div>
         </div>
@@ -67,20 +67,20 @@ export default function SignupPage() {
         {done ? (
           <div style={{
             padding: '24px',
-            background: 'rgba(0,255,136,0.06)',
-            border: '1px solid rgba(0,255,136,0.2)',
+            background: 'rgba(6,182,212,0.06)',
+            border: '1px solid rgba(6,182,212,0.2)',
             borderRadius: 4,
             textAlign: 'center',
           }}>
-            <div style={{ color: '#00ff88', fontSize: 14, fontWeight: 600, marginBottom: 8 }}>
+            <div style={{ color: '#06b6d4', fontSize: 14, fontWeight: 600, marginBottom: 8 }}>
               Check your email
             </div>
-            <div style={{ color: '#8892a4', fontSize: 13 }}>
-              We sent a confirmation link to <strong style={{ color: '#f0f4ff' }}>{email}</strong>.
+            <div style={{ color: '#7ec8d8', fontSize: 13 }}>
+              We sent a confirmation link to <strong style={{ color: '#ecfeff' }}>{email}</strong>.
               Click it to activate your account.
             </div>
             <div style={{ marginTop: 20 }}>
-              <a href="/auth/login" style={{ color: '#00ff88', fontSize: 13, textDecoration: 'none' }}>
+              <a href="/auth/login" style={{ color: '#06b6d4', fontSize: 13, textDecoration: 'none' }}>
                 ← Back to sign in
               </a>
             </div>
@@ -88,21 +88,21 @@ export default function SignupPage() {
         ) : (
           <form onSubmit={handleSignUp}>
             <div style={{ marginBottom: 24 }}>
-              <label style={{ display: 'block', fontSize: 11, letterSpacing: '0.12em', color: '#8892a4', marginBottom: 8 }}>
+              <label style={{ display: 'block', fontSize: 11, letterSpacing: '0.12em', color: '#7ec8d8', marginBottom: 8 }}>
                 NAME
               </label>
               <input type="text" value={name} onChange={e => setName(e.target.value)} required style={inputStyle} />
             </div>
 
             <div style={{ marginBottom: 24 }}>
-              <label style={{ display: 'block', fontSize: 11, letterSpacing: '0.12em', color: '#8892a4', marginBottom: 8 }}>
+              <label style={{ display: 'block', fontSize: 11, letterSpacing: '0.12em', color: '#7ec8d8', marginBottom: 8 }}>
                 EMAIL
               </label>
               <input type="email" value={email} onChange={e => setEmail(e.target.value)} required autoComplete="email" style={inputStyle} />
             </div>
 
             <div style={{ marginBottom: 32 }}>
-              <label style={{ display: 'block', fontSize: 11, letterSpacing: '0.12em', color: '#8892a4', marginBottom: 8 }}>
+              <label style={{ display: 'block', fontSize: 11, letterSpacing: '0.12em', color: '#7ec8d8', marginBottom: 8 }}>
                 PASSWORD
               </label>
               <input type="password" value={password} onChange={e => setPassword(e.target.value)} required autoComplete="new-password" style={inputStyle} />
@@ -128,10 +128,10 @@ export default function SignupPage() {
               style={{
                 width: '100%',
                 padding: '12px',
-                background: loading ? 'rgba(0,255,136,0.06)' : 'rgba(0,255,136,0.1)',
-                border: '1px solid rgba(0,255,136,0.3)',
+                background: loading ? 'rgba(6,182,212,0.06)' : 'rgba(6,182,212,0.1)',
+                border: '1px solid rgba(6,182,212,0.3)',
                 borderRadius: 4,
-                color: '#00ff88',
+                color: '#06b6d4',
                 fontSize: 12,
                 letterSpacing: '0.15em',
                 fontWeight: 600,
@@ -145,16 +145,16 @@ export default function SignupPage() {
         )}
 
         {!done && (
-          <div style={{ textAlign: 'center', marginTop: 24, fontSize: 13, color: '#8892a4' }}>
+          <div style={{ textAlign: 'center', marginTop: 24, fontSize: 13, color: '#7ec8d8' }}>
             Already have an account?{' '}
-            <a href="/auth/login" style={{ color: '#00ff88', textDecoration: 'none' }}>
+            <a href="/auth/login" style={{ color: '#06b6d4', textDecoration: 'none' }}>
               Sign in →
             </a>
           </div>
         )}
 
         <div style={{ textAlign: 'center', marginTop: 32 }}>
-          <a href="/" style={{ fontSize: 12, color: '#3d4a5c', textDecoration: 'none' }}>
+          <a href="/" style={{ fontSize: 12, color: '#1e4d5c', textDecoration: 'none' }}>
             ← Back to tool
           </a>
         </div>

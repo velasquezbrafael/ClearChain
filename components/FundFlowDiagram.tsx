@@ -100,7 +100,7 @@ export default function FundFlowDiagram({ transactions, queriedAddress, hopData 
       <div style={{
         padding: '40px 32px',
         textAlign: 'center',
-        color: '#3d4a5c',
+        color: '#1e4d5c',
         fontFamily: 'var(--font-jetbrains-mono)',
         fontSize: 11,
         letterSpacing: '0.05em',
@@ -288,29 +288,29 @@ export default function FundFlowDiagram({ transactions, queriedAddress, hopData 
     <div>
       {/* Header row: description + legend */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, gap: 16, flexWrap: 'wrap' }}>
-        <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: '#8892a4', letterSpacing: '0.05em' }}>
+        <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: '#7ec8d8', letterSpacing: '0.05em' }}>
           inbound ETH · top {sources.length} sources by volume · ribbon width = proportional flow
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0 }}>
           {hasMixer && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#ef4444', flexShrink: 0 }} />
-              <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 8, color: '#3d4a5c' }}>MIXER</span>
+              <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 8, color: '#1e4d5c' }}>MIXER</span>
             </div>
           )}
           {hasHighRisk && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#f97316', flexShrink: 0 }} />
-              <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 8, color: '#3d4a5c' }}>HIGH RISK</span>
+              <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 8, color: '#1e4d5c' }}>HIGH RISK</span>
             </div>
           )}
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#4b5563', flexShrink: 0 }} />
-            <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 8, color: '#3d4a5c' }}>UNKNOWN</span>
+            <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 8, color: '#1e4d5c' }}>UNKNOWN</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#00ff88', flexShrink: 0 }} />
-            <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 8, color: '#3d4a5c' }}>QUERIED</span>
+            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#06b6d4', flexShrink: 0 }} />
+            <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 8, color: '#1e4d5c' }}>QUERIED</span>
           </div>
         </div>
       </div>
@@ -322,13 +322,13 @@ export default function FundFlowDiagram({ transactions, queriedAddress, hopData 
         preserveAspectRatio="xMidYMid meet"
       >
         {/* Column labels */}
-        <text x={LEFT_X + NODE_W / 2} y={VPAD - 10} textAnchor="middle" fill="#3d4a5c" fontSize={7} fontFamily="JetBrains Mono, monospace" letterSpacing="2">
+        <text x={LEFT_X + NODE_W / 2} y={VPAD - 10} textAnchor="middle" fill="#1e4d5c" fontSize={7} fontFamily="JetBrains Mono, monospace" letterSpacing="2">
           {has3Col ? '2-HOP SOURCES' : 'SOURCES'}
         </text>
         {has3Col && (
-          <text x={MID_X + NODE_W / 2} y={VPAD - 10} textAnchor="middle" fill="#3d4a5c" fontSize={7} fontFamily="JetBrains Mono, monospace" letterSpacing="2">MIXERS</text>
+          <text x={MID_X + NODE_W / 2} y={VPAD - 10} textAnchor="middle" fill="#1e4d5c" fontSize={7} fontFamily="JetBrains Mono, monospace" letterSpacing="2">MIXERS</text>
         )}
-        <text x={RIGHT_X + NODE_W / 2} y={VPAD - 10} textAnchor="middle" fill="#3d4a5c" fontSize={7} fontFamily="JetBrains Mono, monospace" letterSpacing="2">DESTINATION</text>
+        <text x={RIGHT_X + NODE_W / 2} y={VPAD - 10} textAnchor="middle" fill="#1e4d5c" fontSize={7} fontFamily="JetBrains Mono, monospace" letterSpacing="2">DESTINATION</text>
 
         {/* Ribbons */}
         {ribbons.map((r, i) => {
@@ -405,18 +405,18 @@ export default function FundFlowDiagram({ transactions, queriedAddress, hopData 
           y={queriedY}
           width={NODE_W}
           height={queriedH}
-          fill="rgba(0,255,136,0.07)"
-          stroke="#00ff88"
+          fill="rgba(6,182,212,0.07)"
+          stroke="#06b6d4"
           strokeWidth={1.5}
           rx={2}
         />
-        <text x={RIGHT_X + NODE_W / 2} y={queriedY + queriedH / 2 - 12} textAnchor="middle" dominantBaseline="middle" fill="#00ff88" fontSize={8} fontFamily="JetBrains Mono, monospace">
+        <text x={RIGHT_X + NODE_W / 2} y={queriedY + queriedH / 2 - 12} textAnchor="middle" dominantBaseline="middle" fill="#06b6d4" fontSize={8} fontFamily="JetBrains Mono, monospace">
           {truncAddr(queriedAddress)}
         </text>
-        <text x={RIGHT_X + NODE_W / 2} y={queriedY + queriedH / 2 + 1} textAnchor="middle" dominantBaseline="middle" fill="rgba(0,255,136,0.5)" fontSize={7} fontFamily="JetBrains Mono, monospace" letterSpacing="1">
+        <text x={RIGHT_X + NODE_W / 2} y={queriedY + queriedH / 2 + 1} textAnchor="middle" dominantBaseline="middle" fill="rgba(6,182,212,0.5)" fontSize={7} fontFamily="JetBrains Mono, monospace" letterSpacing="1">
           QUERIED
         </text>
-        <text x={RIGHT_X + NODE_W / 2} y={queriedY + queriedH / 2 + 14} textAnchor="middle" dominantBaseline="middle" fill="rgba(0,255,136,0.35)" fontSize={7} fontFamily="JetBrains Mono, monospace">
+        <text x={RIGHT_X + NODE_W / 2} y={queriedY + queriedH / 2 + 14} textAnchor="middle" dominantBaseline="middle" fill="rgba(6,182,212,0.35)" fontSize={7} fontFamily="JetBrains Mono, monospace">
           {fmtEth(totalVol)} in
         </text>
       </svg>

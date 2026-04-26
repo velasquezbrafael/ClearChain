@@ -67,7 +67,7 @@ export default function SARDraftCard({ sarDraft, onDownload }: SARDraftCardProps
             height: 20,
             borderRadius: '50%',
             border: '1.5px solid rgba(255,255,255,0.08)',
-            borderTopColor: '#00ff88',
+            borderTopColor: '#06b6d4',
             animation: 'spin 0.9s linear infinite',
           }}
         />
@@ -96,13 +96,13 @@ export default function SARDraftCard({ sarDraft, onDownload }: SARDraftCardProps
             alignItems: 'center',
             gap: 6,
             padding: '7px 16px',
-            border: '1px solid rgba(255,255,255,0.06)',
+            border: '1px solid rgba(6,182,212,0.08)',
             borderRadius: 2,
             background: 'none',
             fontFamily: 'var(--font-jetbrains-mono)',
             fontSize: 10,
             letterSpacing: '0.1em',
-            color: copied ? '#00ff88' : 'var(--text-secondary)',
+            color: copied ? '#06b6d4' : 'var(--text-secondary)',
             cursor: 'pointer',
             transition: 'color 0.2s, border-color 0.2s',
           }}
@@ -118,13 +118,13 @@ export default function SARDraftCard({ sarDraft, onDownload }: SARDraftCardProps
             alignItems: 'center',
             gap: 6,
             padding: '7px 16px',
-            border: '1px solid rgba(0,255,136,0.25)',
+            border: '1px solid rgba(6,182,212,0.25)',
             borderRadius: 2,
-            background: 'rgba(0,255,136,0.06)',
+            background: 'rgba(6,182,212,0.06)',
             fontFamily: 'var(--font-jetbrains-mono)',
             fontSize: 10,
             letterSpacing: '0.1em',
-            color: '#00ff88',
+            color: '#06b6d4',
             cursor: 'pointer',
           }}
           aria-label="Download SAR draft"
@@ -137,9 +137,9 @@ export default function SARDraftCard({ sarDraft, onDownload }: SARDraftCardProps
       <div
         style={{
           display: 'flex',
-          border: '1px solid rgba(255,255,255,0.04)',
+          border: '1px solid rgba(6,182,212,0.05)',
           borderRadius: 4,
-          background: '#03040a',
+          background: '#00080f',
           overflow: 'auto',
           maxHeight: 480,
           fontFamily: 'var(--font-jetbrains-mono)',
@@ -154,7 +154,7 @@ export default function SARDraftCard({ sarDraft, onDownload }: SARDraftCardProps
             padding: '20px 16px 20px 20px',
             color: 'var(--text-dim)',
             userSelect: 'none',
-            borderRight: '1px solid rgba(255,255,255,0.04)',
+            borderRight: '1px solid rgba(6,182,212,0.05)',
             minWidth: 52,
             flexShrink: 0,
           }}

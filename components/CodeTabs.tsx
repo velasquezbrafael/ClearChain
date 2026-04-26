@@ -19,12 +19,12 @@ export default function CodeTabs({ tabs }: { tabs: CodeTab[] }) {
   }
 
   return (
-    <div style={{ border: '1px solid rgba(255,255,255,0.06)', borderRadius: 4, overflow: 'hidden' }}>
+    <div style={{ border: '1px solid rgba(6,182,212,0.08)', borderRadius: 4, overflow: 'hidden' }}>
       {/* Tab bar */}
       <div style={{
         display: 'flex',
-        background: '#080b14',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
+        background: '#001824',
+        borderBottom: '1px solid rgba(6,182,212,0.08)',
       }}>
         {tabs.map((tab, i) => (
           <button
@@ -34,9 +34,9 @@ export default function CodeTabs({ tabs }: { tabs: CodeTab[] }) {
               padding: '10px 18px',
               background: 'none',
               border: 'none',
-              borderBottom: active === i ? '2px solid #00ff88' : '2px solid transparent',
+              borderBottom: active === i ? '2px solid #06b6d4' : '2px solid transparent',
               marginBottom: -1,
-              color: active === i ? '#f0f4ff' : '#3d4a5c',
+              color: active === i ? '#ecfeff' : '#1e4d5c',
               fontSize: 11,
               letterSpacing: '0.1em',
               cursor: 'pointer',
@@ -53,10 +53,10 @@ export default function CodeTabs({ tabs }: { tabs: CodeTab[] }) {
             onClick={handleCopy}
             style={{
               padding: '4px 10px',
-              background: 'rgba(255,255,255,0.04)',
+              background: 'rgba(6,182,212,0.05)',
               border: '1px solid rgba(255,255,255,0.08)',
               borderRadius: 3,
-              color: copied ? '#00ff88' : '#3d4a5c',
+              color: copied ? '#06b6d4' : '#1e4d5c',
               fontSize: 9,
               letterSpacing: '0.12em',
               cursor: 'pointer',
@@ -73,10 +73,10 @@ export default function CodeTabs({ tabs }: { tabs: CodeTab[] }) {
       <pre style={{
         margin: 0,
         padding: '20px 24px',
-        background: '#080b14',
+        background: '#001824',
         fontFamily: 'var(--font-jetbrains-mono)',
         fontSize: 13,
-        color: '#f0f4ff',
+        color: '#ecfeff',
         lineHeight: 1.7,
         overflowX: 'auto',
       }}>

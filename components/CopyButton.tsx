@@ -17,10 +17,10 @@ export default function CopyButton({ text, style }: { text: string; style?: Reac
       onClick={handleCopy}
       style={{
         padding: '4px 10px',
-        background: 'rgba(255,255,255,0.04)',
+        background: 'rgba(6,182,212,0.05)',
         border: '1px solid rgba(255,255,255,0.08)',
         borderRadius: 3,
-        color: copied ? '#00ff88' : '#3d4a5c',
+        color: copied ? '#06b6d4' : '#1e4d5c',
         fontSize: 9,
         letterSpacing: '0.12em',
         cursor: 'pointer',

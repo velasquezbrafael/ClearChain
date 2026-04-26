@@ -104,7 +104,7 @@ const sectionLabel: React.CSSProperties = {
   ...MONO,
   fontSize: 10,
   letterSpacing: '0.2em',
-  color: '#3d4a5c',
+  color: '#1e4d5c',
   textTransform: 'uppercase',
   marginBottom: 24,
 }
@@ -113,65 +113,65 @@ const sectionH2: React.CSSProperties = {
   fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif',
   fontSize: 22,
   fontWeight: 700,
-  color: '#f0f4ff',
+  color: '#ecfeff',
   margin: '0 0 8px',
   letterSpacing: '-0.01em',
 }
 
 const prose: React.CSSProperties = {
   fontSize: 14,
-  color: '#8892a4',
+  color: '#7ec8d8',
   lineHeight: 1.7,
   margin: '0 0 20px',
 }
 
 const card: React.CSSProperties = {
-  background: '#080b14',
-  border: '1px solid rgba(255,255,255,0.06)',
+  background: '#001824',
+  border: '1px solid rgba(6,182,212,0.08)',
   borderRadius: 4,
   padding: '24px 28px',
 }
 
 const divider: React.CSSProperties = {
   border: 'none',
-  borderTop: '1px solid rgba(255,255,255,0.06)',
+  borderTop: '1px solid rgba(6,182,212,0.08)',
   margin: '64px 0',
 }
 
 const inlineCode: React.CSSProperties = {
   ...MONO,
   fontSize: 12,
-  background: 'rgba(255,255,255,0.06)',
+  background: 'rgba(6,182,212,0.08)',
   border: '1px solid rgba(255,255,255,0.08)',
   borderRadius: 3,
   padding: '2px 6px',
-  color: '#00ff88',
+  color: '#06b6d4',
 }
 
 const thStyle: React.CSSProperties = {
   ...MONO,
   fontSize: 10,
   letterSpacing: '0.12em',
-  color: '#3d4a5c',
+  color: '#1e4d5c',
   textTransform: 'uppercase',
   padding: '10px 16px',
   textAlign: 'left',
-  borderBottom: '1px solid rgba(255,255,255,0.06)',
+  borderBottom: '1px solid rgba(6,182,212,0.08)',
   fontWeight: 400,
 }
 
 const tdStyle: React.CSSProperties = {
   ...MONO,
   fontSize: 12,
-  color: '#f0f4ff',
+  color: '#ecfeff',
   padding: '12px 16px',
-  borderBottom: '1px solid rgba(255,255,255,0.04)',
+  borderBottom: '1px solid rgba(6,182,212,0.05)',
   verticalAlign: 'top',
 }
 
 const tdMuted: React.CSSProperties = {
   ...tdStyle,
-  color: '#8892a4',
+  color: '#7ec8d8',
   fontFamily: 'var(--font-inter), system-ui, sans-serif',
 }
 
@@ -190,20 +190,20 @@ export default async function DocsPage() {
   ]
 
   return (
-    <div style={{ minHeight: '100vh', background: '#03040a', color: '#f0f4ff', fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: '#00080f', color: '#ecfeff', fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif' }}>
 
       {/* ── Nav ─────────────────────────────────────────────────────────────── */}
-      <nav style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 56, position: 'sticky', top: 0, background: '#03040a', zIndex: 10 }}>
+      <nav style={{ borderBottom: '1px solid rgba(6,182,212,0.08)', padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 56, position: 'sticky', top: 0, background: '#00080f', zIndex: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
-          <a href="/" style={{ fontSize: 15, letterSpacing: '0.15em', color: '#f0f4ff', fontFamily: 'var(--font-rubik-glitch)', fontWeight: 400, textDecoration: 'none' }}>CLEARCHAIN</a>
-          <a href="/" style={{ fontSize: 12, color: '#8892a4', textDecoration: 'none', letterSpacing: '0.08em' }}>← Back to Tool</a>
-          <span style={{ fontSize: 12, color: '#00ff88', letterSpacing: '0.08em' }}>Docs</span>
-          <a href="/intel" style={{ fontSize: 12, color: '#8892a4', textDecoration: 'none', letterSpacing: '0.08em' }}>Intel</a>
+          <a href="/" style={{ fontSize: 15, letterSpacing: '0.15em', color: '#ecfeff', fontFamily: 'var(--font-rubik-glitch)', fontWeight: 400, textDecoration: 'none' }}>CLEARCHAIN</a>
+          <a href="/" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>← Back to Tool</a>
+          <span style={{ fontSize: 12, color: '#06b6d4', letterSpacing: '0.08em' }}>Docs</span>
+          <a href="/intel" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>Intel</a>
         </div>
         {user ? (
-          <a href="/dashboard" style={{ ...MONO, fontSize: 10, letterSpacing: '0.1em', color: '#00ff88', textDecoration: 'none' }}>DASHBOARD →</a>
+          <a href="/dashboard" style={{ ...MONO, fontSize: 10, letterSpacing: '0.1em', color: '#06b6d4', textDecoration: 'none' }}>DASHBOARD →</a>
         ) : (
-          <a href="/auth/login" style={{ ...MONO, fontSize: 10, letterSpacing: '0.1em', color: '#8892a4', textDecoration: 'none' }}>SIGN IN →</a>
+          <a href="/auth/login" style={{ ...MONO, fontSize: 10, letterSpacing: '0.1em', color: '#7ec8d8', textDecoration: 'none' }}>SIGN IN →</a>
         )}
       </nav>
 
@@ -211,19 +211,19 @@ export default async function DocsPage() {
 
         {/* ── Hero ────────────────────────────────────────────────────────────── */}
         <section style={{ marginBottom: 80 }}>
-          <div style={{ ...MONO, fontSize: 10, letterSpacing: '0.2em', color: '#00ff88', marginBottom: 16, textTransform: 'uppercase' }}>
+          <div style={{ ...MONO, fontSize: 10, letterSpacing: '0.2em', color: '#06b6d4', marginBottom: 16, textTransform: 'uppercase' }}>
             Developer API · v1
           </div>
-          <h1 style={{ fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif', fontSize: 48, fontWeight: 700, color: '#f0f4ff', margin: '0 0 20px', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+          <h1 style={{ fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif', fontSize: 48, fontWeight: 700, color: '#ecfeff', margin: '0 0 20px', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
             Build AML compliance<br />into your product
           </h1>
-          <p style={{ fontSize: 17, color: '#8892a4', lineHeight: 1.7, maxWidth: 620, margin: '0 0 32px' }}>
+          <p style={{ fontSize: 17, color: '#7ec8d8', lineHeight: 1.7, maxWidth: 620, margin: '0 0 32px' }}>
             The ClearChain API gives you programmatic access to blockchain risk scoring, OFAC sanctions screening, and SAR-ready intelligence — for ETH, BTC, and TRX.
           </p>
           <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', marginBottom: 40 }}>
             <a
               href="/dashboard/settings"
-              style={{ ...MONO, fontSize: 11, letterSpacing: '0.1em', color: '#03040a', background: '#00ff88', padding: '10px 20px', borderRadius: 3, textDecoration: 'none', fontWeight: 700 }}
+              style={{ ...MONO, fontSize: 11, letterSpacing: '0.1em', color: '#00080f', background: '#06b6d4', padding: '10px 20px', borderRadius: 3, textDecoration: 'none', fontWeight: 700 }}
             >
               GET API KEY →
             </a>
@@ -231,7 +231,7 @@ export default async function DocsPage() {
               href="/openapi.json"
               target="_blank"
               rel="noopener"
-              style={{ ...MONO, fontSize: 11, letterSpacing: '0.1em', color: '#8892a4', background: 'transparent', border: '1px solid rgba(255,255,255,0.12)', padding: '10px 20px', borderRadius: 3, textDecoration: 'none' }}
+              style={{ ...MONO, fontSize: 11, letterSpacing: '0.1em', color: '#7ec8d8', background: 'transparent', border: '1px solid rgba(255,255,255,0.12)', padding: '10px 20px', borderRadius: 3, textDecoration: 'none' }}
             >
               OPENAPI SPEC
             </a>
@@ -241,7 +241,7 @@ export default async function DocsPage() {
             {['3 chains', '6 risk signals', '5-min cache', 'Bearer auth', 'Webhook support'].map(s => (
               <span
                 key={s}
-                style={{ ...MONO, fontSize: 10, letterSpacing: '0.1em', color: '#3d4a5c', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 3, padding: '4px 10px', textTransform: 'uppercase' }}
+                style={{ ...MONO, fontSize: 10, letterSpacing: '0.1em', color: '#1e4d5c', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 3, padding: '4px 10px', textTransform: 'uppercase' }}
               >
                 {s}
               </span>
@@ -263,13 +263,13 @@ export default async function DocsPage() {
 
             {/* Step 1 */}
             <div style={card}>
-              <div style={{ ...MONO, fontSize: 10, letterSpacing: '0.15em', color: '#00ff88', marginBottom: 12, textTransform: 'uppercase' }}>01 / Get Your Key</div>
-              <p style={{ fontSize: 13, color: '#8892a4', lineHeight: 1.7, margin: '0 0 16px' }}>
+              <div style={{ ...MONO, fontSize: 10, letterSpacing: '0.15em', color: '#06b6d4', marginBottom: 12, textTransform: 'uppercase' }}>01 / Get Your Key</div>
+              <p style={{ fontSize: 13, color: '#7ec8d8', lineHeight: 1.7, margin: '0 0 16px' }}>
                 Sign in and generate an API key from the dashboard. Keys start with <code style={inlineCode}>ck_live_</code>.
               </p>
               <a
                 href="/dashboard/settings"
-                style={{ ...MONO, fontSize: 10, letterSpacing: '0.1em', color: '#00ff88', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                style={{ ...MONO, fontSize: 10, letterSpacing: '0.1em', color: '#06b6d4', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}
               >
                 Open Dashboard →
               </a>
@@ -277,21 +277,21 @@ export default async function DocsPage() {
 
             {/* Step 2 — CodeTabs (wider col) */}
             <div>
-              <div style={{ ...MONO, fontSize: 10, letterSpacing: '0.15em', color: '#3d4a5c', marginBottom: 12, textTransform: 'uppercase' }}>02 / Make Your First Call</div>
+              <div style={{ ...MONO, fontSize: 10, letterSpacing: '0.15em', color: '#1e4d5c', marginBottom: 12, textTransform: 'uppercase' }}>02 / Make Your First Call</div>
               <CodeTabs tabs={quickstartTabs} />
             </div>
 
             {/* Step 3 — collapsible response */}
             <div style={card}>
-              <div style={{ ...MONO, fontSize: 10, letterSpacing: '0.15em', color: '#3d4a5c', marginBottom: 12, textTransform: 'uppercase' }}>03 / Parse the Response</div>
-              <p style={{ fontSize: 12, color: '#8892a4', lineHeight: 1.6, margin: '0 0 14px' }}>
+              <div style={{ ...MONO, fontSize: 10, letterSpacing: '0.15em', color: '#1e4d5c', marginBottom: 12, textTransform: 'uppercase' }}>03 / Parse the Response</div>
+              <p style={{ fontSize: 12, color: '#7ec8d8', lineHeight: 1.6, margin: '0 0 14px' }}>
                 A <code style={inlineCode}>200</code> returns <code style={inlineCode}>success: true</code> with the full analysis under <code style={inlineCode}>data</code>.
               </p>
               <details style={{ cursor: 'pointer' }}>
-                <summary style={{ ...MONO, fontSize: 10, letterSpacing: '0.1em', color: '#3d4a5c', textTransform: 'uppercase', userSelect: 'none', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ color: '#00ff88' }}>▸</span> Example Response
+                <summary style={{ ...MONO, fontSize: 10, letterSpacing: '0.1em', color: '#1e4d5c', textTransform: 'uppercase', userSelect: 'none', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ color: '#06b6d4' }}>▸</span> Example Response
                 </summary>
-                <pre style={{ margin: '12px 0 0', padding: '14px', background: '#03040a', borderRadius: 3, border: '1px solid rgba(255,255,255,0.06)', fontSize: 10, color: '#8892a4', lineHeight: 1.6, overflowX: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+                <pre style={{ margin: '12px 0 0', padding: '14px', background: '#00080f', borderRadius: 3, border: '1px solid rgba(6,182,212,0.08)', fontSize: 10, color: '#7ec8d8', lineHeight: 1.6, overflowX: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
                   {RESPONSE_JSON}
                 </pre>
               </details>
@@ -311,26 +311,26 @@ export default async function DocsPage() {
 
           <div style={{ ...card, marginBottom: 24 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-              <span style={{ ...MONO, fontSize: 10, letterSpacing: '0.15em', color: '#3d4a5c', textTransform: 'uppercase' }}>Header</span>
+              <span style={{ ...MONO, fontSize: 10, letterSpacing: '0.15em', color: '#1e4d5c', textTransform: 'uppercase' }}>Header</span>
               <CopyButton text="Authorization: Bearer ck_live_your_key_here" />
             </div>
-            <pre style={{ margin: 0, ...MONO, fontSize: 13, color: '#f0f4ff', lineHeight: 1.6 }}>
-              <span style={{ color: '#3d4a5c' }}>Authorization: </span>
-              <span style={{ color: '#00ff88' }}>Bearer</span>
+            <pre style={{ margin: 0, ...MONO, fontSize: 13, color: '#ecfeff', lineHeight: 1.6 }}>
+              <span style={{ color: '#1e4d5c' }}>Authorization: </span>
+              <span style={{ color: '#06b6d4' }}>Bearer</span>
               {' ck_live_your_key_here'}
             </pre>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-            <div style={{ ...card, borderLeft: '2px solid #00ff88' }}>
-              <div style={{ ...MONO, fontSize: 10, letterSpacing: '0.12em', color: '#00ff88', marginBottom: 8, textTransform: 'uppercase' }}>Key Format</div>
-              <p style={{ fontSize: 13, color: '#8892a4', lineHeight: 1.6, margin: 0 }}>
+            <div style={{ ...card, borderLeft: '2px solid #06b6d4' }}>
+              <div style={{ ...MONO, fontSize: 10, letterSpacing: '0.12em', color: '#06b6d4', marginBottom: 8, textTransform: 'uppercase' }}>Key Format</div>
+              <p style={{ fontSize: 13, color: '#7ec8d8', lineHeight: 1.6, margin: 0 }}>
                 Keys follow the format <code style={inlineCode}>ck_live_{'<'}32 hex chars{'>'}</code>. Keys are hashed on our end — the raw value is never stored.
               </p>
             </div>
             <div style={{ ...card, borderLeft: '2px solid rgba(255,255,255,0.12)' }}>
-              <div style={{ ...MONO, fontSize: 10, letterSpacing: '0.12em', color: '#3d4a5c', marginBottom: 8, textTransform: 'uppercase' }}>Session Fallback</div>
-              <p style={{ fontSize: 13, color: '#8892a4', lineHeight: 1.6, margin: 0 }}>
+              <div style={{ ...MONO, fontSize: 10, letterSpacing: '0.12em', color: '#1e4d5c', marginBottom: 8, textTransform: 'uppercase' }}>Session Fallback</div>
+              <p style={{ fontSize: 13, color: '#7ec8d8', lineHeight: 1.6, margin: 0 }}>
                 If no <code style={inlineCode}>Authorization</code> header is present, the API checks for a valid session cookie — used by the ClearChain dashboard internally.
               </p>
             </div>
@@ -348,11 +348,11 @@ export default async function DocsPage() {
           </p>
 
           {/* Request body */}
-          <div style={{ ...MONO, fontSize: 10, letterSpacing: '0.15em', color: '#3d4a5c', textTransform: 'uppercase', marginBottom: 12 }}>Request Body</div>
-          <div style={{ border: '1px solid rgba(255,255,255,0.06)', borderRadius: 4, overflow: 'hidden', marginBottom: 32 }}>
+          <div style={{ ...MONO, fontSize: 10, letterSpacing: '0.15em', color: '#1e4d5c', textTransform: 'uppercase', marginBottom: 12 }}>Request Body</div>
+          <div style={{ border: '1px solid rgba(6,182,212,0.08)', borderRadius: 4, overflow: 'hidden', marginBottom: 32 }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
-                <tr style={{ background: '#080b14' }}>
+                <tr style={{ background: '#001824' }}>
                   <th style={thStyle}>Field</th>
                   <th style={thStyle}>Type</th>
                   <th style={thStyle}>Required</th>
@@ -362,14 +362,14 @@ export default async function DocsPage() {
               <tbody>
                 <tr>
                   <td style={tdStyle}><code style={{ ...inlineCode, background: 'transparent', border: 'none', padding: 0 }}>address</code></td>
-                  <td style={{ ...tdStyle, color: '#8892a4' }}>string</td>
-                  <td style={{ ...tdStyle, color: '#00ff88' }}>Yes</td>
+                  <td style={{ ...tdStyle, color: '#7ec8d8' }}>string</td>
+                  <td style={{ ...tdStyle, color: '#06b6d4' }}>Yes</td>
                   <td style={tdMuted}>Wallet address. ETH supports ENS names (resolved on-chain). BTC must be a valid mainnet address. TRX must be a valid Tron address.</td>
                 </tr>
                 <tr>
                   <td style={{ ...tdStyle, borderBottom: 'none' }}><code style={{ ...inlineCode, background: 'transparent', border: 'none', padding: 0 }}>chain</code></td>
-                  <td style={{ ...tdStyle, color: '#8892a4', borderBottom: 'none' }}>string</td>
-                  <td style={{ ...tdStyle, color: '#00ff88', borderBottom: 'none' }}>Yes</td>
+                  <td style={{ ...tdStyle, color: '#7ec8d8', borderBottom: 'none' }}>string</td>
+                  <td style={{ ...tdStyle, color: '#06b6d4', borderBottom: 'none' }}>Yes</td>
                   <td style={{ ...tdMuted, borderBottom: 'none' }}>
                     One of <code style={inlineCode}>ETH</code>, <code style={inlineCode}>BTC</code>, <code style={inlineCode}>TRX</code>. Any other value returns a <code style={inlineCode}>400 UNSUPPORTED_CHAIN</code> error.
                   </td>
@@ -379,13 +379,13 @@ export default async function DocsPage() {
           </div>
 
           {/* Response schema — collapsible tree */}
-          <div style={{ ...MONO, fontSize: 10, letterSpacing: '0.15em', color: '#3d4a5c', textTransform: 'uppercase', marginBottom: 12 }}>Response Schema</div>
-          <div style={{ border: '1px solid rgba(255,255,255,0.06)', borderRadius: 4, overflow: 'hidden', marginBottom: 16 }}>
-            <div style={{ background: '#080b14', padding: '14px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <code style={{ ...inlineCode, color: '#00ff88' }}>200 OK</code>
-              <span style={{ fontSize: 12, color: '#8892a4' }}>application/json</span>
+          <div style={{ ...MONO, fontSize: 10, letterSpacing: '0.15em', color: '#1e4d5c', textTransform: 'uppercase', marginBottom: 12 }}>Response Schema</div>
+          <div style={{ border: '1px solid rgba(6,182,212,0.08)', borderRadius: 4, overflow: 'hidden', marginBottom: 16 }}>
+            <div style={{ background: '#001824', padding: '14px 20px', borderBottom: '1px solid rgba(6,182,212,0.08)', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <code style={{ ...inlineCode, color: '#06b6d4' }}>200 OK</code>
+              <span style={{ fontSize: 12, color: '#7ec8d8' }}>application/json</span>
             </div>
-            <div style={{ padding: '20px 24px', background: '#080b14' }}>
+            <div style={{ padding: '20px 24px', background: '#001824' }}>
               {[
                 { field: 'success', type: 'true', desc: 'Always true on a 200 response.' },
                 { field: 'data.address', type: 'string', desc: 'The input address as provided.' },
@@ -409,24 +409,24 @@ export default async function DocsPage() {
                   style={{
                     display: 'grid', gridTemplateColumns: '260px 200px 1fr', gap: 16,
                     padding: '10px 0',
-                    borderBottom: i < arr.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+                    borderBottom: i < arr.length - 1 ? '1px solid rgba(6,182,212,0.05)' : 'none',
                     alignItems: 'start',
                   }}
                 >
-                  <code style={{ ...inlineCode, color: '#f0f4ff', background: 'transparent', border: 'none', padding: 0, fontSize: 12 }}>{row.field}</code>
-                  <span style={{ ...MONO, fontSize: 11, color: '#3d4a5c' }}>{row.type}</span>
-                  <span style={{ fontSize: 13, color: '#8892a4', lineHeight: 1.5 }}>{row.desc}</span>
+                  <code style={{ ...inlineCode, color: '#ecfeff', background: 'transparent', border: 'none', padding: 0, fontSize: 12 }}>{row.field}</code>
+                  <span style={{ ...MONO, fontSize: 11, color: '#1e4d5c' }}>{row.type}</span>
+                  <span style={{ fontSize: 13, color: '#7ec8d8', lineHeight: 1.5 }}>{row.desc}</span>
                 </div>
               ))}
             </div>
           </div>
 
           {/* ENS note */}
-          <div style={{ background: 'rgba(0,255,136,0.04)', border: '1px solid rgba(0,255,136,0.15)', borderRadius: 4, padding: '14px 18px', display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-            <span style={{ color: '#00ff88', flexShrink: 0, marginTop: 1 }}>
+          <div style={{ background: 'rgba(6,182,212,0.04)', border: '1px solid rgba(6,182,212,0.15)', borderRadius: 4, padding: '14px 18px', display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+            <span style={{ color: '#06b6d4', flexShrink: 0, marginTop: 1 }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
             </span>
-            <p style={{ fontSize: 13, color: '#8892a4', lineHeight: 1.6, margin: 0 }}>
+            <p style={{ fontSize: 13, color: '#7ec8d8', lineHeight: 1.6, margin: 0 }}>
               For <code style={inlineCode}>chain: ETH</code>, the API automatically resolves ENS names (e.g. <code style={inlineCode}>vitalik.eth</code>) to their on-chain addresses. The resolved address is returned in <code style={inlineCode}>data.resolvedAddress</code>.
             </p>
           </div>
@@ -447,8 +447,8 @@ export default async function DocsPage() {
             <span style={{ color: '#ffd60a', flexShrink: 0, marginTop: 1 }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
             </span>
-            <p style={{ fontSize: 13, color: '#8892a4', lineHeight: 1.6, margin: 0 }}>
-              A batch of N addresses counts as <strong style={{ color: '#f0f4ff' }}>N calls</strong> against your daily quota. If you have fewer than N calls remaining, the entire request returns <code style={inlineCode}>429</code> with no partial consumption. Individual address failures (invalid format, upstream error) are reported inline — other addresses still process.
+            <p style={{ fontSize: 13, color: '#7ec8d8', lineHeight: 1.6, margin: 0 }}>
+              A batch of N addresses counts as <strong style={{ color: '#ecfeff' }}>N calls</strong> against your daily quota. If you have fewer than N calls remaining, the entire request returns <code style={inlineCode}>429</code> with no partial consumption. Individual address failures (invalid format, upstream error) are reported inline — other addresses still process.
             </p>
           </div>
 
@@ -517,11 +517,11 @@ for r in data['data']['results']:
           ]} />
 
           {/* Response fields */}
-          <div style={{ ...MONO, fontSize: 10, letterSpacing: '0.15em', color: '#3d4a5c', textTransform: 'uppercase', margin: '28px 0 12px' }}>Response Fields</div>
-          <div style={{ border: '1px solid rgba(255,255,255,0.06)', borderRadius: 4, overflow: 'hidden' }}>
+          <div style={{ ...MONO, fontSize: 10, letterSpacing: '0.15em', color: '#1e4d5c', textTransform: 'uppercase', margin: '28px 0 12px' }}>Response Fields</div>
+          <div style={{ border: '1px solid rgba(6,182,212,0.08)', borderRadius: 4, overflow: 'hidden' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
-                <tr style={{ background: '#080b14' }}>
+                <tr style={{ background: '#001824' }}>
                   <th style={thStyle}>Field</th>
                   <th style={thStyle}>Type</th>
                   <th style={thStyle}>Description</th>
@@ -537,11 +537,11 @@ for r in data['data']['results']:
                   { field: 'meta.rate_limit',  type: 'object',       desc: '{ limit, remaining, reset_at } — reflects quota state after the batch.' },
                 ] as const).map((row, i, arr) => (
                   <tr key={row.field}>
-                    <td style={{ ...tdStyle, borderBottom: i < arr.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
+                    <td style={{ ...tdStyle, borderBottom: i < arr.length - 1 ? '1px solid rgba(6,182,212,0.05)' : 'none' }}>
                       <code style={{ ...inlineCode, background: 'transparent', border: 'none', padding: 0, fontSize: 12 }}>{row.field}</code>
                     </td>
-                    <td style={{ ...tdStyle, color: '#3d4a5c', fontSize: 11, borderBottom: i < arr.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>{row.type}</td>
-                    <td style={{ ...tdMuted, borderBottom: i < arr.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>{row.desc}</td>
+                    <td style={{ ...tdStyle, color: '#1e4d5c', fontSize: 11, borderBottom: i < arr.length - 1 ? '1px solid rgba(6,182,212,0.05)' : 'none' }}>{row.type}</td>
+                    <td style={{ ...tdMuted, borderBottom: i < arr.length - 1 ? '1px solid rgba(6,182,212,0.05)' : 'none' }}>{row.desc}</td>
                   </tr>
                 ))}
               </tbody>
@@ -549,11 +549,11 @@ for r in data['data']['results']:
           </div>
 
           {/* Per-result fields */}
-          <div style={{ ...MONO, fontSize: 10, letterSpacing: '0.15em', color: '#3d4a5c', textTransform: 'uppercase', margin: '24px 0 12px' }}>Per-Address Result (BatchResult)</div>
-          <div style={{ border: '1px solid rgba(255,255,255,0.06)', borderRadius: 4, overflow: 'hidden' }}>
+          <div style={{ ...MONO, fontSize: 10, letterSpacing: '0.15em', color: '#1e4d5c', textTransform: 'uppercase', margin: '24px 0 12px' }}>Per-Address Result (BatchResult)</div>
+          <div style={{ border: '1px solid rgba(6,182,212,0.08)', borderRadius: 4, overflow: 'hidden' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
-                <tr style={{ background: '#080b14' }}>
+                <tr style={{ background: '#001824' }}>
                   <th style={thStyle}>Field</th>
                   <th style={thStyle}>Type</th>
                   <th style={thStyle}>Description</th>
@@ -572,11 +572,11 @@ for r in data['data']['results']:
                   { field: 'error',             type: 'string|null',    desc: 'Error code if this address failed (e.g. INVALID_ADDRESS). null on success.' },
                 ] as const).map((row, i, arr) => (
                   <tr key={row.field}>
-                    <td style={{ ...tdStyle, borderBottom: i < arr.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
+                    <td style={{ ...tdStyle, borderBottom: i < arr.length - 1 ? '1px solid rgba(6,182,212,0.05)' : 'none' }}>
                       <code style={{ ...inlineCode, background: 'transparent', border: 'none', padding: 0, fontSize: 11 }}>{row.field}</code>
                     </td>
-                    <td style={{ ...tdStyle, color: '#3d4a5c', fontSize: 11, borderBottom: i < arr.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>{row.type}</td>
-                    <td style={{ ...tdMuted, borderBottom: i < arr.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>{row.desc}</td>
+                    <td style={{ ...tdStyle, color: '#1e4d5c', fontSize: 11, borderBottom: i < arr.length - 1 ? '1px solid rgba(6,182,212,0.05)' : 'none' }}>{row.type}</td>
+                    <td style={{ ...tdMuted, borderBottom: i < arr.length - 1 ? '1px solid rgba(6,182,212,0.05)' : 'none' }}>{row.desc}</td>
                   </tr>
                 ))}
               </tbody>
@@ -593,10 +593,10 @@ for r in data['data']['results']:
           <p style={prose}>
             Each signal contributes a weighted score to the overall risk total. The sum is capped at 100.
           </p>
-          <div style={{ border: '1px solid rgba(255,255,255,0.06)', borderRadius: 4, overflow: 'hidden' }}>
+          <div style={{ border: '1px solid rgba(6,182,212,0.08)', borderRadius: 4, overflow: 'hidden' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
-                <tr style={{ background: '#080b14' }}>
+                <tr style={{ background: '#001824' }}>
                   <th style={thStyle}>Signal</th>
                   <th style={thStyle}>Chain</th>
                   <th style={{ ...thStyle, textAlign: 'center' }}>Weight</th>
@@ -617,12 +617,12 @@ for r in data['data']['results']:
                   { signal: 'coinbase_recipient', chain: 'BTC', weight: 0, desc: 'Address has received coinbase (mining) rewards. Informational only — does not affect score.' },
                 ] as const).map((row, i, arr) => (
                   <tr key={row.signal}>
-                    <td style={{ ...tdStyle, borderBottom: i < arr.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
+                    <td style={{ ...tdStyle, borderBottom: i < arr.length - 1 ? '1px solid rgba(6,182,212,0.05)' : 'none' }}>
                       <code style={{ ...inlineCode, background: 'transparent', border: 'none', padding: 0, fontSize: 11 }}>{row.signal}</code>
                     </td>
-                    <td style={{ ...tdStyle, color: '#3d4a5c', fontSize: 11, borderBottom: i < arr.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>{row.chain}</td>
-                    <td style={{ ...tdStyle, textAlign: 'center', color: row.weight > 0 ? '#f0f4ff' : '#3d4a5c', borderBottom: i < arr.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>{row.weight}</td>
-                    <td style={{ ...tdMuted, borderBottom: i < arr.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>{row.desc}</td>
+                    <td style={{ ...tdStyle, color: '#1e4d5c', fontSize: 11, borderBottom: i < arr.length - 1 ? '1px solid rgba(6,182,212,0.05)' : 'none' }}>{row.chain}</td>
+                    <td style={{ ...tdStyle, textAlign: 'center', color: row.weight > 0 ? '#ecfeff' : '#1e4d5c', borderBottom: i < arr.length - 1 ? '1px solid rgba(6,182,212,0.05)' : 'none' }}>{row.weight}</td>
+                    <td style={{ ...tdMuted, borderBottom: i < arr.length - 1 ? '1px solid rgba(6,182,212,0.05)' : 'none' }}>{row.desc}</td>
                   </tr>
                 ))}
               </tbody>
@@ -639,10 +639,10 @@ for r in data['data']['results']:
           <p style={prose}>
             All errors return <code style={inlineCode}>{'{ "success": false, "error": { "code": "...", "message": "..." } }'}</code>. Use the <code style={inlineCode}>code</code> field for programmatic handling.
           </p>
-          <div style={{ border: '1px solid rgba(255,255,255,0.06)', borderRadius: 4, overflow: 'hidden' }}>
+          <div style={{ border: '1px solid rgba(6,182,212,0.08)', borderRadius: 4, overflow: 'hidden' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
-                <tr style={{ background: '#080b14' }}>
+                <tr style={{ background: '#001824' }}>
                   <th style={thStyle}>Code</th>
                   <th style={{ ...thStyle, textAlign: 'center' }}>HTTP</th>
                   <th style={thStyle}>Description</th>
@@ -660,11 +660,11 @@ for r in data['data']['results']:
                   { code: 'ANALYSIS_FAILED', http: 500, desc: 'Upstream data fetch or analysis pipeline failed. Safe to retry with exponential backoff.' },
                 ] as const).map((row, i, arr) => (
                   <tr key={row.code}>
-                    <td style={{ ...tdStyle, borderBottom: i < arr.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
-                      <code style={{ ...inlineCode, background: 'transparent', border: 'none', padding: 0, color: row.http >= 500 ? '#ff3b3b' : row.http === 429 ? '#ffd60a' : row.http >= 400 ? '#ff8c00' : '#f0f4ff', fontSize: 11 }}>{row.code}</code>
+                    <td style={{ ...tdStyle, borderBottom: i < arr.length - 1 ? '1px solid rgba(6,182,212,0.05)' : 'none' }}>
+                      <code style={{ ...inlineCode, background: 'transparent', border: 'none', padding: 0, color: row.http >= 500 ? '#ff3b3b' : row.http === 429 ? '#ffd60a' : row.http >= 400 ? '#ff8c00' : '#ecfeff', fontSize: 11 }}>{row.code}</code>
                     </td>
-                    <td style={{ ...tdStyle, textAlign: 'center', color: row.http >= 500 ? '#ff3b3b' : row.http === 429 ? '#ffd60a' : row.http >= 400 ? '#ff8c00' : '#00ff88', borderBottom: i < arr.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>{row.http}</td>
-                    <td style={{ ...tdMuted, borderBottom: i < arr.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>{row.desc}</td>
+                    <td style={{ ...tdStyle, textAlign: 'center', color: row.http >= 500 ? '#ff3b3b' : row.http === 429 ? '#ffd60a' : row.http >= 400 ? '#ff8c00' : '#06b6d4', borderBottom: i < arr.length - 1 ? '1px solid rgba(6,182,212,0.05)' : 'none' }}>{row.http}</td>
+                    <td style={{ ...tdMuted, borderBottom: i < arr.length - 1 ? '1px solid rgba(6,182,212,0.05)' : 'none' }}>{row.desc}</td>
                   </tr>
                 ))}
               </tbody>
@@ -673,7 +673,7 @@ for r in data['data']['results']:
 
           {/* Rate limit headers note */}
           <div style={{ marginTop: 24, ...card }}>
-            <div style={{ ...MONO, fontSize: 10, letterSpacing: '0.12em', color: '#3d4a5c', marginBottom: 14, textTransform: 'uppercase' }}>Rate Limit Response Headers</div>
+            <div style={{ ...MONO, fontSize: 10, letterSpacing: '0.12em', color: '#1e4d5c', marginBottom: 14, textTransform: 'uppercase' }}>Rate Limit Response Headers</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
               {([
                 { header: 'X-RateLimit-Limit', desc: 'Your tier\'s daily request quota.' },
@@ -682,7 +682,7 @@ for r in data['data']['results']:
               ] as const).map(h => (
                 <div key={h.header}>
                   <code style={{ ...inlineCode, display: 'block', marginBottom: 6, fontSize: 11 }}>{h.header}</code>
-                  <span style={{ fontSize: 12, color: '#8892a4', lineHeight: 1.5 }}>{h.desc}</span>
+                  <span style={{ fontSize: 12, color: '#7ec8d8', lineHeight: 1.5 }}>{h.desc}</span>
                 </div>
               ))}
             </div>
@@ -698,10 +698,10 @@ for r in data['data']['results']:
           <p style={prose}>
             Limits are per API key, per 24-hour rolling window. The window resets exactly 24 hours after the first request in the current period.
           </p>
-          <div style={{ border: '1px solid rgba(255,255,255,0.06)', borderRadius: 4, overflow: 'hidden', marginBottom: 24 }}>
+          <div style={{ border: '1px solid rgba(6,182,212,0.08)', borderRadius: 4, overflow: 'hidden', marginBottom: 24 }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
-                <tr style={{ background: '#080b14' }}>
+                <tr style={{ background: '#001824' }}>
                   <th style={thStyle}>Tier</th>
                   <th style={{ ...thStyle, textAlign: 'center' }}>Daily Limit</th>
                   <th style={thStyle}>Description</th>
@@ -714,11 +714,11 @@ for r in data['data']['results']:
                   { tier: 'team', limit: 'Unlimited', desc: 'Enterprise tier. No per-key daily cap. SLA and support included.' },
                 ] as const).map((row, i, arr) => (
                   <tr key={row.tier}>
-                    <td style={{ ...tdStyle, borderBottom: i < arr.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
-                      <code style={{ ...inlineCode, background: 'transparent', border: 'none', padding: 0, color: row.tier === 'team' ? '#00ff88' : row.tier === 'analyst' ? '#ffd60a' : '#f0f4ff', fontSize: 11 }}>{row.tier}</code>
+                    <td style={{ ...tdStyle, borderBottom: i < arr.length - 1 ? '1px solid rgba(6,182,212,0.05)' : 'none' }}>
+                      <code style={{ ...inlineCode, background: 'transparent', border: 'none', padding: 0, color: row.tier === 'team' ? '#06b6d4' : row.tier === 'analyst' ? '#ffd60a' : '#ecfeff', fontSize: 11 }}>{row.tier}</code>
                     </td>
-                    <td style={{ ...tdStyle, textAlign: 'center', color: row.limit === 'Unlimited' ? '#00ff88' : '#f0f4ff', borderBottom: i < arr.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>{row.limit}</td>
-                    <td style={{ ...tdMuted, borderBottom: i < arr.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>{row.desc}</td>
+                    <td style={{ ...tdStyle, textAlign: 'center', color: row.limit === 'Unlimited' ? '#06b6d4' : '#ecfeff', borderBottom: i < arr.length - 1 ? '1px solid rgba(6,182,212,0.05)' : 'none' }}>{row.limit}</td>
+                    <td style={{ ...tdMuted, borderBottom: i < arr.length - 1 ? '1px solid rgba(6,182,212,0.05)' : 'none' }}>{row.desc}</td>
                   </tr>
                 ))}
               </tbody>
@@ -729,7 +729,7 @@ for r in data['data']['results']:
             <span style={{ color: '#ffd60a', flexShrink: 0, marginTop: 1 }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
             </span>
-            <p style={{ fontSize: 13, color: '#8892a4', lineHeight: 1.6, margin: 0 }}>
+            <p style={{ fontSize: 13, color: '#7ec8d8', lineHeight: 1.6, margin: 0 }}>
               On a <code style={inlineCode}>429</code> response, check the <code style={inlineCode}>Retry-After</code> header for seconds until your window resets. Identical requests within 5 minutes are served from cache and do not count toward your quota.
             </p>
           </div>
@@ -739,23 +739,23 @@ for r in data['data']['results']:
 
         {/* ── Footer CTA ──────────────────────────────────────────────────────── */}
         <section style={{ textAlign: 'center', padding: '48px 0 0' }}>
-          <div style={{ ...MONO, fontSize: 10, letterSpacing: '0.2em', color: '#3d4a5c', marginBottom: 16, textTransform: 'uppercase' }}>Ready to Integrate?</div>
-          <h2 style={{ fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif', fontSize: 32, fontWeight: 700, color: '#f0f4ff', margin: '0 0 16px', letterSpacing: '-0.01em' }}>
+          <div style={{ ...MONO, fontSize: 10, letterSpacing: '0.2em', color: '#1e4d5c', marginBottom: 16, textTransform: 'uppercase' }}>Ready to Integrate?</div>
+          <h2 style={{ fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif', fontSize: 32, fontWeight: 700, color: '#ecfeff', margin: '0 0 16px', letterSpacing: '-0.01em' }}>
             Start analyzing wallets today
           </h2>
-          <p style={{ fontSize: 15, color: '#8892a4', lineHeight: 1.7, maxWidth: 480, margin: '0 auto 32px' }}>
+          <p style={{ fontSize: 15, color: '#7ec8d8', lineHeight: 1.7, maxWidth: 480, margin: '0 auto 32px' }}>
             Free tier includes 100 analyses per day. No credit card required.
           </p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
             <a
               href="/dashboard/settings"
-              style={{ ...MONO, fontSize: 11, letterSpacing: '0.1em', color: '#03040a', background: '#00ff88', padding: '12px 28px', borderRadius: 3, textDecoration: 'none', fontWeight: 700 }}
+              style={{ ...MONO, fontSize: 11, letterSpacing: '0.1em', color: '#00080f', background: '#06b6d4', padding: '12px 28px', borderRadius: 3, textDecoration: 'none', fontWeight: 700 }}
             >
               GET API KEY →
             </a>
             <a
               href="/"
-              style={{ ...MONO, fontSize: 11, letterSpacing: '0.1em', color: '#8892a4', background: 'transparent', border: '1px solid rgba(255,255,255,0.12)', padding: '12px 28px', borderRadius: 3, textDecoration: 'none' }}
+              style={{ ...MONO, fontSize: 11, letterSpacing: '0.1em', color: '#7ec8d8', background: 'transparent', border: '1px solid rgba(255,255,255,0.12)', padding: '12px 28px', borderRadius: 3, textDecoration: 'none' }}
             >
               TRY THE TOOL
             </a>

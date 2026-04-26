@@ -25,7 +25,7 @@ function RateLimitBar({ k }: { k: ApiKey }) {
   const windowExpired = now - new Date(k.daily_reset_at).getTime() > 24 * 60 * 60 * 1000
   const todayUsage = windowExpired ? 0 : k.daily_usage_count
   const pct = limit === Infinity ? 0 : Math.min(100, (todayUsage / limit) * 100)
-  const barColor = pct > 90 ? '#ff3b3b' : pct > 70 ? '#ffd60a' : '#00ff88'
+  const barColor = pct > 90 ? '#ff3b3b' : pct > 70 ? '#ffd60a' : '#06b6d4'
   const resetMs = new Date(k.daily_reset_at).getTime() + 24 * 60 * 60 * 1000
   const msLeft = Math.max(0, resetMs - now)
   const hLeft = Math.floor(msLeft / 3600000)
@@ -34,25 +34,25 @@ function RateLimitBar({ k }: { k: ApiKey }) {
   const limitLabel = limit === Infinity ? '∞' : limit.toLocaleString()
 
   return (
-    <div style={{ padding: '10px 20px 14px', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+    <div style={{ padding: '10px 20px 14px', borderTop: '1px solid rgba(6,182,212,0.05)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
-        <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.16em', color: '#3d4a5c' }}>
+        <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.16em', color: '#1e4d5c' }}>
           TODAY&apos;S USAGE
         </span>
-        <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: pct > 90 ? '#ff3b3b' : '#8892a4' }}>
+        <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: pct > 90 ? '#ff3b3b' : '#7ec8d8' }}>
           {todayUsage.toLocaleString()} / {limitLabel}
           {limit !== Infinity && (
-            <span style={{ color: '#3d4a5c', marginLeft: 8 }}>resets in {resetLabel}</span>
+            <span style={{ color: '#1e4d5c', marginLeft: 8 }}>resets in {resetLabel}</span>
           )}
         </span>
       </div>
       {limit !== Infinity && (
-        <div style={{ height: 2, background: 'rgba(255,255,255,0.06)', borderRadius: 1, overflow: 'hidden' }}>
+        <div style={{ height: 2, background: 'rgba(6,182,212,0.08)', borderRadius: 1, overflow: 'hidden' }}>
           <div style={{ height: '100%', width: `${pct}%`, background: barColor, borderRadius: 1, transition: 'width 0.3s ease' }} />
         </div>
       )}
       {limit === Infinity && (
-        <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#00ff88', letterSpacing: '0.08em' }}>Unlimited</div>
+        <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#06b6d4', letterSpacing: '0.08em' }}>Unlimited</div>
       )}
     </div>
   )
@@ -327,56 +327,56 @@ export default function SettingsPage() {
 
   const inputStyle: React.CSSProperties = {
     background: 'transparent', border: 'none',
-    borderBottom: '1px solid rgba(255,255,255,0.12)', color: '#f0f4ff',
+    borderBottom: '1px solid rgba(255,255,255,0.12)', color: '#ecfeff',
     fontSize: 13, padding: '8px 0', outline: 'none',
     fontFamily: 'var(--font-jetbrains-mono)', width: '100%',
   }
 
   const tierColor = (tier: string) =>
-    tier === 'team' ? '#00ff88' : tier === 'analyst' ? '#ffd60a' : '#8892a4'
+    tier === 'team' ? '#06b6d4' : tier === 'analyst' ? '#ffd60a' : '#7ec8d8'
 
   const isPro = (tier: string) => tier !== 'free'
 
   return (
-    <div style={{ minHeight: '100vh', background: '#03040a', color: '#f0f4ff', fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: '#00080f', color: '#ecfeff', fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif' }}>
       {/* Nav */}
-      <nav style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 56 }}>
+      <nav style={{ borderBottom: '1px solid rgba(6,182,212,0.08)', padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 56 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
-          <a href="/" style={{ fontSize: 15, letterSpacing: '0.15em', color: '#f0f4ff', fontFamily: 'var(--font-rubik-glitch)', fontWeight: 400, textDecoration: 'none' }}>CLEARCHAIN</a>
-          <a href="/" style={{ fontSize: 12, color: '#8892a4', textDecoration: 'none', letterSpacing: '0.08em' }}>← Back to Tool</a>
-          <a href="/dashboard/cases" style={{ fontSize: 12, color: '#8892a4', textDecoration: 'none', letterSpacing: '0.08em' }}>Cases</a>
-          <a href="/dashboard/watchlist" style={{ fontSize: 12, color: '#8892a4', textDecoration: 'none', letterSpacing: '0.08em' }}>Watchlist</a>
-          <a href="/dashboard/bulk" style={{ fontSize: 12, color: '#8892a4', textDecoration: 'none', letterSpacing: '0.08em' }}>Bulk Screen</a>
-          <a href="/dashboard/settings" style={{ fontSize: 12, color: '#00ff88', textDecoration: 'none', letterSpacing: '0.08em' }}>Settings</a>
-          <a href="/intel" style={{ fontSize: 12, color: '#8892a4', textDecoration: 'none', letterSpacing: '0.08em' }}>Intel</a>
+          <a href="/" style={{ fontSize: 15, letterSpacing: '0.15em', color: '#ecfeff', fontFamily: 'var(--font-rubik-glitch)', fontWeight: 400, textDecoration: 'none' }}>CLEARCHAIN</a>
+          <a href="/" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>← Back to Tool</a>
+          <a href="/dashboard/cases" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>Cases</a>
+          <a href="/dashboard/watchlist" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>Watchlist</a>
+          <a href="/dashboard/bulk" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>Bulk Screen</a>
+          <a href="/dashboard/settings" style={{ fontSize: 12, color: '#06b6d4', textDecoration: 'none', letterSpacing: '0.08em' }}>Settings</a>
+          <a href="/intel" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>Intel</a>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-          <span style={{ fontSize: 12, color: '#3d4a5c', fontFamily: 'var(--font-jetbrains-mono)' }}>{userEmail}</span>
-          <button onClick={async () => { await supabase.auth.signOut(); router.push('/auth/login') }} style={{ fontSize: 12, color: '#8892a4', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: '0.08em' }}>Sign out</button>
+          <span style={{ fontSize: 12, color: '#1e4d5c', fontFamily: 'var(--font-jetbrains-mono)' }}>{userEmail}</span>
+          <button onClick={async () => { await supabase.auth.signOut(); router.push('/auth/login') }} style={{ fontSize: 12, color: '#7ec8d8', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: '0.08em' }}>Sign out</button>
         </div>
       </nav>
 
       <div style={{ maxWidth: 860, margin: '0 auto', padding: '48px 32px' }}>
-        <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, letterSpacing: '0.2em', color: '#3d4a5c', marginBottom: 8 }}>ACCOUNT</div>
-        <h1 style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 32, fontWeight: 700, color: '#f0f4ff', margin: '0 0 8px', letterSpacing: '-0.01em' }}>Settings</h1>
-        <p style={{ fontSize: 14, color: '#8892a4', margin: '0 0 40px', lineHeight: 1.6 }}>
+        <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, letterSpacing: '0.2em', color: '#1e4d5c', marginBottom: 8 }}>ACCOUNT</div>
+        <h1 style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 32, fontWeight: 700, color: '#ecfeff', margin: '0 0 8px', letterSpacing: '-0.01em' }}>Settings</h1>
+        <p style={{ fontSize: 14, color: '#7ec8d8', margin: '0 0 40px', lineHeight: 1.6 }}>
           Manage your API keys, webhooks, and account security.
         </p>
 
         {/* One-time reveal */}
         {revealedKey && (
-          <div style={{ background: 'rgba(0,255,136,0.04)', border: '1px solid rgba(0,255,136,0.2)', borderRadius: 4, padding: '20px 24px', marginBottom: 32 }}>
-            <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: '#00ff88', marginBottom: 12 }}>
+          <div style={{ background: 'rgba(6,182,212,0.04)', border: '1px solid rgba(6,182,212,0.2)', borderRadius: 4, padding: '20px 24px', marginBottom: 32 }}>
+            <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: '#06b6d4', marginBottom: 12 }}>
               API KEY GENERATED — COPY NOW. IT WON&apos;T BE SHOWN AGAIN.
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-              <code style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 13, color: '#f0f4ff', background: '#080b14', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 4, padding: '8px 14px', flex: 1, wordBreak: 'break-all' }}>
+              <code style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 13, color: '#ecfeff', background: '#001824', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 4, padding: '8px 14px', flex: 1, wordBreak: 'break-all' }}>
                 {revealedKey}
               </code>
-              <button onClick={handleCopyKey} style={{ padding: '8px 18px', background: copiedKey ? 'rgba(0,255,136,0.15)' : 'rgba(0,255,136,0.1)', border: '1px solid rgba(0,255,136,0.3)', borderRadius: 4, color: '#00ff88', fontSize: 11, letterSpacing: '0.1em', cursor: 'pointer', fontFamily: 'var(--font-jetbrains-mono)', whiteSpace: 'nowrap', flexShrink: 0 }}>
+              <button onClick={handleCopyKey} style={{ padding: '8px 18px', background: copiedKey ? 'rgba(6,182,212,0.15)' : 'rgba(6,182,212,0.1)', border: '1px solid rgba(6,182,212,0.3)', borderRadius: 4, color: '#06b6d4', fontSize: 11, letterSpacing: '0.1em', cursor: 'pointer', fontFamily: 'var(--font-jetbrains-mono)', whiteSpace: 'nowrap', flexShrink: 0 }}>
                 {copiedKey ? 'COPIED' : 'COPY'}
               </button>
-              <button onClick={() => setRevealedKey(null)} style={{ padding: '8px 14px', background: 'none', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 4, color: '#8892a4', fontSize: 11, cursor: 'pointer', flexShrink: 0 }}>
+              <button onClick={() => setRevealedKey(null)} style={{ padding: '8px 14px', background: 'none', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 4, color: '#7ec8d8', fontSize: 11, cursor: 'pointer', flexShrink: 0 }}>
                 Dismiss
               </button>
             </div>
@@ -384,20 +384,20 @@ export default function SettingsPage() {
         )}
 
         {/* ── API Keys section ── */}
-        <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, letterSpacing: '0.2em', color: '#8892a4', marginBottom: 20 }}>API KEYS</div>
+        <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, letterSpacing: '0.2em', color: '#7ec8d8', marginBottom: 20 }}>API KEYS</div>
 
         {/* Rate limits */}
-        <div style={{ background: '#080b14', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 4, padding: '20px 24px', marginBottom: 32 }}>
-          <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: '#8892a4', marginBottom: 16 }}>RATE LIMITS BY TIER</div>
+        <div style={{ background: '#001824', border: '1px solid rgba(6,182,212,0.08)', borderRadius: 4, padding: '20px 24px', marginBottom: 32 }}>
+          <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: '#7ec8d8', marginBottom: 16 }}>RATE LIMITS BY TIER</div>
           <div style={{ display: 'flex' }}>
             {[
-              { tier: 'FREE', limit: '100 req / day', color: '#8892a4' },
+              { tier: 'FREE', limit: '100 req / day', color: '#7ec8d8' },
               { tier: 'ANALYST', limit: '2,000 req / day', color: '#ffd60a' },
-              { tier: 'TEAM', limit: 'Unlimited', color: '#00ff88' },
+              { tier: 'TEAM', limit: 'Unlimited', color: '#06b6d4' },
             ].map(({ tier, limit, color }, i) => (
-              <div key={tier} style={{ flex: 1, padding: '14px 16px', borderLeft: i > 0 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
+              <div key={tier} style={{ flex: 1, padding: '14px 16px', borderLeft: i > 0 ? '1px solid rgba(6,182,212,0.08)' : 'none' }}>
                 <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color, marginBottom: 6, letterSpacing: '0.1em' }}>{tier}</div>
-                <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: '#f0f4ff' }}>{limit}</div>
+                <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: '#ecfeff' }}>{limit}</div>
               </div>
             ))}
           </div>
@@ -405,10 +405,10 @@ export default function SettingsPage() {
 
         {/* Generate header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-          <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.2em', color: '#8892a4' }}>YOUR KEYS</div>
+          <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.2em', color: '#7ec8d8' }}>YOUR KEYS</div>
           <button
             onClick={() => setShowForm(v => !v)}
-            style={{ padding: '8px 18px', background: 'rgba(0,255,136,0.1)', border: '1px solid rgba(0,255,136,0.3)', borderRadius: 4, color: '#00ff88', fontSize: 11, letterSpacing: '0.1em', cursor: 'pointer', fontFamily: 'var(--font-jetbrains-mono)' }}
+            style={{ padding: '8px 18px', background: 'rgba(6,182,212,0.1)', border: '1px solid rgba(6,182,212,0.3)', borderRadius: 4, color: '#06b6d4', fontSize: 11, letterSpacing: '0.1em', cursor: 'pointer', fontFamily: 'var(--font-jetbrains-mono)' }}
           >
             + Generate New Key
           </button>
@@ -416,15 +416,15 @@ export default function SettingsPage() {
 
         {/* Generate form */}
         {showForm && (
-          <form onSubmit={handleGenerate} style={{ background: '#080b14', border: '1px solid rgba(0,255,136,0.15)', borderRadius: 4, padding: '20px 24px', marginBottom: 16, display: 'flex', gap: 12, alignItems: 'flex-end' }}>
+          <form onSubmit={handleGenerate} style={{ background: '#001824', border: '1px solid rgba(6,182,212,0.15)', borderRadius: 4, padding: '20px 24px', marginBottom: 16, display: 'flex', gap: 12, alignItems: 'flex-end' }}>
             <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', fontSize: 10, letterSpacing: '0.12em', color: '#3d4a5c', marginBottom: 8, fontFamily: 'var(--font-jetbrains-mono)' }}>KEY LABEL</label>
+              <label style={{ display: 'block', fontSize: 10, letterSpacing: '0.12em', color: '#1e4d5c', marginBottom: 8, fontFamily: 'var(--font-jetbrains-mono)' }}>KEY LABEL</label>
               <input type="text" value={newLabel} onChange={e => setNewLabel(e.target.value)} placeholder="e.g. My App, CI/CD Pipeline..." style={inputStyle} autoFocus />
             </div>
-            <button type="submit" disabled={generating || !newLabel.trim()} style={{ padding: '8px 20px', background: 'rgba(0,255,136,0.1)', border: '1px solid rgba(0,255,136,0.3)', borderRadius: 4, color: '#00ff88', fontSize: 11, letterSpacing: '0.1em', cursor: generating ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-jetbrains-mono)', whiteSpace: 'nowrap', flexShrink: 0, opacity: !newLabel.trim() ? 0.5 : 1 }}>
+            <button type="submit" disabled={generating || !newLabel.trim()} style={{ padding: '8px 20px', background: 'rgba(6,182,212,0.1)', border: '1px solid rgba(6,182,212,0.3)', borderRadius: 4, color: '#06b6d4', fontSize: 11, letterSpacing: '0.1em', cursor: generating ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-jetbrains-mono)', whiteSpace: 'nowrap', flexShrink: 0, opacity: !newLabel.trim() ? 0.5 : 1 }}>
               {generating ? 'CREATING...' : 'CREATE'}
             </button>
-            <button type="button" onClick={() => setShowForm(false)} style={{ padding: '8px 14px', background: 'none', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 4, color: '#8892a4', fontSize: 11, cursor: 'pointer', flexShrink: 0 }}>
+            <button type="button" onClick={() => setShowForm(false)} style={{ padding: '8px 14px', background: 'none', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 4, color: '#7ec8d8', fontSize: 11, cursor: 'pointer', flexShrink: 0 }}>
               Cancel
             </button>
           </form>
@@ -432,9 +432,9 @@ export default function SettingsPage() {
 
         {/* Key cards */}
         {loading ? (
-          <div style={{ padding: '40px', textAlign: 'center', color: '#3d4a5c', fontSize: 13 }}>Loading...</div>
+          <div style={{ padding: '40px', textAlign: 'center', color: '#1e4d5c', fontSize: 13 }}>Loading...</div>
         ) : keys.length === 0 ? (
-          <div style={{ padding: '40px', textAlign: 'center', color: '#3d4a5c', fontSize: 13, background: '#080b14', borderRadius: 4, border: '1px solid rgba(255,255,255,0.06)' }}>
+          <div style={{ padding: '40px', textAlign: 'center', color: '#1e4d5c', fontSize: 13, background: '#001824', borderRadius: 4, border: '1px solid rgba(6,182,212,0.08)' }}>
             No API keys yet. Generate one to start building.
           </div>
         ) : (
@@ -443,12 +443,12 @@ export default function SettingsPage() {
               const edit = webhookEdits[k.id] ?? defaultWebhookEdit(k)
               const pro = isPro(k.tier)
               return (
-                <div key={k.id} style={{ background: '#080b14', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 4, opacity: k.is_active ? 1 : 0.45 }}>
+                <div key={k.id} style={{ background: '#001824', border: '1px solid rgba(6,182,212,0.08)', borderRadius: 4, opacity: k.is_active ? 1 : 0.45 }}>
                   {/* Key metadata row */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 0, padding: '14px 20px', flexWrap: 'wrap' }}>
                     <div style={{ flex: 2, minWidth: 120 }}>
-                      <div style={{ fontSize: 13, color: '#f0f4ff', fontFamily: 'var(--font-jetbrains-mono)', marginBottom: 2 }}>{k.label}</div>
-                      <div style={{ fontSize: 10, color: '#3d4a5c', fontFamily: 'var(--font-jetbrains-mono)', letterSpacing: '0.08em' }}>{fmtDate(k.created_at)}</div>
+                      <div style={{ fontSize: 13, color: '#ecfeff', fontFamily: 'var(--font-jetbrains-mono)', marginBottom: 2 }}>{k.label}</div>
+                      <div style={{ fontSize: 10, color: '#1e4d5c', fontFamily: 'var(--font-jetbrains-mono)', letterSpacing: '0.08em' }}>{fmtDate(k.created_at)}</div>
                     </div>
                     <div style={{ flex: 1, minWidth: 80 }}>
                       <span style={{ fontSize: 10, letterSpacing: '0.1em', color: tierColor(k.tier), fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 700 }}>
@@ -456,15 +456,15 @@ export default function SettingsPage() {
                       </span>
                     </div>
                     <div style={{ flex: 1, minWidth: 80 }}>
-                      <div style={{ fontSize: 10, color: '#3d4a5c', fontFamily: 'var(--font-jetbrains-mono)', letterSpacing: '0.08em', marginBottom: 2 }}>USAGE</div>
-                      <div style={{ fontSize: 12, color: '#8892a4', fontFamily: 'var(--font-jetbrains-mono)' }}>{k.usage_count.toLocaleString()}</div>
+                      <div style={{ fontSize: 10, color: '#1e4d5c', fontFamily: 'var(--font-jetbrains-mono)', letterSpacing: '0.08em', marginBottom: 2 }}>USAGE</div>
+                      <div style={{ fontSize: 12, color: '#7ec8d8', fontFamily: 'var(--font-jetbrains-mono)' }}>{k.usage_count.toLocaleString()}</div>
                     </div>
                     <div style={{ flex: 1, minWidth: 80 }}>
-                      <div style={{ fontSize: 10, color: '#3d4a5c', fontFamily: 'var(--font-jetbrains-mono)', letterSpacing: '0.08em', marginBottom: 2 }}>LAST USED</div>
-                      <div style={{ fontSize: 12, color: '#8892a4', fontFamily: 'var(--font-jetbrains-mono)' }}>{fmtRelative(k.last_used_at)}</div>
+                      <div style={{ fontSize: 10, color: '#1e4d5c', fontFamily: 'var(--font-jetbrains-mono)', letterSpacing: '0.08em', marginBottom: 2 }}>LAST USED</div>
+                      <div style={{ fontSize: 12, color: '#7ec8d8', fontFamily: 'var(--font-jetbrains-mono)' }}>{fmtRelative(k.last_used_at)}</div>
                     </div>
                     <div style={{ flex: 1, minWidth: 80 }}>
-                      <span style={{ fontSize: 10, letterSpacing: '0.1em', color: k.is_active ? '#00ff88' : '#3d4a5c', fontFamily: 'var(--font-jetbrains-mono)' }}>
+                      <span style={{ fontSize: 10, letterSpacing: '0.1em', color: k.is_active ? '#06b6d4' : '#1e4d5c', fontFamily: 'var(--font-jetbrains-mono)' }}>
                         {k.is_active ? 'ACTIVE' : 'REVOKED'}
                       </span>
                     </div>
@@ -483,11 +483,11 @@ export default function SettingsPage() {
                   <RateLimitBar k={k} />
 
                   {/* Webhook subsection */}
-                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.04)', padding: '16px 20px' }}>
-                    <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.18em', color: '#3d4a5c', marginBottom: 12 }}>WEBHOOK</div>
+                  <div style={{ borderTop: '1px solid rgba(6,182,212,0.05)', padding: '16px 20px' }}>
+                    <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.18em', color: '#1e4d5c', marginBottom: 12 }}>WEBHOOK</div>
 
                     {!pro ? (
-                      <div style={{ fontSize: 12, color: '#3d4a5c', fontFamily: 'var(--font-jetbrains-mono)', letterSpacing: '0.06em' }}>
+                      <div style={{ fontSize: 12, color: '#1e4d5c', fontFamily: 'var(--font-jetbrains-mono)', letterSpacing: '0.06em' }}>
                         Webhooks available on Analyst &amp; Team tiers
                       </div>
                     ) : (
@@ -495,7 +495,7 @@ export default function SettingsPage() {
                         {/* URL row */}
                         <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, marginBottom: 14 }}>
                           <div style={{ flex: 1 }}>
-                            <label style={{ display: 'block', fontSize: 9, letterSpacing: '0.14em', color: '#3d4a5c', marginBottom: 6, fontFamily: 'var(--font-jetbrains-mono)' }}>WEBHOOK URL</label>
+                            <label style={{ display: 'block', fontSize: 9, letterSpacing: '0.14em', color: '#1e4d5c', marginBottom: 6, fontFamily: 'var(--font-jetbrains-mono)' }}>WEBHOOK URL</label>
                             <input
                               type="text"
                               value={edit.url}
@@ -510,7 +510,7 @@ export default function SettingsPage() {
                             <button
                               onClick={() => patchWebhookEdit(k.id, { url: '' })}
                               title="Clear URL"
-                              style={{ padding: '8px 10px', background: 'none', border: 'none', color: '#3d4a5c', fontSize: 14, cursor: 'pointer', lineHeight: 1, flexShrink: 0, paddingBottom: 9 }}
+                              style={{ padding: '8px 10px', background: 'none', border: 'none', color: '#1e4d5c', fontSize: 14, cursor: 'pointer', lineHeight: 1, flexShrink: 0, paddingBottom: 9 }}
                             >
                               ×
                             </button>
@@ -520,7 +520,7 @@ export default function SettingsPage() {
                         {/* Secret row */}
                         <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, marginBottom: 16 }}>
                           <div style={{ flex: 1 }}>
-                            <label style={{ display: 'block', fontSize: 9, letterSpacing: '0.14em', color: '#3d4a5c', marginBottom: 6, fontFamily: 'var(--font-jetbrains-mono)' }}>SIGNING SECRET</label>
+                            <label style={{ display: 'block', fontSize: 9, letterSpacing: '0.14em', color: '#1e4d5c', marginBottom: 6, fontFamily: 'var(--font-jetbrains-mono)' }}>SIGNING SECRET</label>
                             <input
                               type={edit.secretVisible ? 'text' : 'password'}
                               value={edit.secret}
@@ -533,7 +533,7 @@ export default function SettingsPage() {
                           <button
                             type="button"
                             onClick={() => patchWebhookEdit(k.id, { secretVisible: !edit.secretVisible })}
-                            style={{ padding: '8px 10px', background: 'none', border: 'none', color: '#3d4a5c', fontSize: 10, cursor: 'pointer', fontFamily: 'var(--font-jetbrains-mono)', letterSpacing: '0.08em', flexShrink: 0, paddingBottom: 9 }}
+                            style={{ padding: '8px 10px', background: 'none', border: 'none', color: '#1e4d5c', fontSize: 10, cursor: 'pointer', fontFamily: 'var(--font-jetbrains-mono)', letterSpacing: '0.08em', flexShrink: 0, paddingBottom: 9 }}
                           >
                             {edit.secretVisible ? 'HIDE' : 'SHOW'}
                           </button>
@@ -546,10 +546,10 @@ export default function SettingsPage() {
                             disabled={edit.saving || !k.is_active}
                             style={{
                               padding: '7px 16px',
-                              background: edit.saved ? 'rgba(0,255,136,0.15)' : 'rgba(0,255,136,0.08)',
-                              border: `1px solid ${edit.saved ? 'rgba(0,255,136,0.4)' : 'rgba(0,255,136,0.25)'}`,
+                              background: edit.saved ? 'rgba(6,182,212,0.15)' : 'rgba(6,182,212,0.08)',
+                              border: `1px solid ${edit.saved ? 'rgba(6,182,212,0.4)' : 'rgba(6,182,212,0.25)'}`,
                               borderRadius: 4,
-                              color: '#00ff88',
+                              color: '#06b6d4',
                               fontSize: 10,
                               letterSpacing: '0.12em',
                               cursor: edit.saving ? 'not-allowed' : 'pointer',
@@ -569,7 +569,7 @@ export default function SettingsPage() {
                                 background: 'rgba(255,255,255,0.03)',
                                 border: '1px solid rgba(255,255,255,0.08)',
                                 borderRadius: 4,
-                                color: '#8892a4',
+                                color: '#7ec8d8',
                                 fontSize: 10,
                                 letterSpacing: '0.12em',
                                 cursor: edit.testing ? 'not-allowed' : 'pointer',
@@ -585,7 +585,7 @@ export default function SettingsPage() {
                             <button
                               onClick={() => handleClearWebhook(k.id)}
                               disabled={edit.saving}
-                              style={{ padding: '7px 12px', background: 'none', border: 'none', color: '#3d4a5c', fontSize: 10, letterSpacing: '0.1em', cursor: 'pointer', fontFamily: 'var(--font-jetbrains-mono)' }}
+                              style={{ padding: '7px 12px', background: 'none', border: 'none', color: '#1e4d5c', fontSize: 10, letterSpacing: '0.1em', cursor: 'pointer', fontFamily: 'var(--font-jetbrains-mono)' }}
                             >
                               Clear URL
                             </button>
@@ -597,7 +597,7 @@ export default function SettingsPage() {
                             marginTop: 10,
                             fontSize: 11,
                             fontFamily: 'var(--font-jetbrains-mono)',
-                            color: edit.testResult.startsWith('SENT') ? '#00ff88' : '#ff3b3b',
+                            color: edit.testResult.startsWith('SENT') ? '#06b6d4' : '#ff3b3b',
                             letterSpacing: '0.04em',
                           }}>
                             {edit.testResult}
@@ -605,7 +605,7 @@ export default function SettingsPage() {
                         )}
 
                         {k.webhook_url && (
-                          <div style={{ marginTop: 8, fontSize: 10, color: '#3d4a5c', fontFamily: 'var(--font-jetbrains-mono)', letterSpacing: '0.04em' }}>
+                          <div style={{ marginTop: 8, fontSize: 10, color: '#1e4d5c', fontFamily: 'var(--font-jetbrains-mono)', letterSpacing: '0.04em' }}>
                             Active: {k.webhook_url}
                           </div>
                         )}
@@ -619,32 +619,32 @@ export default function SettingsPage() {
         )}
 
         {/* Usage example */}
-        <div style={{ marginTop: 48, padding: '24px', background: '#080b14', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 4 }}>
-          <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: '#8892a4', marginBottom: 14 }}>USAGE EXAMPLE</div>
-          <pre style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: '#8892a4', margin: 0, lineHeight: 1.7, overflowX: 'auto' }}>
-            <span style={{ color: '#3d4a5c' }}>curl</span>{` -X POST https://clear-chain-peach.vercel.app/api/v1/analyze \\
+        <div style={{ marginTop: 48, padding: '24px', background: '#001824', border: '1px solid rgba(6,182,212,0.08)', borderRadius: 4 }}>
+          <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: '#7ec8d8', marginBottom: 14 }}>USAGE EXAMPLE</div>
+          <pre style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: '#7ec8d8', margin: 0, lineHeight: 1.7, overflowX: 'auto' }}>
+            <span style={{ color: '#1e4d5c' }}>curl</span>{` -X POST https://clear-chain-peach.vercel.app/api/v1/analyze \\
   `}<span style={{ color: '#ffd60a' }}>-H</span>{` "Authorization: Bearer ck_live_your_key_here" \\
   `}<span style={{ color: '#ffd60a' }}>-H</span>{` "Content-Type: application/json" \\
   `}<span style={{ color: '#ffd60a' }}>-d</span>{` '{"address":"vitalik.eth","chain":"ETH"}'`}
           </pre>
           <div style={{ marginTop: 12 }}>
-            <a href="/api-docs" style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#00ff88', textDecoration: 'none', letterSpacing: '0.08em' }}>
+            <a href="/api-docs" style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#06b6d4', textDecoration: 'none', letterSpacing: '0.08em' }}>
               Full API docs →
             </a>
           </div>
         </div>
 
         {/* ── Security section ── */}
-        <div style={{ marginTop: 64, borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 48 }}>
-          <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, letterSpacing: '0.2em', color: '#8892a4', marginBottom: 20 }}>SECURITY</div>
+        <div style={{ marginTop: 64, borderTop: '1px solid rgba(6,182,212,0.08)', paddingTop: 48 }}>
+          <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, letterSpacing: '0.2em', color: '#7ec8d8', marginBottom: 20 }}>SECURITY</div>
 
-          <div style={{ background: '#080b14', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 4, padding: '24px' }}>
+          <div style={{ background: '#001824', border: '1px solid rgba(6,182,212,0.08)', borderRadius: 4, padding: '24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
               <div>
-                <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: '#8892a4', marginBottom: 6 }}>
+                <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: '#7ec8d8', marginBottom: 6 }}>
                   TWO-FACTOR AUTHENTICATION
                 </div>
-                <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, letterSpacing: '0.12em', color: twoFactorEnabled ? '#00ff88' : '#3d4a5c', fontWeight: 700 }}>
+                <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, letterSpacing: '0.12em', color: twoFactorEnabled ? '#06b6d4' : '#1e4d5c', fontWeight: 700 }}>
                   {loading ? '...' : twoFactorEnabled ? 'ENABLED' : 'DISABLED'}
                 </div>
               </div>
@@ -652,7 +652,7 @@ export default function SettingsPage() {
 
             {!loading && twoFactorEnabled && !enrollData && (
               <>
-                <div style={{ fontSize: 13, color: '#8892a4', marginBottom: 20, lineHeight: 1.6 }}>
+                <div style={{ fontSize: 13, color: '#7ec8d8', marginBottom: 20, lineHeight: 1.6 }}>
                   Your account is protected with TOTP authentication.
                 </div>
                 <button
@@ -666,13 +666,13 @@ export default function SettingsPage() {
 
             {!loading && !twoFactorEnabled && !enrollData && (
               <>
-                <div style={{ fontSize: 13, color: '#8892a4', marginBottom: 20, lineHeight: 1.6 }}>
+                <div style={{ fontSize: 13, color: '#7ec8d8', marginBottom: 20, lineHeight: 1.6 }}>
                   Add an extra layer of security. You&apos;ll need an authenticator app (Google Authenticator, Authy, 1Password).
                 </div>
                 <button
                   onClick={handleStartEnroll}
                   disabled={enrolling}
-                  style={{ padding: '8px 18px', background: enrolling ? 'rgba(255,255,255,0.03)' : 'rgba(0,255,136,0.1)', border: `1px solid ${enrolling ? 'rgba(255,255,255,0.06)' : 'rgba(0,255,136,0.3)'}`, borderRadius: 4, color: enrolling ? '#3d4a5c' : '#00ff88', fontSize: 11, letterSpacing: '0.1em', cursor: enrolling ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-jetbrains-mono)' }}>
+                  style={{ padding: '8px 18px', background: enrolling ? 'rgba(255,255,255,0.03)' : 'rgba(6,182,212,0.1)', border: `1px solid ${enrolling ? 'rgba(6,182,212,0.08)' : 'rgba(6,182,212,0.3)'}`, borderRadius: 4, color: enrolling ? '#1e4d5c' : '#06b6d4', fontSize: 11, letterSpacing: '0.1em', cursor: enrolling ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-jetbrains-mono)' }}>
                   {enrolling ? 'LOADING...' : 'ENABLE 2FA'}
                 </button>
                 {verifyError && !enrollData && (
@@ -683,25 +683,25 @@ export default function SettingsPage() {
 
             {enrollData && (
               <div style={{ marginTop: 8 }}>
-                <div style={{ fontSize: 13, color: '#8892a4', marginBottom: 20, lineHeight: 1.6 }}>
+                <div style={{ fontSize: 13, color: '#7ec8d8', marginBottom: 20, lineHeight: 1.6 }}>
                   Scan this QR code with your authenticator app, then enter the 6-digit code to activate.
                 </div>
                 <div style={{ marginBottom: 20 }}>
                   <img src={enrollData.qrCode} alt="2FA QR Code" style={{ width: 160, height: 160, borderRadius: 4, background: '#fff', padding: 8, display: 'block' }} />
                 </div>
                 <div style={{ marginBottom: 24 }}>
-                  <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.12em', color: '#3d4a5c', marginBottom: 8 }}>BACKUP SECRET — save this somewhere safe</div>
+                  <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.12em', color: '#1e4d5c', marginBottom: 8 }}>BACKUP SECRET — save this somewhere safe</div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <code style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: '#8892a4', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 4, padding: '8px 12px', letterSpacing: '0.08em', flex: 1, wordBreak: 'break-all' }}>
+                    <code style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: '#7ec8d8', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(6,182,212,0.08)', borderRadius: 4, padding: '8px 12px', letterSpacing: '0.08em', flex: 1, wordBreak: 'break-all' }}>
                       {enrollData.secret}
                     </code>
-                    <button onClick={handleCopySecret} style={{ padding: '8px 14px', background: secretCopied ? 'rgba(0,255,136,0.15)' : 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 4, color: secretCopied ? '#00ff88' : '#8892a4', fontSize: 10, letterSpacing: '0.1em', cursor: 'pointer', fontFamily: 'var(--font-jetbrains-mono)', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                    <button onClick={handleCopySecret} style={{ padding: '8px 14px', background: secretCopied ? 'rgba(6,182,212,0.15)' : 'rgba(6,182,212,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 4, color: secretCopied ? '#06b6d4' : '#7ec8d8', fontSize: 10, letterSpacing: '0.1em', cursor: 'pointer', fontFamily: 'var(--font-jetbrains-mono)', whiteSpace: 'nowrap', flexShrink: 0 }}>
                       {secretCopied ? 'COPIED' : 'COPY'}
                     </button>
                   </div>
                 </div>
                 <div style={{ marginBottom: 16 }}>
-                  <label style={{ display: 'block', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.12em', color: '#3d4a5c', marginBottom: 8 }}>ENTER CODE FROM APP</label>
+                  <label style={{ display: 'block', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.12em', color: '#1e4d5c', marginBottom: 8 }}>ENTER CODE FROM APP</label>
                   <input
                     type="text"
                     inputMode="numeric"
@@ -710,7 +710,7 @@ export default function SettingsPage() {
                     onChange={e => { setTotpCode(e.target.value.replace(/\D/g, '').slice(0, 6)); setVerifyError('') }}
                     placeholder="000000"
                     autoFocus
-                    style={{ background: 'transparent', border: 'none', borderBottom: `1px solid ${verifyError ? 'rgba(255,59,59,0.4)' : 'rgba(255,255,255,0.12)'}`, color: '#f0f4ff', fontSize: 22, fontFamily: 'var(--font-jetbrains-mono)', letterSpacing: '0.3em', padding: '8px 0', outline: 'none', width: 160 }}
+                    style={{ background: 'transparent', border: 'none', borderBottom: `1px solid ${verifyError ? 'rgba(255,59,59,0.4)' : 'rgba(255,255,255,0.12)'}`, color: '#ecfeff', fontSize: 22, fontFamily: 'var(--font-jetbrains-mono)', letterSpacing: '0.3em', padding: '8px 0', outline: 'none', width: 160 }}
                   />
                 </div>
                 {verifyError && <div style={{ marginBottom: 16, fontSize: 12, color: '#ff3b3b', fontFamily: 'var(--font-jetbrains-mono)' }}>{verifyError}</div>}
@@ -718,10 +718,10 @@ export default function SettingsPage() {
                   <button
                     onClick={handleVerifyAndActivate}
                     disabled={verifying || totpCode.length !== 6}
-                    style={{ padding: '9px 20px', background: totpCode.length === 6 && !verifying ? 'rgba(0,255,136,0.1)' : 'rgba(255,255,255,0.03)', border: `1px solid ${totpCode.length === 6 && !verifying ? 'rgba(0,255,136,0.3)' : 'rgba(255,255,255,0.06)'}`, borderRadius: 4, color: totpCode.length === 6 && !verifying ? '#00ff88' : '#3d4a5c', fontSize: 11, letterSpacing: '0.12em', cursor: totpCode.length === 6 && !verifying ? 'pointer' : 'not-allowed', fontFamily: 'var(--font-jetbrains-mono)' }}>
+                    style={{ padding: '9px 20px', background: totpCode.length === 6 && !verifying ? 'rgba(6,182,212,0.1)' : 'rgba(255,255,255,0.03)', border: `1px solid ${totpCode.length === 6 && !verifying ? 'rgba(6,182,212,0.3)' : 'rgba(6,182,212,0.08)'}`, borderRadius: 4, color: totpCode.length === 6 && !verifying ? '#06b6d4' : '#1e4d5c', fontSize: 11, letterSpacing: '0.12em', cursor: totpCode.length === 6 && !verifying ? 'pointer' : 'not-allowed', fontFamily: 'var(--font-jetbrains-mono)' }}>
                     {verifying ? 'VERIFYING...' : 'VERIFY & ACTIVATE'}
                   </button>
-                  <button onClick={() => { setEnrollData(null); setTotpCode(''); setVerifyError('') }} style={{ padding: '9px 14px', background: 'none', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 4, color: '#8892a4', fontSize: 11, cursor: 'pointer', fontFamily: 'var(--font-jetbrains-mono)' }}>
+                  <button onClick={() => { setEnrollData(null); setTotpCode(''); setVerifyError('') }} style={{ padding: '9px 14px', background: 'none', border: '1px solid rgba(6,182,212,0.08)', borderRadius: 4, color: '#7ec8d8', fontSize: 11, cursor: 'pointer', fontFamily: 'var(--font-jetbrains-mono)' }}>
                     Cancel
                   </button>
                 </div>

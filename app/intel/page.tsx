@@ -14,14 +14,14 @@
 import { createClient } from '@/lib/supabase/server';
 
 const RISK_COLORS: Record<string, string> = {
-  LOW: '#00ff88',
+  LOW: '#22d3ee',
   MEDIUM: '#ffd60a',
   HIGH: '#ff8c00',
   CRITICAL: '#ff3b3b',
 };
 
 const CHAIN_COLORS: Record<string, string> = {
-  ETH: '#00ff88',
+  ETH: '#06b6d4',
   BTC: '#f97316',
   TRX: '#ff4500',
 };
@@ -105,9 +105,9 @@ export default async function IntelPage() {
   const riskTotal = all.length || 1;
 
   const stat = (label: string, value: number | string, accent?: string) => (
-    <div style={{ background: '#080b14', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 4, padding: '24px 28px' }}>
-      <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: '#8892a4', marginBottom: 14, textTransform: 'uppercase' as const }}>{label}</div>
-      <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 40, fontWeight: 700, color: accent ?? '#f0f4ff', lineHeight: 1, letterSpacing: '-0.02em' }}>
+    <div style={{ background: '#001824', border: '1px solid rgba(6,182,212,0.08)', borderRadius: 4, padding: '24px 28px' }}>
+      <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: '#7ec8d8', marginBottom: 14, textTransform: 'uppercase' as const }}>{label}</div>
+      <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 40, fontWeight: 700, color: accent ?? '#ecfeff', lineHeight: 1, letterSpacing: '-0.02em' }}>
         {value}
       </div>
     </div>
@@ -115,58 +115,58 @@ export default async function IntelPage() {
 
   const cell: React.CSSProperties = {
     padding: '10px 16px', borderBottom: '1px solid rgba(255,255,255,0.03)',
-    fontSize: 12, color: '#f0f4ff', fontFamily: 'var(--font-jetbrains-mono)',
+    fontSize: 12, color: '#ecfeff', fontFamily: 'var(--font-jetbrains-mono)',
     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 200,
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#03040a', color: '#f0f4ff', fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: '#00080f', color: '#ecfeff', fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif' }}>
       {/* Nav */}
-      <nav style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 56 }}>
+      <nav style={{ borderBottom: '1px solid rgba(6,182,212,0.08)', padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 56 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
-          <a href="/" style={{ fontSize: 15, letterSpacing: '0.15em', color: '#f0f4ff', fontFamily: 'var(--font-rubik-glitch)', fontWeight: 400, textDecoration: 'none' }}>CLEARCHAIN</a>
-          <a href="/" style={{ fontSize: 12, color: '#8892a4', textDecoration: 'none', letterSpacing: '0.08em' }}>← Back to Tool</a>
-          <a href="/docs" style={{ fontSize: 12, color: '#8892a4', textDecoration: 'none', letterSpacing: '0.08em' }}>Docs</a>
+          <a href="/" style={{ fontSize: 15, letterSpacing: '0.15em', color: '#ecfeff', fontFamily: 'var(--font-rubik-glitch)', fontWeight: 400, textDecoration: 'none' }}>CLEARCHAIN</a>
+          <a href="/" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>← Back to Tool</a>
+          <a href="/docs" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>Docs</a>
         </div>
         {user ? (
-          <a href="/dashboard" style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.1em', color: '#00ff88', textDecoration: 'none' }}>DASHBOARD →</a>
+          <a href="/dashboard" style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.1em', color: '#06b6d4', textDecoration: 'none' }}>DASHBOARD →</a>
         ) : (
-          <a href="/auth/login" style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.1em', color: '#8892a4', textDecoration: 'none' }}>SIGN IN →</a>
+          <a href="/auth/login" style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.1em', color: '#7ec8d8', textDecoration: 'none' }}>SIGN IN →</a>
         )}
       </nav>
 
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '48px 32px 96px' }}>
         {/* Header */}
         <div style={{ marginBottom: 48 }}>
-          <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, letterSpacing: '0.2em', color: '#3d4a5c', marginBottom: 8, textTransform: 'uppercase' }}>Public · Live</div>
-          <h1 style={{ fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif', fontSize: 32, fontWeight: 700, color: '#f0f4ff', margin: '0 0 12px', letterSpacing: '-0.01em' }}>Live Intelligence</h1>
-          <p style={{ fontFamily: 'var(--font-inter), system-ui, sans-serif', fontSize: 14, color: '#8892a4', margin: 0, lineHeight: 1.6 }}>
+          <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, letterSpacing: '0.2em', color: '#1e4d5c', marginBottom: 8, textTransform: 'uppercase' }}>Public · Live</div>
+          <h1 style={{ fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif', fontSize: 32, fontWeight: 700, color: '#ecfeff', margin: '0 0 12px', letterSpacing: '-0.01em' }}>Live Intelligence</h1>
+          <p style={{ fontFamily: 'var(--font-inter), system-ui, sans-serif', fontSize: 14, color: '#7ec8d8', margin: 0, lineHeight: 1.6 }}>
             Real-time aggregate data from ClearChain analyses. Updated continuously.
           </p>
         </div>
 
         {/* Today's stats */}
-        <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.18em', color: '#8892a4', marginBottom: 16, textTransform: 'uppercase' }}>Last 24 Hours</div>
+        <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.18em', color: '#7ec8d8', marginBottom: 16, textTransform: 'uppercase' }}>Last 24 Hours</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 40 }}>
-          {stat('Addresses Screened', screenedToday, '#f0f4ff')}
-          {stat('OFAC Matches Found', ofacToday, ofacToday > 0 ? '#ff3b3b' : '#f0f4ff')}
-          {stat('High Risk Wallets', highRiskToday, highRiskToday > 0 ? '#ff8c00' : '#f0f4ff')}
-          {stat('Clean Wallets', cleanToday, '#00ff88')}
+          {stat('Addresses Screened', screenedToday, '#ecfeff')}
+          {stat('OFAC Matches Found', ofacToday, ofacToday > 0 ? '#ff3b3b' : '#ecfeff')}
+          {stat('High Risk Wallets', highRiskToday, highRiskToday > 0 ? '#ff8c00' : '#ecfeff')}
+          {stat('Clean Wallets', cleanToday, '#22d3ee')}
         </div>
 
         {/* Chain breakdown */}
-        <div style={{ background: '#080b14', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, padding: '20px 24px', marginBottom: 40 }}>
-          <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: '#8892a4', marginBottom: 16, textTransform: 'uppercase' }}>Chain Breakdown (All Time)</div>
+        <div style={{ background: '#001824', border: '1px solid rgba(6,182,212,0.08)', borderRadius: 8, padding: '20px 24px', marginBottom: 40 }}>
+          <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: '#7ec8d8', marginBottom: 16, textTransform: 'uppercase' }}>Chain Breakdown (All Time)</div>
           {(['ETH', 'BTC', 'TRX'] as const).map(c => {
             const count = chainTotals[c];
             const pct = Math.round((count / chainTotal) * 100);
             return (
               <div key={c} style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 10 }}>
                 <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: CHAIN_COLORS[c], width: 32, flexShrink: 0 }}>{c}</span>
-                <div style={{ flex: 1, height: 6, background: 'rgba(255,255,255,0.04)', borderRadius: 3, overflow: 'hidden' }}>
+                <div style={{ flex: 1, height: 6, background: 'rgba(6,182,212,0.05)', borderRadius: 3, overflow: 'hidden' }}>
                   <div style={{ width: `${pct}%`, height: '100%', background: CHAIN_COLORS[c], borderRadius: 3, transition: 'width 0.5s' }} />
                 </div>
-                <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#8892a4', width: 48, textAlign: 'right', flexShrink: 0 }}>{count > 0 ? `${pct}%` : '—'}</span>
+                <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#7ec8d8', width: 48, textAlign: 'right', flexShrink: 0 }}>{count > 0 ? `${pct}%` : '—'}</span>
               </div>
             );
           })}
@@ -174,18 +174,18 @@ export default async function IntelPage() {
 
         {/* Recent high-risk flags */}
         <div style={{ marginBottom: 40 }}>
-          <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.18em', color: '#8892a4', marginBottom: 16, textTransform: 'uppercase' }}>Recent High-Risk Detections (Last 24h)</div>
+          <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.18em', color: '#7ec8d8', marginBottom: 16, textTransform: 'uppercase' }}>Recent High-Risk Detections (Last 24h)</div>
           {flags.length === 0 ? (
-            <div style={{ padding: '32px', textAlign: 'center', color: '#3d4a5c', fontSize: 13, background: '#080b14', borderRadius: 8, border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div style={{ padding: '32px', textAlign: 'center', color: '#1e4d5c', fontSize: 13, background: '#001824', borderRadius: 8, border: '1px solid rgba(6,182,212,0.08)' }}>
               No high-risk wallets detected in the last 24 hours.
             </div>
           ) : (
-            <div style={{ background: '#080b14', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, overflow: 'hidden' }}>
+            <div style={{ background: '#001824', border: '1px solid rgba(6,182,212,0.08)', borderRadius: 8, overflow: 'hidden' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
-                  <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                  <tr style={{ borderBottom: '1px solid rgba(6,182,212,0.08)' }}>
                     {['Address', 'Chain', 'OFAC', 'Timestamp'].map(h => (
-                      <th key={h} style={{ padding: '10px 16px', textAlign: 'left', fontSize: 10, letterSpacing: '0.12em', color: '#3d4a5c', fontWeight: 600 }}>{h}</th>
+                      <th key={h} style={{ padding: '10px 16px', textAlign: 'left', fontSize: 10, letterSpacing: '0.12em', color: '#1e4d5c', fontWeight: 600 }}>{h}</th>
                     ))}
                     <th style={{ padding: '10px 16px' }} />
                   </tr>
@@ -200,20 +200,20 @@ export default async function IntelPage() {
                       : false;
                     return (
                       <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
-                        <td style={{ ...cell, color: '#f0f4ff' }} title={r.address}>{truncate(r.address)}</td>
-                        <td style={{ ...cell, color: CHAIN_COLORS[r.chain] ?? '#8892a4' }}>{r.chain}</td>
+                        <td style={{ ...cell, color: '#ecfeff' }} title={r.address}>{truncate(r.address)}</td>
+                        <td style={{ ...cell, color: CHAIN_COLORS[r.chain] ?? '#7ec8d8' }}>{r.chain}</td>
                         <td style={{ ...cell }}>
                           {ofacHit ? (
                             <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.1em', color: '#ff3b3b', border: '1px solid rgba(255,59,59,0.3)', padding: '2px 6px', borderRadius: 2 }}>
                               SDN MATCH
                             </span>
                           ) : (
-                            <span style={{ color: '#3d4a5c', fontSize: 10 }}>—</span>
+                            <span style={{ color: '#1e4d5c', fontSize: 10 }}>—</span>
                           )}
                         </td>
-                        <td style={{ ...cell, color: '#8892a4' }}>{fmtTime(r.analyzed_at)}</td>
+                        <td style={{ ...cell, color: '#7ec8d8' }}>{fmtTime(r.analyzed_at)}</td>
                         <td style={{ padding: '10px 16px' }}>
-                          <a href={`/?address=${r.address}`} style={{ fontSize: 11, color: '#8892a4', textDecoration: 'none', letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>
+                          <a href={`/?address=${r.address}`} style={{ fontSize: 11, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>
                             View →
                           </a>
                         </td>
@@ -228,9 +228,9 @@ export default async function IntelPage() {
 
         {/* All-time risk distribution */}
         {all.length > 0 && (
-          <div style={{ background: '#080b14', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, padding: '20px 24px', marginBottom: 40 }}>
-            <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: '#8892a4', marginBottom: 16, textTransform: 'uppercase' }}>Risk Distribution (All Time · {all.length} analyses)</div>
-            <div style={{ display: 'flex', height: 8, borderRadius: 4, overflow: 'hidden', marginBottom: 14, background: 'rgba(255,255,255,0.04)' }}>
+          <div style={{ background: '#001824', border: '1px solid rgba(6,182,212,0.08)', borderRadius: 8, padding: '20px 24px', marginBottom: 40 }}>
+            <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: '#7ec8d8', marginBottom: 16, textTransform: 'uppercase' }}>Risk Distribution (All Time · {all.length} analyses)</div>
+            <div style={{ display: 'flex', height: 8, borderRadius: 4, overflow: 'hidden', marginBottom: 14, background: 'rgba(6,182,212,0.05)' }}>
               {(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] as const).map(level => {
                 const pct = (riskDist[level] / riskTotal) * 100;
                 if (pct === 0) return null;
@@ -239,7 +239,7 @@ export default async function IntelPage() {
             </div>
             <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
               {(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] as const).map(level => (
-                <span key={level} style={{ display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: riskDist[level] > 0 ? '#8892a4' : '#3d4a5c' }}>
+                <span key={level} style={{ display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: riskDist[level] > 0 ? '#7ec8d8' : '#1e4d5c' }}>
                   <span style={{ width: 6, height: 6, borderRadius: '50%', background: RISK_COLORS[level], flexShrink: 0 }} />
                   {level}
                   <span style={{ color: RISK_COLORS[level], fontWeight: 700 }}>{riskDist[level]}</span>
@@ -250,9 +250,9 @@ export default async function IntelPage() {
         )}
 
         {/* Footer note */}
-        <div style={{ borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: 24, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#3d4a5c', letterSpacing: '0.08em', lineHeight: 1.7 }}>
+        <div style={{ borderTop: '1px solid rgba(6,182,212,0.05)', paddingTop: 24, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#1e4d5c', letterSpacing: '0.08em', lineHeight: 1.7 }}>
           Data reflects all analyses run on ClearChain. Addresses are user-submitted. OFAC designations sourced from the U.S. Treasury SDN list.{' '}
-          <a href="/" style={{ color: '#8892a4', textDecoration: 'none' }}>Run an analysis →</a>
+          <a href="/" style={{ color: '#7ec8d8', textDecoration: 'none' }}>Run an analysis →</a>
         </div>
       </div>
     </div>

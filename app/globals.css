@@ -1,20 +1,20 @@
 @import "tailwindcss";
 
 :root {
-  --bg-primary: #03040a;
-  --bg-secondary: #080b14;
-  --bg-tertiary: #0d1220;
+  --bg-primary: #00080f;
+  --bg-secondary: #001824;
+  --bg-tertiary: #001f2e;
   --border: rgba(255, 255, 255, 0.06);
   --border-accent: rgba(0, 255, 136, 0.2);
-  --text-primary: #f0f4ff;
-  --text-secondary: #8892a4;
-  --text-dim: #3d4a5c;
-  --accent-green: #00ff88;
+  --text-primary: #ecfeff;
+  --text-secondary: #7ec8d8;
+  --text-dim: #1e4d5c;
+  --accent-green: #06b6d4;
   --accent-green-dim: rgba(0, 255, 136, 0.1);
   --critical: #ff3b3b;
   --high: #ff8c00;
   --medium: #ffd60a;
-  --low: #00ff88;
+  --low: #22d3ee;
 }
 
 *,
@@ -143,7 +143,7 @@ body {
   50%       { opacity: 0; }
 }
 .search-input:focus {
-  caret-color: #00ff88;
+  caret-color: #06b6d4;
   animation: caretBlink 1s step-end infinite;
 }
 

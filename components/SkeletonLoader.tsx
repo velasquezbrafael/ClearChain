@@ -35,9 +35,9 @@ export default function SkeletonLoader({ step, steps }: SkeletonLoaderProps) {
           gap: '8px 32px',
           marginBottom: 40,
           padding: '16px 24px',
-          border: '1px solid rgba(255,255,255,0.04)',
+          border: '1px solid rgba(6,182,212,0.05)',
           borderRadius: 4,
-          background: '#080b14',
+          background: '#001824',
         }}
       >
         {steps.map((label, i) => (
@@ -52,7 +52,7 @@ export default function SkeletonLoader({ step, steps }: SkeletonLoaderProps) {
               letterSpacing: '0.05em',
               color:
                 i < step
-                  ? '#00ff88'
+                  ? '#06b6d4'
                   : i === step
                   ? 'var(--text-primary)'
                   : 'var(--text-dim)',
@@ -65,7 +65,7 @@ export default function SkeletonLoader({ step, steps }: SkeletonLoaderProps) {
                   width: 16,
                   height: 16,
                   borderRadius: '50%',
-                  background: '#00ff88',
+                  background: '#06b6d4',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -85,7 +85,7 @@ export default function SkeletonLoader({ step, steps }: SkeletonLoaderProps) {
                   height: 16,
                   borderRadius: '50%',
                   border: '1.5px solid rgba(255,255,255,0.08)',
-                  borderTopColor: '#00ff88',
+                  borderTopColor: '#06b6d4',
                   animation: 'spin 0.9s linear infinite',
                   flexShrink: 0,
                 }}
@@ -128,9 +128,9 @@ export default function SkeletonLoader({ step, steps }: SkeletonLoaderProps) {
         {/* Col 1: Risk score skeleton */}
         <div
           style={{
-            border: '1px solid rgba(255,255,255,0.06)',
+            border: '1px solid rgba(6,182,212,0.08)',
             borderRadius: 4,
-            background: '#080b14',
+            background: '#001824',
             padding: 32,
             display: 'flex',
             flexDirection: 'column',
@@ -151,9 +151,9 @@ export default function SkeletonLoader({ step, steps }: SkeletonLoaderProps) {
         {/* Col 2: Graph skeleton */}
         <div
           style={{
-            border: '1px solid rgba(255,255,255,0.06)',
+            border: '1px solid rgba(6,182,212,0.08)',
             borderRadius: 4,
-            background: '#080b14',
+            background: '#001824',
             overflow: 'hidden',
             minHeight: 500,
             position: 'relative',
@@ -162,7 +162,7 @@ export default function SkeletonLoader({ step, steps }: SkeletonLoaderProps) {
           <div
             style={{
               padding: '16px 20px',
-              borderBottom: '1px solid rgba(255,255,255,0.04)',
+              borderBottom: '1px solid rgba(6,182,212,0.05)',
               display: 'flex',
               gap: 16,
             }}
@@ -181,11 +181,11 @@ export default function SkeletonLoader({ step, steps }: SkeletonLoaderProps) {
           {/* Ghost nodes */}
           <div style={{ position: 'absolute', inset: 0, top: 48, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div style={{ position: 'relative', width: 200, height: 200 }}>
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 40, height: 40, borderRadius: '50%', border: '1px solid rgba(0,255,136,0.15)', animation: 'pulseGlow 2s infinite' }} />
-              <div style={{ position: 'absolute', top: 10, left: 10, width: 24, height: 24, borderRadius: '50%', background: '#0d1220', animation: 'pulseGlow 2s infinite 0.3s' }} />
-              <div style={{ position: 'absolute', top: 10, right: 10, width: 18, height: 18, borderRadius: '50%', background: '#0d1220', animation: 'pulseGlow 2s infinite 0.6s' }} />
-              <div style={{ position: 'absolute', bottom: 10, left: 20, width: 20, height: 20, borderRadius: '50%', background: '#0d1220', animation: 'pulseGlow 2s infinite 0.9s' }} />
-              <div style={{ position: 'absolute', bottom: 10, right: 20, width: 16, height: 16, borderRadius: '50%', background: '#0d1220', animation: 'pulseGlow 2s infinite 1.2s' }} />
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 40, height: 40, borderRadius: '50%', border: '1px solid rgba(6,182,212,0.15)', animation: 'pulseGlow 2s infinite' }} />
+              <div style={{ position: 'absolute', top: 10, left: 10, width: 24, height: 24, borderRadius: '50%', background: '#001f2e', animation: 'pulseGlow 2s infinite 0.3s' }} />
+              <div style={{ position: 'absolute', top: 10, right: 10, width: 18, height: 18, borderRadius: '50%', background: '#001f2e', animation: 'pulseGlow 2s infinite 0.6s' }} />
+              <div style={{ position: 'absolute', bottom: 10, left: 20, width: 20, height: 20, borderRadius: '50%', background: '#001f2e', animation: 'pulseGlow 2s infinite 0.9s' }} />
+              <div style={{ position: 'absolute', bottom: 10, right: 20, width: 16, height: 16, borderRadius: '50%', background: '#001f2e', animation: 'pulseGlow 2s infinite 1.2s' }} />
             </div>
           </div>
         </div>
@@ -193,9 +193,9 @@ export default function SkeletonLoader({ step, steps }: SkeletonLoaderProps) {
         {/* Col 3: Signal list skeleton */}
         <div
           style={{
-            border: '1px solid rgba(255,255,255,0.06)',
+            border: '1px solid rgba(6,182,212,0.08)',
             borderRadius: 4,
-            background: '#080b14',
+            background: '#001824',
             padding: 24,
             display: 'flex',
             flexDirection: 'column',
@@ -216,16 +216,16 @@ export default function SkeletonLoader({ step, steps }: SkeletonLoaderProps) {
       {/* Row 3: Tab panel skeleton */}
       <div
         style={{
-          border: '1px solid rgba(255,255,255,0.06)',
+          border: '1px solid rgba(6,182,212,0.08)',
           borderRadius: 4,
-          background: '#080b14',
+          background: '#001824',
           overflow: 'hidden',
         }}
       >
         <div
           style={{
             padding: '0 8px',
-            borderBottom: '1px solid rgba(255,255,255,0.06)',
+            borderBottom: '1px solid rgba(6,182,212,0.08)',
             display: 'flex',
             gap: 4,
           }}

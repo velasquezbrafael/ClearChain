@@ -118,7 +118,7 @@ function AddressCell({ addr, onAnalyzeAddress }: { addr: string; onAnalyzeAddres
           border: 'none',
           cursor: 'pointer',
           padding: 0,
-          color: copied ? '#00ff88' : 'var(--text-dim)',
+          color: copied ? '#06b6d4' : 'var(--text-dim)',
           fontSize: 10,
           lineHeight: 1,
           transition: 'opacity 0.15s',
@@ -144,7 +144,7 @@ function AddressCell({ addr, onAnalyzeAddress }: { addr: string; onAnalyzeAddres
             transition: 'opacity 0.15s, color 0.15s',
           }}
           className="group-hover:opacity-100"
-          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#00ff88'; }}
+          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#06b6d4'; }}
           onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-dim)'; }}
           aria-label={`Analyze ${addr}`}
         >
@@ -200,7 +200,7 @@ export default function TransactionBreakdown({
           gap: 32,
           marginBottom: 24,
           paddingBottom: 20,
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          borderBottom: '1px solid rgba(6,182,212,0.08)',
         }}
       >
         <div>
@@ -233,7 +233,7 @@ export default function TransactionBreakdown({
       <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+            <tr style={{ borderBottom: '1px solid rgba(6,182,212,0.08)' }}>
               {['HASH', 'DATE', 'DIR', 'AMOUNT', 'FROM', 'TO'].map(col => (
                 <th
                   key={col}
@@ -284,7 +284,7 @@ export default function TransactionBreakdown({
                         textDecoration: 'none',
                         transition: 'color 0.15s',
                       }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = '#00ff88'; }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = '#06b6d4'; }}
                       onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-dim)'; }}
                     >
                       {truncateHash(tx.hash)}
@@ -311,7 +311,7 @@ export default function TransactionBreakdown({
                         padding: '3px 8px',
                         borderRadius: 2,
                         ...(isInbound
-                          ? { background: 'rgba(0,255,136,0.08)', color: '#00ff88', border: '1px solid rgba(0,255,136,0.2)' }
+                          ? { background: 'rgba(6,182,212,0.08)', color: '#06b6d4', border: '1px solid rgba(6,182,212,0.2)' }
                           : { background: 'rgba(255,59,59,0.08)', color: '#ff6b6b', border: '1px solid rgba(255,59,59,0.2)' }),
                       }}
                     >
@@ -354,7 +354,7 @@ export default function TransactionBreakdown({
           style={{
             marginTop: 16,
             paddingTop: 16,
-            borderTop: '1px solid rgba(255,255,255,0.04)',
+            borderTop: '1px solid rgba(6,182,212,0.05)',
             fontFamily: 'var(--font-jetbrains-mono)',
             fontSize: 10,
             color: 'var(--text-dim)',

@@ -92,7 +92,7 @@ export default function NarrativeCard({ narrative, address, analyzedAt }: Narrat
             height: 20,
             borderRadius: '50%',
             border: '1.5px solid rgba(255,255,255,0.08)',
-            borderTopColor: '#00ff88',
+            borderTopColor: '#06b6d4',
             animation: 'spin 0.9s linear infinite',
           }}
         />
@@ -113,7 +113,7 @@ export default function NarrativeCard({ narrative, address, analyzedAt }: Narrat
           gap: 16,
           marginBottom: 32,
           paddingBottom: 20,
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          borderBottom: '1px solid rgba(6,182,212,0.08)',
         }}
       >
         <div
@@ -122,7 +122,7 @@ export default function NarrativeCard({ narrative, address, analyzedAt }: Narrat
             alignItems: 'center',
             gap: 8,
             padding: '4px 10px',
-            border: '1px solid rgba(255,255,255,0.06)',
+            border: '1px solid rgba(6,182,212,0.08)',
             borderRadius: 2,
           }}
         >
@@ -148,7 +148,7 @@ export default function NarrativeCard({ narrative, address, analyzedAt }: Narrat
             padding: 0,
             fontFamily: 'var(--font-jetbrains-mono)',
             fontSize: 10,
-            color: copied ? '#00ff88' : 'var(--text-dim)',
+            color: copied ? '#06b6d4' : 'var(--text-dim)',
             transition: 'color 0.2s',
           }}
         >

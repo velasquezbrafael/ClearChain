@@ -24,7 +24,7 @@ function riskColor(level: RiskLevel): string {
     case 'CRITICAL': return '#ff3b3b';
     case 'HIGH':     return '#ff8c00';
     case 'MEDIUM':   return '#ffd60a';
-    default:         return '#00ff88';
+    default:         return '#06b6d4';
   }
 }
 
@@ -107,9 +107,9 @@ export default function SimulatorCard({ signals, address, baselineScore, baselin
           alignItems: 'center',
           gap: 24,
           padding: '16px 20px',
-          border: '1px solid rgba(255,255,255,0.06)',
+          border: '1px solid rgba(6,182,212,0.08)',
           borderRadius: 4,
-          background: '#03040a',
+          background: '#00080f',
         }}
       >
         <div>
@@ -126,7 +126,7 @@ export default function SimulatorCard({ signals, address, baselineScore, baselin
           </div>
         </div>
 
-        <div style={{ width: 1, height: 40, background: 'rgba(255,255,255,0.06)', flexShrink: 0 }} />
+        <div style={{ width: 1, height: 40, background: 'rgba(6,182,212,0.08)', flexShrink: 0 }} />
 
         <div>
           <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.15em', color: 'var(--text-dim)', marginBottom: 4 }}>
@@ -160,7 +160,7 @@ export default function SimulatorCard({ signals, address, baselineScore, baselin
                 style={{
                   fontFamily: 'var(--font-jetbrains-mono)',
                   fontSize: 9,
-                  color: simulatedScore > baselineScore ? '#ff3b3b' : '#00ff88',
+                  color: simulatedScore > baselineScore ? '#ff3b3b' : '#06b6d4',
                   letterSpacing: '0.08em',
                   marginLeft: 4,
                 }}
@@ -202,7 +202,7 @@ export default function SimulatorCard({ signals, address, baselineScore, baselin
             gridTemplateColumns: '40px 1fr auto',
             gap: '0 16px',
             padding: '6px 16px',
-            borderBottom: '1px solid rgba(255,255,255,0.04)',
+            borderBottom: '1px solid rgba(6,182,212,0.05)',
           }}
         >
           {['', 'SIGNAL', 'PTS'].map(h => (
@@ -228,10 +228,10 @@ export default function SimulatorCard({ signals, address, baselineScore, baselin
                 cursor: 'pointer',
                 borderRadius: 3,
                 transition: 'background 0.15s',
-                background: on ? 'rgba(0,255,136,0.03)' : 'transparent',
+                background: on ? 'rgba(6,182,212,0.03)' : 'transparent',
               }}
-              onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = on ? 'rgba(0,255,136,0.05)' : 'rgba(255,255,255,0.02)'; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = on ? 'rgba(0,255,136,0.03)' : 'transparent'; }}
+              onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = on ? 'rgba(6,182,212,0.05)' : 'rgba(255,255,255,0.02)'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = on ? 'rgba(6,182,212,0.03)' : 'transparent'; }}
             >
               {/* Toggle switch */}
               <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -240,8 +240,8 @@ export default function SimulatorCard({ signals, address, baselineScore, baselin
                     width: 32,
                     height: 16,
                     borderRadius: 8,
-                    background: on ? 'rgba(0,255,136,0.25)' : 'rgba(255,255,255,0.06)',
-                    border: `1px solid ${on ? 'rgba(0,255,136,0.5)' : 'rgba(255,255,255,0.1)'}`,
+                    background: on ? 'rgba(6,182,212,0.25)' : 'rgba(6,182,212,0.08)',
+                    border: `1px solid ${on ? 'rgba(6,182,212,0.5)' : 'rgba(255,255,255,0.1)'}`,
                     position: 'relative',
                     transition: 'background 0.2s, border-color 0.2s',
                     flexShrink: 0,
@@ -255,9 +255,9 @@ export default function SimulatorCard({ signals, address, baselineScore, baselin
                       width: 10,
                       height: 10,
                       borderRadius: '50%',
-                      background: on ? '#00ff88' : '#3d4a5c',
+                      background: on ? '#06b6d4' : '#1e4d5c',
                       transition: 'left 0.2s, background 0.2s',
-                      boxShadow: on ? '0 0 6px rgba(0,255,136,0.6)' : 'none',
+                      boxShadow: on ? '0 0 6px rgba(6,182,212,0.6)' : 'none',
                     }}
                   />
                 </div>
@@ -288,7 +288,7 @@ export default function SimulatorCard({ signals, address, baselineScore, baselin
                   fontFamily: 'var(--font-jetbrains-mono)',
                   fontSize: 13,
                   fontWeight: 700,
-                  color: on ? '#ff8c00' : '#3d4a5c',
+                  color: on ? '#ff8c00' : '#1e4d5c',
                   transition: 'color 0.2s',
                   textAlign: 'right',
                   minWidth: 36,
@@ -309,17 +309,17 @@ export default function SimulatorCard({ signals, address, baselineScore, baselin
           style={{
             alignSelf: 'flex-start',
             background: 'none',
-            border: '1px solid rgba(0,255,136,0.3)',
+            border: '1px solid rgba(6,182,212,0.3)',
             borderRadius: 3,
             padding: '10px 20px',
             fontFamily: 'var(--font-jetbrains-mono)',
             fontSize: 10,
             letterSpacing: '0.12em',
-            color: generating ? 'var(--text-dim)' : '#00ff88',
+            color: generating ? 'var(--text-dim)' : '#06b6d4',
             cursor: generating ? 'wait' : 'pointer',
             transition: 'border-color 0.15s, color 0.15s, background 0.15s',
           }}
-          onMouseEnter={e => { if (!generating) { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,255,136,0.06)'; } }}
+          onMouseEnter={e => { if (!generating) { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(6,182,212,0.06)'; } }}
           onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none'; }}
         >
           {generating ? 'GENERATING...' : 'GENERATE SCENARIO NARRATIVE →'}
@@ -329,12 +329,12 @@ export default function SimulatorCard({ signals, address, baselineScore, baselin
           <div
             style={{
               padding: '16px 20px',
-              border: '1px solid rgba(0,255,136,0.15)',
+              border: '1px solid rgba(6,182,212,0.15)',
               borderRadius: 4,
-              background: 'rgba(0,255,136,0.03)',
+              background: 'rgba(6,182,212,0.03)',
             }}
           >
-            <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.15em', color: 'rgba(0,255,136,0.5)', marginBottom: 10 }}>
+            <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.15em', color: 'rgba(6,182,212,0.5)', marginBottom: 10 }}>
               SCENARIO NARRATIVE — SIMULATED CONDITIONS
             </div>
             <p style={{ fontFamily: 'var(--font-inter)', fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.65, margin: 0 }}>

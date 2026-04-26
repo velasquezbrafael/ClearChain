@@ -125,13 +125,13 @@ export default function ExportButton({ analysis, narrative, sarDraft }: ExportBu
       onMouseLeave={() => setHovered(false)}
       style={{
         padding: '6px 14px',
-        border: `1px solid ${hovered ? 'rgba(0,255,136,0.3)' : 'rgba(255,255,255,0.06)'}`,
+        border: `1px solid ${hovered ? 'rgba(6,182,212,0.3)' : 'rgba(6,182,212,0.08)'}`,
         borderRadius: 2,
-        background: hovered ? 'rgba(0,255,136,0.05)' : 'none',
+        background: hovered ? 'rgba(6,182,212,0.05)' : 'none',
         fontFamily: 'var(--font-jetbrains-mono)',
         fontSize: 10,
         letterSpacing: '0.1em',
-        color: exporting ? 'var(--text-dim)' : (hovered ? '#00ff88' : 'var(--text-secondary)'),
+        color: exporting ? 'var(--text-dim)' : (hovered ? '#06b6d4' : 'var(--text-secondary)'),
         cursor: exporting ? 'wait' : 'pointer',
         transition: 'all 0.2s',
         flexShrink: 0,

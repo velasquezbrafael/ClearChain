@@ -21,7 +21,7 @@ function riskColor(level: string): string {
   if (level === 'CRITICAL') return '#ff3b3b';
   if (level === 'HIGH') return '#ff8c00';
   if (level === 'MEDIUM') return '#ffd60a';
-  return '#00ff88';
+  return '#06b6d4';
 }
 
 function barChars(triggered: boolean, score: number, weight: number, total: number = 20): string {
@@ -68,7 +68,7 @@ export default function ScoreModal({ riskScore, onClose }: ScoreModalProps) {
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          background: '#080b14',
+          background: '#001824',
           border: '1px solid rgba(255,255,255,0.08)',
           borderRadius: 4,
           width: '100%',
@@ -168,7 +168,7 @@ export default function ScoreModal({ riskScore, onClose }: ScoreModalProps) {
                   fontFamily: 'var(--font-jetbrains-mono)',
                   fontSize: 9,
                   letterSpacing: '0.08em',
-                  color: signal.triggered ? color : '#3d4a5c',
+                  color: signal.triggered ? color : '#1e4d5c',
                   textAlign: 'right',
                   whiteSpace: 'nowrap',
                 }}
@@ -182,7 +182,7 @@ export default function ScoreModal({ riskScore, onClose }: ScoreModalProps) {
         {/* Divider */}
         <div
           style={{
-            borderTop: '1px solid rgba(255,255,255,0.06)',
+            borderTop: '1px solid rgba(6,182,212,0.08)',
             paddingTop: 20,
             display: 'grid',
             gridTemplateColumns: '180px 26px 1fr 80px',

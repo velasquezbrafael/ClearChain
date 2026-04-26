@@ -71,15 +71,15 @@ const RISK_COLORS: Record<string, string> = {
   CRITICAL: '#ff3b3b',
   HIGH: '#ff8c00',
   MEDIUM: '#ffd60a',
-  LOW: '#00ff88',
+  LOW: '#22d3ee',
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  open: '#8892a4',
+  open: '#7ec8d8',
   under_review: '#ffd60a',
   escalated: '#ff8c00',
   sar_filed: '#ff3b3b',
-  closed: '#3d4a5c',
+  closed: '#1e4d5c',
 }
 
 function formatStatus(s: string): string {
@@ -120,7 +120,7 @@ function openDays(createdAt: string): number {
 
 const s = StyleSheet.create({
   page: {
-    backgroundColor: '#03040a',
+    backgroundColor: '#00080f',
     paddingTop: 48,
     paddingBottom: 64,
     paddingHorizontal: 48,
@@ -137,17 +137,17 @@ const s = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.06)',
+    borderTopColor: 'rgba(6,182,212,0.08)',
     paddingTop: 8,
   },
   footerLeft: {
     fontSize: 7,
-    color: '#3d4a5c',
+    color: '#1e4d5c',
     letterSpacing: 0.5,
   },
   footerRight: {
     fontSize: 7,
-    color: '#3d4a5c',
+    color: '#1e4d5c',
     letterSpacing: 0.5,
   },
   footerDisclaimer: {
@@ -158,7 +158,7 @@ const s = StyleSheet.create({
   },
   footerDisclaimerText: {
     fontSize: 6,
-    color: '#3d4a5c',
+    color: '#1e4d5c',
     textAlign: 'center',
     letterSpacing: 0.3,
   },
@@ -166,26 +166,26 @@ const s = StyleSheet.create({
   // --- Cover section ---
   wordmark: {
     fontSize: 22,
-    color: '#00ff88',
+    color: '#06b6d4',
     letterSpacing: 4,
     fontFamily: 'Helvetica-Bold',
     marginBottom: 4,
   },
   coverSubtitle: {
     fontSize: 8,
-    color: '#3d4a5c',
+    color: '#1e4d5c',
     letterSpacing: 2.5,
     marginBottom: 20,
   },
   coverDivider: {
     borderBottomWidth: 1,
-    borderBottomColor: '#00ff88',
+    borderBottomColor: '#06b6d4',
     marginBottom: 24,
     opacity: 0.4,
   },
   coverTitle: {
     fontSize: 20,
-    color: '#f0f4ff',
+    color: '#ecfeff',
     fontFamily: 'Helvetica-Bold',
     marginBottom: 10,
   },
@@ -197,20 +197,20 @@ const s = StyleSheet.create({
   },
   coverMetaText: {
     fontSize: 8,
-    color: '#3d4a5c',
+    color: '#1e4d5c',
     letterSpacing: 0.8,
     fontFamily: 'Helvetica',
   },
   coverMetaLabel: {
     fontSize: 8,
-    color: '#3d4a5c',
+    color: '#1e4d5c',
     letterSpacing: 0.8,
   },
 
   // --- Section headers ---
   sectionHeader: {
     fontSize: 7,
-    color: '#00ff88',
+    color: '#06b6d4',
     letterSpacing: 2,
     fontFamily: 'Helvetica-Bold',
     marginBottom: 12,
@@ -218,7 +218,7 @@ const s = StyleSheet.create({
   },
   sectionDivider: {
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.06)',
+    borderBottomColor: 'rgba(6,182,212,0.08)',
     marginBottom: 16,
   },
 
@@ -230,36 +230,36 @@ const s = StyleSheet.create({
   },
   statBox: {
     flex: 1,
-    backgroundColor: '#080b14',
+    backgroundColor: '#001824',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
+    borderColor: 'rgba(6,182,212,0.08)',
     borderRadius: 2,
     padding: 12,
   },
   statLabel: {
     fontSize: 6,
-    color: '#3d4a5c',
+    color: '#1e4d5c',
     letterSpacing: 1.5,
     marginBottom: 6,
   },
   statValue: {
     fontSize: 18,
-    color: '#f0f4ff',
+    color: '#ecfeff',
     fontFamily: 'Helvetica-Bold',
   },
 
   descriptionText: {
     fontSize: 10,
-    color: '#8892a4',
+    color: '#7ec8d8',
     lineHeight: 1.6,
     marginBottom: 12,
   },
 
   // --- Address block ---
   addressBlock: {
-    backgroundColor: '#080b14',
+    backgroundColor: '#001824',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
+    borderColor: 'rgba(6,182,212,0.08)',
     borderRadius: 2,
     padding: 16,
     marginBottom: 16,
@@ -272,7 +272,7 @@ const s = StyleSheet.create({
   },
   addressText: {
     fontSize: 9,
-    color: '#00ff88',
+    color: '#06b6d4',
     fontFamily: 'Helvetica',
     letterSpacing: 0.3,
   },
@@ -282,8 +282,8 @@ const s = StyleSheet.create({
   },
   chainBadge: {
     fontSize: 7,
-    color: '#8892a4',
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    color: '#7ec8d8',
+    backgroundColor: 'rgba(6,182,212,0.05)',
     paddingVertical: 2,
     paddingHorizontal: 6,
     borderRadius: 1,
@@ -309,7 +309,7 @@ const s = StyleSheet.create({
   // --- Signals table ---
   signalsLabel: {
     fontSize: 7,
-    color: '#3d4a5c',
+    color: '#1e4d5c',
     letterSpacing: 1.5,
     marginBottom: 6,
   },
@@ -323,7 +323,7 @@ const s = StyleSheet.create({
   signalName: {
     flex: 3,
     fontSize: 8,
-    color: '#8892a4',
+    color: '#7ec8d8',
     letterSpacing: 0.3,
   },
   signalTriggered: {
@@ -334,7 +334,7 @@ const s = StyleSheet.create({
   signalPoints: {
     flex: 1,
     fontSize: 8,
-    color: '#8892a4',
+    color: '#7ec8d8',
     textAlign: 'right',
   },
   signalTableHeader: {
@@ -346,7 +346,7 @@ const s = StyleSheet.create({
   },
   signalHeaderText: {
     fontSize: 6,
-    color: '#3d4a5c',
+    color: '#1e4d5c',
     letterSpacing: 1.2,
   },
 
@@ -365,34 +365,34 @@ const s = StyleSheet.create({
   },
   typologyDesc: {
     fontSize: 7,
-    color: '#8892a4',
+    color: '#7ec8d8',
     lineHeight: 1.5,
   },
 
   // --- Notes ---
   noteCard: {
-    backgroundColor: '#080b14',
+    backgroundColor: '#001824',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
+    borderColor: 'rgba(6,182,212,0.08)',
     borderRadius: 2,
     padding: 12,
     marginBottom: 10,
   },
   noteMeta: {
     fontSize: 7,
-    color: '#3d4a5c',
+    color: '#1e4d5c',
     letterSpacing: 0.5,
     marginBottom: 5,
   },
   noteContent: {
     fontSize: 10,
-    color: '#f0f4ff',
+    color: '#ecfeff',
     lineHeight: 1.6,
   },
 
   // --- SAR Drafts ---
   sarBlock: {
-    backgroundColor: '#080b14',
+    backgroundColor: '#001824',
     borderWidth: 1,
     borderColor: 'rgba(255,59,59,0.15)',
     borderRadius: 2,
@@ -414,14 +414,14 @@ const s = StyleSheet.create({
   },
   sarText: {
     fontSize: 9,
-    color: '#8892a4',
+    color: '#7ec8d8',
     lineHeight: 1.7,
   },
 
   // --- Misc ---
   dimText: {
     fontSize: 8,
-    color: '#3d4a5c',
+    color: '#1e4d5c',
     letterSpacing: 0.5,
   },
 })
@@ -431,7 +431,7 @@ const s = StyleSheet.create({
 // ---------------------------------------------------------------------------
 
 function StatusBadge({ status }: { status: string }) {
-  const color = STATUS_COLORS[status] ?? '#8892a4'
+  const color = STATUS_COLORS[status] ?? '#7ec8d8'
   return (
     <Text style={{ fontSize: 8, color, letterSpacing: 1.5, fontFamily: 'Helvetica-Bold' }}>
       {formatStatus(status)}
@@ -440,7 +440,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function RiskBadge({ level }: { level: string }) {
-  const color = RISK_COLORS[level] ?? '#f0f4ff'
+  const color = RISK_COLORS[level] ?? '#ecfeff'
   return (
     <Text style={{ fontSize: 7, color, letterSpacing: 1.2, fontFamily: 'Helvetica-Bold' }}>
       {level}
@@ -461,10 +461,10 @@ function SignalsTable({ signals }: { signals: ScoringSignal[] }) {
       {signals.map((sig, i) => (
         <View key={i} style={s.signalRow}>
           <Text style={s.signalName}>{formatSignalName(sig.name)}</Text>
-          <Text style={[s.signalTriggered, { color: sig.triggered ? '#ff3b3b' : '#00ff88' }]}>
+          <Text style={[s.signalTriggered, { color: sig.triggered ? '#ff3b3b' : '#06b6d4' }]}>
             {sig.triggered ? '!' : '-'}
           </Text>
-          <Text style={[s.signalPoints, { color: sig.score > 0 ? '#ff8c00' : '#3d4a5c' }]}>
+          <Text style={[s.signalPoints, { color: sig.score > 0 ? '#ff8c00' : '#1e4d5c' }]}>
             {sig.score > 0 ? `+${sig.score}` : '0'}
           </Text>
         </View>
@@ -566,7 +566,7 @@ export function CaseReportPDF({ caseData, addresses, notes }: CaseReportProps) {
             <View style={s.sectionDivider} />
 
             {addresses.map((addr, i) => {
-              const riskColor = RISK_COLORS[addr.risk_level] ?? '#f0f4ff'
+              const riskColor = RISK_COLORS[addr.risk_level] ?? '#ecfeff'
               return (
                 <View key={i} style={s.addressBlock} wrap={false}>
                   <View style={s.addressHeader}>

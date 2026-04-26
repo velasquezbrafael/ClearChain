@@ -131,7 +131,7 @@ function buildBuckets(txs: WalletTransaction[], mode: BucketMode): Bucket[] {
 function barColor(b: Bucket): string {
   if (b.hasMixer || b.hasHighRisk) return '#ff3b3b';
   if (b.hasRapid) return '#ff8c00';
-  return '#3d4a5c';
+  return '#1e4d5c';
 }
 
 function formatETHShort(v: number): string {
@@ -170,9 +170,9 @@ export default function TransactionTimeline({ transactions }: { transactions: Wa
   return (
     <div
       style={{
-        border: '1px solid rgba(255,255,255,0.06)',
+        border: '1px solid rgba(6,182,212,0.08)',
         borderRadius: 4,
-        background: '#080b14',
+        background: '#001824',
         padding: '16px 20px',
         marginBottom: 20,
         animation: 'fadeSlideUp 0.5s ease-out both',
@@ -184,7 +184,7 @@ export default function TransactionTimeline({ transactions }: { transactions: Wa
         <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: 'var(--text-dim)' }}>
           ACTIVITY TIMELINE
         </span>
-        <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.08em', color: 'rgba(0,255,136,0.4)', padding: '1px 6px', border: '1px solid rgba(0,255,136,0.15)', borderRadius: 2 }}>
+        <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.08em', color: 'rgba(6,182,212,0.4)', padding: '1px 6px', border: '1px solid rgba(6,182,212,0.15)', borderRadius: 2 }}>
           {modeLabel(mode)}
         </span>
         <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: 'var(--text-dim)', opacity: 0.6 }}>
@@ -194,7 +194,7 @@ export default function TransactionTimeline({ transactions }: { transactions: Wa
           {[
             { color: '#ff3b3b', label: 'OFAC/MIXER' },
             { color: '#ff8c00', label: 'RAPID MOVE' },
-            { color: '#3d4a5c', label: 'NORMAL' },
+            { color: '#1e4d5c', label: 'NORMAL' },
           ].map(({ color, label }) => (
             <span key={label} style={{ display: 'flex', alignItems: 'center', gap: 5, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 8, letterSpacing: '0.1em', color: 'var(--text-dim)' }}>
               <span style={{ width: 6, height: 6, background: color, borderRadius: 1, flexShrink: 0 }} />
@@ -211,9 +211,9 @@ export default function TransactionTimeline({ transactions }: { transactions: Wa
             {/* Dotted vertical grid lines */}
             {[0.25, 0.5, 0.75].map(pct => {
               const gx = Math.round(pct * totalWidth);
-              return <line key={pct} x1={gx} y1={0} x2={gx} y2={CHART_H} stroke="rgba(255,255,255,0.04)" strokeWidth={1} strokeDasharray="3 4" />;
+              return <line key={pct} x1={gx} y1={0} x2={gx} y2={CHART_H} stroke="rgba(6,182,212,0.05)" strokeWidth={1} strokeDasharray="3 4" />;
             })}
-            <line x1={0} y1={CHART_H} x2={totalWidth} y2={CHART_H} stroke="rgba(255,255,255,0.06)" strokeWidth={1} />
+            <line x1={0} y1={CHART_H} x2={totalWidth} y2={CHART_H} stroke="rgba(6,182,212,0.08)" strokeWidth={1} />
 
             {buckets.map((b, i) => {
               const barH  = Math.max(2, (b.count / maxCount) * (CHART_H - 8));
@@ -251,7 +251,7 @@ export default function TransactionTimeline({ transactions }: { transactions: Wa
                 left: hovered.x,
                 top: hovered.y - 10,
                 transform: 'translateX(-50%) translateY(-100%)',
-                background: '#0d1220',
+                background: '#001f2e',
                 border: '1px solid rgba(255,255,255,0.08)',
                 borderRadius: 4,
                 padding: '8px 12px',

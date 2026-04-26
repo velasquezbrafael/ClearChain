@@ -77,14 +77,14 @@ export default function ApiDocsPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#03040a', color: 'var(--text-primary)' }}>
+    <div style={{ minHeight: '100vh', background: '#00080f', color: 'var(--text-primary)' }}>
       {/* Nav */}
       <nav
         style={{
           position: 'sticky', top: 0, zIndex: 50,
           height: 56, display: 'flex', alignItems: 'center',
           justifyContent: 'space-between', padding: '0 32px',
-          borderBottom: '1px solid rgba(255,255,255,0.04)',
+          borderBottom: '1px solid rgba(6,182,212,0.05)',
           background: 'rgba(3,4,10,0.92)', backdropFilter: 'blur(16px)',
         }}
       >
@@ -98,14 +98,14 @@ export default function ApiDocsPage() {
           >
             CLEARCHAIN
           </Link>
-          <Link href="/" style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: '#8892a4', textDecoration: 'none', letterSpacing: '0.08em' }}>
+          <Link href="/" style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>
             ← Back to Tool
           </Link>
         </div>
         <span
           style={{
             fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10,
-            letterSpacing: '0.12em', color: '#00ff88',
+            letterSpacing: '0.12em', color: '#06b6d4',
           }}
         >
           API REFERENCE
@@ -115,7 +115,7 @@ export default function ApiDocsPage() {
       <div style={{ maxWidth: 860, margin: '0 auto', padding: '64px 32px 96px' }}>
         {/* Page header */}
         <div style={{ marginBottom: 56 }}>
-          <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.2em', color: 'rgba(0,255,136,0.6)', marginBottom: 16 }}>
+          <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.2em', color: 'rgba(6,182,212,0.6)', marginBottom: 16 }}>
             DOCUMENTATION
           </div>
           <h1 style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 42, fontWeight: 700, letterSpacing: '-0.02em', margin: '0 0 16px', color: 'var(--text-primary)' }}>
@@ -124,9 +124,9 @@ export default function ApiDocsPage() {
           <p style={{ fontFamily: 'var(--font-inter)', fontSize: 15, color: 'var(--text-secondary)', lineHeight: 1.6, margin: '0 0 20px' }}>
             The ClearChain analysis API is free and open. No API key required.
           </p>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 12, padding: '8px 16px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 4, background: '#080b14' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 12, padding: '8px 16px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 4, background: '#001824' }}>
             <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.15em', color: 'var(--text-dim)' }}>BASE URL</span>
-            <code style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: '#00ff88' }}>{BASE_URL}</code>
+            <code style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: '#06b6d4' }}>{BASE_URL}</code>
           </div>
         </div>
 
@@ -135,7 +135,7 @@ export default function ApiDocsPage() {
         {/* POST /analyze */}
         <Section>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-            <Badge color="#00ff88">POST</Badge>
+            <Badge color="#06b6d4">POST</Badge>
             <code style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 16, color: 'var(--text-primary)' }}>/analyze</code>
           </div>
           <p style={{ fontFamily: 'var(--font-inter)', fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6, margin: '0 0 28px' }}>
@@ -157,7 +157,7 @@ export default function ApiDocsPage() {
           <SectionTitle>AUTHENTICATION (OPTIONAL)</SectionTitle>
           <p style={{ fontFamily: 'var(--font-inter)', fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6, margin: '0 0 20px' }}>
             Include an API key to save analyses to your dashboard and unlock higher rate limits. Generate a key in{' '}
-            <a href="/dashboard/settings" style={{ color: '#00ff88', textDecoration: 'none' }}>Dashboard &rarr; Settings</a>.
+            <a href="/dashboard/settings" style={{ color: '#06b6d4', textDecoration: 'none' }}>Dashboard &rarr; Settings</a>.
           </p>
           <SubHeading>Request with API Key</SubHeading>
           <CodeBlock>{`curl -X POST ${BASE_URL}/analyze \\
@@ -170,7 +170,7 @@ export default function ApiDocsPage() {
               ['Analyst tier', '2,000 requests / day'],
               ['Team tier', 'Unlimited'],
             ].map(([k, v]) => (
-              <div key={k} style={{ display: 'flex', gap: 24, padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+              <div key={k} style={{ display: 'flex', gap: 24, padding: '10px 0', borderBottom: '1px solid rgba(6,182,212,0.05)' }}>
                 <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: 'var(--text-dim)', minWidth: 180 }}>{k}</span>
                 <span style={{ fontFamily: 'var(--font-inter)', fontSize: 13, color: 'var(--text-secondary)' }}>{v}</span>
               </div>
@@ -195,12 +195,12 @@ export default function ApiDocsPage() {
               placeholder="0x... or ENS name"
               style={{
                 flex: 1, minWidth: 260,
-                background: '#080b14', border: '1px solid rgba(255,255,255,0.1)',
+                background: '#001824', border: '1px solid rgba(255,255,255,0.1)',
                 borderRadius: 4, padding: '10px 14px',
                 fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12,
                 color: 'var(--text-primary)', outline: 'none',
               }}
-              onFocus={e => { (e.target as HTMLInputElement).style.borderColor = 'rgba(0,255,136,0.4)'; }}
+              onFocus={e => { (e.target as HTMLInputElement).style.borderColor = 'rgba(6,182,212,0.4)'; }}
               onBlur={e => { (e.target as HTMLInputElement).style.borderColor = 'rgba(255,255,255,0.1)'; }}
             />
             <button
@@ -208,11 +208,11 @@ export default function ApiDocsPage() {
               disabled={liveLoading}
               style={{
                 padding: '10px 20px',
-                background: liveLoading ? 'rgba(0,255,136,0.06)' : 'rgba(0,255,136,0.1)',
-                border: '1px solid rgba(0,255,136,0.3)',
+                background: liveLoading ? 'rgba(6,182,212,0.06)' : 'rgba(6,182,212,0.1)',
+                border: '1px solid rgba(6,182,212,0.3)',
                 borderRadius: 4,
                 fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10,
-                letterSpacing: '0.1em', color: '#00ff88',
+                letterSpacing: '0.1em', color: '#06b6d4',
                 cursor: liveLoading ? 'wait' : 'pointer',
                 whiteSpace: 'nowrap',
                 transition: 'background 0.15s',
@@ -245,12 +245,12 @@ export default function ApiDocsPage() {
               onClick={copyCurl}
               style={{
                 position: 'absolute', top: 12, right: 12,
-                background: 'rgba(255,255,255,0.06)',
+                background: 'rgba(6,182,212,0.08)',
                 border: '1px solid rgba(255,255,255,0.1)',
                 borderRadius: 3, padding: '4px 10px',
                 fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9,
                 letterSpacing: '0.1em',
-                color: copied ? '#00ff88' : 'var(--text-dim)',
+                color: copied ? '#06b6d4' : 'var(--text-dim)',
                 cursor: 'pointer',
                 transition: 'color 0.15s',
               }}
@@ -280,7 +280,7 @@ export default function ApiDocsPage() {
               ['Authentication', 'None required'],
               ['Response time', '~8–15 seconds (includes AI generation)'],
             ].map(([k, v]) => (
-              <div key={k} style={{ display: 'flex', gap: 24, padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+              <div key={k} style={{ display: 'flex', gap: 24, padding: '10px 0', borderBottom: '1px solid rgba(6,182,212,0.05)' }}>
                 <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: 'var(--text-dim)', minWidth: 180 }}>{k}</span>
                 <span style={{ fontFamily: 'var(--font-inter)', fontSize: 13, color: 'var(--text-secondary)' }}>{v}</span>
               </div>
@@ -302,7 +302,7 @@ export default function ApiDocsPage() {
               'Building CDD/KYC workflows with AI-assisted narrative generation',
             ].map(uc => (
               <div key={uc} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                <span style={{ color: 'rgba(0,255,136,0.5)', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, marginTop: 3, flexShrink: 0 }}>·</span>
+                <span style={{ color: 'rgba(6,182,212,0.5)', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, marginTop: 3, flexShrink: 0 }}>·</span>
                 <span style={{ fontFamily: 'var(--font-inter)', fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{uc}</span>
               </div>
             ))}
@@ -314,7 +314,7 @@ export default function ApiDocsPage() {
 }
 
 function Divider() {
-  return <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: '48px 0' }} />;
+  return <div style={{ height: 1, background: 'rgba(6,182,212,0.08)', margin: '48px 0' }} />;
 }
 
 function Section({ children }: { children: React.ReactNode }) {
@@ -353,8 +353,8 @@ function CodeBlock({ children, maxHeight }: { children: React.ReactNode; maxHeig
   return (
     <pre
       style={{
-        background: '#080b14',
-        border: '1px solid rgba(255,255,255,0.06)',
+        background: '#001824',
+        border: '1px solid rgba(6,182,212,0.08)',
         borderRadius: 4, padding: '16px 20px',
         fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11,
         color: 'var(--text-secondary)', lineHeight: 1.7,

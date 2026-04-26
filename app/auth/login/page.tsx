@@ -37,7 +37,7 @@ export default function LoginPage() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: '#03040a',
+      background: '#00080f',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -46,17 +46,17 @@ export default function LoginPage() {
       <div style={{ width: '100%', maxWidth: 400, padding: '0 24px' }}>
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
-          <div style={{ fontSize: 13, letterSpacing: '0.2em', color: '#00ff88', fontFamily: 'var(--font-jetbrains-mono)', marginBottom: 8 }}>
+          <div style={{ fontSize: 13, letterSpacing: '0.2em', color: '#06b6d4', fontFamily: 'var(--font-jetbrains-mono)', marginBottom: 8 }}>
             CLEARCHAIN
           </div>
-          <div style={{ fontSize: 22, fontWeight: 600, color: '#f0f4ff' }}>
+          <div style={{ fontSize: 22, fontWeight: 600, color: '#ecfeff' }}>
             Sign in to your account
           </div>
         </div>
 
         <form onSubmit={handleSignIn}>
           <div style={{ marginBottom: 24 }}>
-            <label style={{ display: 'block', fontSize: 11, letterSpacing: '0.12em', color: '#8892a4', marginBottom: 8 }}>
+            <label style={{ display: 'block', fontSize: 11, letterSpacing: '0.12em', color: '#7ec8d8', marginBottom: 8 }}>
               EMAIL
             </label>
             <input
@@ -70,7 +70,7 @@ export default function LoginPage() {
                 background: 'transparent',
                 border: 'none',
                 borderBottom: '1px solid rgba(255,255,255,0.12)',
-                color: '#f0f4ff',
+                color: '#ecfeff',
                 fontSize: 14,
                 padding: '8px 0',
                 outline: 'none',
@@ -80,7 +80,7 @@ export default function LoginPage() {
           </div>
 
           <div style={{ marginBottom: 32 }}>
-            <label style={{ display: 'block', fontSize: 11, letterSpacing: '0.12em', color: '#8892a4', marginBottom: 8 }}>
+            <label style={{ display: 'block', fontSize: 11, letterSpacing: '0.12em', color: '#7ec8d8', marginBottom: 8 }}>
               PASSWORD
             </label>
             <input
@@ -94,7 +94,7 @@ export default function LoginPage() {
                 background: 'transparent',
                 border: 'none',
                 borderBottom: '1px solid rgba(255,255,255,0.12)',
-                color: '#f0f4ff',
+                color: '#ecfeff',
                 fontSize: 14,
                 padding: '8px 0',
                 outline: 'none',
@@ -123,10 +123,10 @@ export default function LoginPage() {
             style={{
               width: '100%',
               padding: '12px',
-              background: loading ? 'rgba(0,255,136,0.06)' : 'rgba(0,255,136,0.1)',
-              border: '1px solid rgba(0,255,136,0.3)',
+              background: loading ? 'rgba(6,182,212,0.06)' : 'rgba(6,182,212,0.1)',
+              border: '1px solid rgba(6,182,212,0.3)',
               borderRadius: 4,
-              color: '#00ff88',
+              color: '#06b6d4',
               fontSize: 12,
               letterSpacing: '0.15em',
               fontWeight: 600,
@@ -138,15 +138,15 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div style={{ textAlign: 'center', marginTop: 24, fontSize: 13, color: '#8892a4' }}>
+        <div style={{ textAlign: 'center', marginTop: 24, fontSize: 13, color: '#7ec8d8' }}>
           Don&apos;t have an account?{' '}
-          <a href="/auth/signup" style={{ color: '#00ff88', textDecoration: 'none' }}>
+          <a href="/auth/signup" style={{ color: '#06b6d4', textDecoration: 'none' }}>
             Sign up →
           </a>
         </div>
 
         <div style={{ textAlign: 'center', marginTop: 32 }}>
-          <a href="/" style={{ fontSize: 12, color: '#3d4a5c', textDecoration: 'none' }}>
+          <a href="/" style={{ fontSize: 12, color: '#1e4d5c', textDecoration: 'none' }}>
             ← Back to tool
           </a>
         </div>

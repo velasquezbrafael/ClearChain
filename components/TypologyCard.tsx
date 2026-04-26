@@ -6,7 +6,7 @@ function confidenceColor(c: number): string {
   if (c >= 0.85) return '#ff3b3b';
   if (c >= 0.65) return '#ff8c00';
   if (c >= 0.40) return '#ffd60a';
-  return '#8892a4';
+  return '#7ec8d8';
 }
 
 function progressChars(pct: number): string {
@@ -25,7 +25,7 @@ function TypologyRow({ typology }: { typology: AMLTypology }) {
         alignItems: 'flex-start',
         gap: 0,
         padding: '16px 0',
-        borderBottom: '1px solid rgba(255,255,255,0.04)',
+        borderBottom: '1px solid rgba(6,182,212,0.05)',
       }}
     >
       {/* Indicator dot */}
@@ -142,7 +142,7 @@ export default function TypologyCard({ typologies }: { typologies: AMLTypology[]
           style={{
             width: 32,
             height: 32,
-            border: '1px solid rgba(255,255,255,0.06)',
+            border: '1px solid rgba(6,182,212,0.08)',
             borderRadius: 2,
             display: 'flex',
             alignItems: 'center',
@@ -181,7 +181,7 @@ export default function TypologyCard({ typologies }: { typologies: AMLTypology[]
           justifyContent: 'space-between',
           marginBottom: 4,
           paddingBottom: 16,
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          borderBottom: '1px solid rgba(6,182,212,0.08)',
         }}
       >
         <span

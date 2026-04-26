@@ -123,7 +123,7 @@ async function sendAlertEmail(
   const resendKey = process.env.RESEND_API_KEY;
   if (!resendKey) return;
 
-  const levelColor = newLevel === 'CRITICAL' ? '#ff3b3b' : newLevel === 'HIGH' ? '#ff8c00' : newLevel === 'MEDIUM' ? '#ffd60a' : '#00ff88';
+  const levelColor = newLevel === 'CRITICAL' ? '#ff3b3b' : newLevel === 'HIGH' ? '#ff8c00' : newLevel === 'MEDIUM' ? '#ffd60a' : '#06b6d4';
   const analysisUrl = `${SITE_URL}/?address=${address}&chain=${chain}`;
   const triggerLines = triggers.map(t => `<li style="margin-bottom:4px;">${t}</li>`).join('');
 
@@ -131,37 +131,37 @@ async function sendAlertEmail(
 <!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"></head>
-<body style="margin:0;padding:0;background:#03040a;font-family:system-ui,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#03040a;min-height:100vh;">
+<body style="margin:0;padding:0;background:#00080f;font-family:system-ui,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#00080f;min-height:100vh;">
     <tr>
       <td align="center" style="padding:48px 16px;">
-        <table width="560" cellpadding="0" cellspacing="0" style="background:#080b14;border:1px solid rgba(255,255,255,0.06);border-radius:4px;">
+        <table width="560" cellpadding="0" cellspacing="0" style="background:#001824;border:1px solid rgba(6,182,212,0.08);border-radius:4px;">
           <tr>
-            <td style="padding:24px 32px;border-bottom:1px solid rgba(255,255,255,0.06);">
-              <span style="font-family:monospace;font-size:13px;letter-spacing:0.2em;color:#00ff88;font-weight:700;">CLEARCHAIN</span>
-              <span style="font-family:monospace;font-size:10px;letter-spacing:0.15em;color:#3d4a5c;margin-left:16px;">WATCHLIST ALERT</span>
+            <td style="padding:24px 32px;border-bottom:1px solid rgba(6,182,212,0.08);">
+              <span style="font-family:monospace;font-size:13px;letter-spacing:0.2em;color:#06b6d4;font-weight:700;">CLEARCHAIN</span>
+              <span style="font-family:monospace;font-size:10px;letter-spacing:0.15em;color:#1e4d5c;margin-left:16px;">WATCHLIST ALERT</span>
             </td>
           </tr>
           <tr>
             <td style="padding:32px;">
-              <div style="font-family:monospace;font-size:10px;letter-spacing:0.15em;color:#3d4a5c;margin-bottom:12px;text-transform:uppercase;">Risk Change Detected</div>
-              <div style="font-family:monospace;font-size:14px;color:#f0f4ff;margin-bottom:4px;word-break:break-all;">${address}</div>
-              <div style="font-family:monospace;font-size:10px;color:#3d4a5c;margin-bottom:24px;">${chain}</div>
+              <div style="font-family:monospace;font-size:10px;letter-spacing:0.15em;color:#1e4d5c;margin-bottom:12px;text-transform:uppercase;">Risk Change Detected</div>
+              <div style="font-family:monospace;font-size:14px;color:#ecfeff;margin-bottom:4px;word-break:break-all;">${address}</div>
+              <div style="font-family:monospace;font-size:10px;color:#1e4d5c;margin-bottom:24px;">${chain}</div>
               <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
-                ${oldLevel ? `<span style="font-family:monospace;font-size:11px;color:#3d4a5c;text-decoration:line-through;">${oldLevel}</span><span style="color:#3d4a5c;">→</span>` : ''}
+                ${oldLevel ? `<span style="font-family:monospace;font-size:11px;color:#1e4d5c;text-decoration:line-through;">${oldLevel}</span><span style="color:#1e4d5c;">→</span>` : ''}
                 <span style="display:inline-block;padding:4px 12px;background:${levelColor}18;border:1px solid ${levelColor}40;border-radius:2px;font-family:monospace;font-size:11px;letter-spacing:0.1em;color:${levelColor};">${newLevel}</span>
                 <span style="font-family:monospace;font-size:24px;font-weight:700;color:${levelColor};">${newScore}</span>
               </div>
-              <div style="font-family:monospace;font-size:10px;letter-spacing:0.1em;color:#8892a4;margin-bottom:8px;">TRIGGERED BY</div>
-              <ul style="font-family:monospace;font-size:12px;color:#8892a4;padding-left:16px;margin:0 0 24px;">${triggerLines}</ul>
-              <a href="${analysisUrl}" style="display:inline-block;padding:12px 24px;background:rgba(0,255,136,0.1);border:1px solid rgba(0,255,136,0.3);border-radius:2px;font-family:monospace;font-size:11px;letter-spacing:0.12em;color:#00ff88;text-decoration:none;">
+              <div style="font-family:monospace;font-size:10px;letter-spacing:0.1em;color:#7ec8d8;margin-bottom:8px;">TRIGGERED BY</div>
+              <ul style="font-family:monospace;font-size:12px;color:#7ec8d8;padding-left:16px;margin:0 0 24px;">${triggerLines}</ul>
+              <a href="${analysisUrl}" style="display:inline-block;padding:12px 24px;background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.3);border-radius:2px;font-family:monospace;font-size:11px;letter-spacing:0.12em;color:#06b6d4;text-decoration:none;">
                 VIEW ANALYSIS →
               </a>
             </td>
           </tr>
           <tr>
-            <td style="padding:20px 32px;border-top:1px solid rgba(255,255,255,0.04);">
-              <p style="font-family:monospace;font-size:10px;color:#3d4a5c;margin:0;line-height:1.6;">
+            <td style="padding:20px 32px;border-top:1px solid rgba(6,182,212,0.05);">
+              <p style="font-family:monospace;font-size:10px;color:#1e4d5c;margin:0;line-height:1.6;">
                 ClearChain · Crypto AML Intelligence · Watchlist Alert<br>
                 You are receiving this because this address is on your ClearChain watchlist.
               </p>

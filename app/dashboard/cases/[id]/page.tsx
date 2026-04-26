@@ -7,10 +7,10 @@ import CaseNetworkGraph from '@/components/CaseNetworkGraph'
 
 const STATUS_OPTIONS = ['open', 'under_review', 'escalated', 'sar_filed', 'closed'] as const
 const STATUS_COLORS: Record<string, string> = {
-  open: '#8892a4', under_review: '#ffd60a', escalated: '#ff8c00', sar_filed: '#ff3b3b', closed: '#3d4a5c',
+  open: '#7ec8d8', under_review: '#ffd60a', escalated: '#ff8c00', sar_filed: '#ff3b3b', closed: '#1e4d5c',
 }
 const RISK_COLORS: Record<string, string> = {
-  CRITICAL: '#ff3b3b', HIGH: '#ff8c00', MEDIUM: '#ffd60a', LOW: '#00ff88',
+  CRITICAL: '#ff3b3b', HIGH: '#ff8c00', MEDIUM: '#ffd60a', LOW: '#22d3ee',
 }
 
 function fmtDate(iso: string) {
@@ -184,33 +184,33 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
 
   const inputStyle: React.CSSProperties = {
     background: 'transparent', border: 'none',
-    borderBottom: '1px solid rgba(255,255,255,0.12)', color: '#f0f4ff',
+    borderBottom: '1px solid rgba(255,255,255,0.12)', color: '#ecfeff',
     fontSize: 13, padding: '8px 0', outline: 'none',
     fontFamily: 'var(--font-jetbrains-mono)', width: '100%',
   }
 
   if (loading) return (
-    <div style={{ minHeight: '100vh', background: '#03040a', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3d4a5c', fontSize: 13 }}>
+    <div style={{ minHeight: '100vh', background: '#00080f', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1e4d5c', fontSize: 13 }}>
       Loading...
     </div>
   )
 
   return (
-    <div style={{ minHeight: '100vh', background: '#03040a', color: '#f0f4ff', fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: '#00080f', color: '#ecfeff', fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif' }}>
       {/* Nav */}
-      <nav style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 56 }}>
+      <nav style={{ borderBottom: '1px solid rgba(6,182,212,0.08)', padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 56 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
-          <a href="/" style={{ fontSize: 15, letterSpacing: '0.15em', color: '#f0f4ff', fontFamily: 'var(--font-rubik-glitch)', fontWeight: 400, textDecoration: 'none' }}>CLEARCHAIN</a>
-          <a href="/" style={{ fontSize: 12, color: '#8892a4', textDecoration: 'none', letterSpacing: '0.08em' }}>← Back to Tool</a>
-          <a href="/dashboard/cases" style={{ fontSize: 12, color: '#00ff88', textDecoration: 'none', letterSpacing: '0.08em' }}>Cases</a>
-          <a href="/dashboard/watchlist" style={{ fontSize: 12, color: '#8892a4', textDecoration: 'none', letterSpacing: '0.08em' }}>Watchlist</a>
-          <a href="/dashboard/bulk" style={{ fontSize: 12, color: '#8892a4', textDecoration: 'none', letterSpacing: '0.08em' }}>Bulk Screen</a>
-          <a href="/dashboard/settings" style={{ fontSize: 12, color: '#8892a4', textDecoration: 'none', letterSpacing: '0.08em' }}>Settings</a>
-          <a href="/intel" style={{ fontSize: 12, color: '#8892a4', textDecoration: 'none', letterSpacing: '0.08em' }}>Intel</a>
+          <a href="/" style={{ fontSize: 15, letterSpacing: '0.15em', color: '#ecfeff', fontFamily: 'var(--font-rubik-glitch)', fontWeight: 400, textDecoration: 'none' }}>CLEARCHAIN</a>
+          <a href="/" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>← Back to Tool</a>
+          <a href="/dashboard/cases" style={{ fontSize: 12, color: '#06b6d4', textDecoration: 'none', letterSpacing: '0.08em' }}>Cases</a>
+          <a href="/dashboard/watchlist" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>Watchlist</a>
+          <a href="/dashboard/bulk" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>Bulk Screen</a>
+          <a href="/dashboard/settings" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>Settings</a>
+          <a href="/intel" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>Intel</a>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-          <span style={{ fontSize: 12, color: '#3d4a5c', fontFamily: 'var(--font-jetbrains-mono)' }}>{userEmail}</span>
-          <button onClick={signOut} style={{ fontSize: 12, color: '#8892a4', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: '0.08em' }}>Sign out</button>
+          <span style={{ fontSize: 12, color: '#1e4d5c', fontFamily: 'var(--font-jetbrains-mono)' }}>{userEmail}</span>
+          <button onClick={signOut} style={{ fontSize: 12, color: '#7ec8d8', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: '0.08em' }}>Sign out</button>
         </div>
       </nav>
 
@@ -218,9 +218,9 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 32, gap: 16 }}>
           <div>
-            <div style={{ fontSize: 11, letterSpacing: '0.2em', color: '#3d4a5c', marginBottom: 4 }}>CASE</div>
-            <h1 style={{ fontSize: 22, fontWeight: 700, color: '#f0f4ff', margin: '0 0 8px' }}>{caseData?.title}</h1>
-            <div style={{ fontSize: 12, color: '#3d4a5c', fontFamily: 'var(--font-jetbrains-mono)' }}>
+            <div style={{ fontSize: 11, letterSpacing: '0.2em', color: '#1e4d5c', marginBottom: 4 }}>CASE</div>
+            <h1 style={{ fontSize: 22, fontWeight: 700, color: '#ecfeff', margin: '0 0 8px' }}>{caseData?.title}</h1>
+            <div style={{ fontSize: 12, color: '#1e4d5c', fontFamily: 'var(--font-jetbrains-mono)' }}>
               Created {fmtDate(caseData?.created_at ?? '')} · {addresses.length} address{addresses.length !== 1 ? 'es' : ''}
             </div>
           </div>
@@ -228,13 +228,13 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
             <select
               value={status}
               onChange={e => updateStatus(e.target.value)}
-              style={{ background: '#080b14', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 4, color: STATUS_COLORS[status] ?? '#8892a4', fontSize: 11, letterSpacing: '0.1em', padding: '8px 12px', cursor: 'pointer', fontFamily: 'var(--font-jetbrains-mono)' }}
+              style={{ background: '#001824', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 4, color: STATUS_COLORS[status] ?? '#7ec8d8', fontSize: 11, letterSpacing: '0.1em', padding: '8px 12px', cursor: 'pointer', fontFamily: 'var(--font-jetbrains-mono)' }}
             >
               {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s.toUpperCase().replace('_', ' ')}</option>)}
             </select>
             <button
               onClick={handleDownloadReport}
-              style={{ padding: '8px 16px', background: 'rgba(0,255,136,0.1)', border: '1px solid rgba(0,255,136,0.3)', borderRadius: 4, color: '#00ff88', fontSize: 11, cursor: 'pointer', letterSpacing: '0.1em', fontFamily: 'var(--font-jetbrains-mono)', whiteSpace: 'nowrap' }}
+              style={{ padding: '8px 16px', background: 'rgba(6,182,212,0.1)', border: '1px solid rgba(6,182,212,0.3)', borderRadius: 4, color: '#06b6d4', fontSize: 11, cursor: 'pointer', letterSpacing: '0.1em', fontFamily: 'var(--font-jetbrains-mono)', whiteSpace: 'nowrap' }}
             >
               Download Report
             </button>
@@ -246,30 +246,30 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
 
         {/* Addresses */}
         <div style={{ marginBottom: 48 }}>
-          <div style={{ fontSize: 11, letterSpacing: '0.15em', color: '#8892a4', marginBottom: 16 }}>ADDRESSES IN THIS CASE</div>
+          <div style={{ fontSize: 11, letterSpacing: '0.15em', color: '#7ec8d8', marginBottom: 16 }}>ADDRESSES IN THIS CASE</div>
 
           {addresses.length > 0 && (
-            <div style={{ background: '#080b14', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, overflow: 'hidden', marginBottom: 16 }}>
+            <div style={{ background: '#001824', border: '1px solid rgba(6,182,212,0.08)', borderRadius: 8, overflow: 'hidden', marginBottom: 16 }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
-                  <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                  <tr style={{ borderBottom: '1px solid rgba(6,182,212,0.08)' }}>
                     {['Address', 'Chain', 'Risk Score', 'Level', 'Analyzed', '', ''].map((h, i) => (
-                      <th key={i} style={{ padding: '10px 16px', textAlign: 'left', fontSize: 10, letterSpacing: '0.12em', color: '#3d4a5c', fontWeight: 600 }}>{h}</th>
+                      <th key={i} style={{ padding: '10px 16px', textAlign: 'left', fontSize: 10, letterSpacing: '0.12em', color: '#1e4d5c', fontWeight: 600 }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {addresses.map(a => (
                     <tr key={a.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
-                      <td style={{ padding: '12px 16px', fontSize: 12, color: '#00ff88', fontFamily: 'var(--font-jetbrains-mono)', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.address}</td>
-                      <td style={{ padding: '12px 16px', fontSize: 12, color: '#8892a4', fontFamily: 'var(--font-jetbrains-mono)' }}>{a.chain}</td>
-                      <td style={{ padding: '12px 16px', fontSize: 13, color: '#f0f4ff', fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 600 }}>{a.risk_score}</td>
+                      <td style={{ padding: '12px 16px', fontSize: 12, color: '#06b6d4', fontFamily: 'var(--font-jetbrains-mono)', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.address}</td>
+                      <td style={{ padding: '12px 16px', fontSize: 12, color: '#7ec8d8', fontFamily: 'var(--font-jetbrains-mono)' }}>{a.chain}</td>
+                      <td style={{ padding: '12px 16px', fontSize: 13, color: '#ecfeff', fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 600 }}>{a.risk_score}</td>
                       <td style={{ padding: '12px 16px' }}>
-                        <span style={{ fontSize: 10, letterSpacing: '0.1em', color: RISK_COLORS[a.risk_level] ?? '#8892a4', fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 700 }}>{a.risk_level}</span>
+                        <span style={{ fontSize: 10, letterSpacing: '0.1em', color: RISK_COLORS[a.risk_level] ?? '#7ec8d8', fontFamily: 'var(--font-jetbrains-mono)', fontWeight: 700 }}>{a.risk_level}</span>
                       </td>
-                      <td style={{ padding: '12px 16px', fontSize: 12, color: '#8892a4', fontFamily: 'var(--font-jetbrains-mono)' }}>{fmtDate(a.created_at)}</td>
+                      <td style={{ padding: '12px 16px', fontSize: 12, color: '#7ec8d8', fontFamily: 'var(--font-jetbrains-mono)' }}>{fmtDate(a.created_at)}</td>
                       <td style={{ padding: '12px 16px' }}>
-                        <a href={`/?address=${a.address}`} style={{ fontSize: 11, color: '#8892a4', textDecoration: 'none', letterSpacing: '0.08em' }}>View →</a>
+                        <a href={`/?address=${a.address}`} style={{ fontSize: 11, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>View →</a>
                       </td>
                       <td style={{ padding: '12px 16px' }}>
                         <button onClick={() => handleRemoveAddress(a.id)} style={{ fontSize: 11, color: '#ff3b3b', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: '0.08em' }}>Remove</button>
@@ -284,7 +284,7 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
           {/* Add address form */}
           <form onSubmit={handleAddAddress} style={{ display: 'flex', gap: 12, alignItems: 'flex-end' }}>
             <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', fontSize: 10, letterSpacing: '0.12em', color: '#3d4a5c', marginBottom: 8 }}>+ ADD ADDRESS</label>
+              <label style={{ display: 'block', fontSize: 10, letterSpacing: '0.12em', color: '#1e4d5c', marginBottom: 8 }}>+ ADD ADDRESS</label>
               <input
                 type="text"
                 value={newAddress}
@@ -297,7 +297,7 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
             <button
               type="submit"
               disabled={addingAddress || !newAddress.trim()}
-              style={{ padding: '8px 20px', background: 'rgba(0,255,136,0.1)', border: '1px solid rgba(0,255,136,0.3)', borderRadius: 4, color: '#00ff88', fontSize: 11, letterSpacing: '0.12em', cursor: addingAddress ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-jetbrains-mono)', whiteSpace: 'nowrap', flexShrink: 0 }}
+              style={{ padding: '8px 20px', background: 'rgba(6,182,212,0.1)', border: '1px solid rgba(6,182,212,0.3)', borderRadius: 4, color: '#06b6d4', fontSize: 11, letterSpacing: '0.12em', cursor: addingAddress ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-jetbrains-mono)', whiteSpace: 'nowrap', flexShrink: 0 }}
             >
               {addingAddress ? 'ANALYZING...' : 'ADD'}
             </button>
@@ -307,22 +307,22 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
 
         {/* Network graph */}
         <div style={{ marginBottom: 48 }}>
-          <div style={{ fontSize: 11, letterSpacing: '0.15em', color: '#8892a4', marginBottom: 16 }}>NETWORK</div>
+          <div style={{ fontSize: 11, letterSpacing: '0.15em', color: '#7ec8d8', marginBottom: 16 }}>NETWORK</div>
           <CaseNetworkGraph addresses={addresses.map(a => ({ address: a.address, riskLevel: a.risk_level, chain: a.chain }))} />
         </div>
 
         {/* Notes */}
         <div style={{ marginBottom: 48 }}>
-          <div style={{ fontSize: 11, letterSpacing: '0.15em', color: '#8892a4', marginBottom: 16 }}>NOTES</div>
+          <div style={{ fontSize: 11, letterSpacing: '0.15em', color: '#7ec8d8', marginBottom: 16 }}>NOTES</div>
 
           {notes.length > 0 && (
             <div style={{ marginBottom: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
               {notes.map(n => (
-                <div key={n.id} style={{ background: '#080b14', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 6, padding: '14px 16px' }}>
-                  <div style={{ fontSize: 11, color: '#3d4a5c', fontFamily: 'var(--font-jetbrains-mono)', marginBottom: 6 }}>
+                <div key={n.id} style={{ background: '#001824', border: '1px solid rgba(6,182,212,0.08)', borderRadius: 6, padding: '14px 16px' }}>
+                  <div style={{ fontSize: 11, color: '#1e4d5c', fontFamily: 'var(--font-jetbrains-mono)', marginBottom: 6 }}>
                     {n.author_name ?? 'Analyst'} · {fmtTime(n.created_at)}
                   </div>
-                  <div style={{ fontSize: 13, color: '#f0f4ff', lineHeight: 1.6 }}>{n.content}</div>
+                  <div style={{ fontSize: 13, color: '#ecfeff', lineHeight: 1.6 }}>{n.content}</div>
                 </div>
               ))}
             </div>
@@ -341,7 +341,7 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
             <button
               type="submit"
               disabled={addingNote || !noteContent.trim()}
-              style={{ padding: '8px 20px', background: 'rgba(0,255,136,0.1)', border: '1px solid rgba(0,255,136,0.3)', borderRadius: 4, color: '#00ff88', fontSize: 11, letterSpacing: '0.12em', cursor: addingNote ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-jetbrains-mono)', flexShrink: 0 }}
+              style={{ padding: '8px 20px', background: 'rgba(6,182,212,0.1)', border: '1px solid rgba(6,182,212,0.3)', borderRadius: 4, color: '#06b6d4', fontSize: 11, letterSpacing: '0.12em', cursor: addingNote ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-jetbrains-mono)', flexShrink: 0 }}
             >
               {addingNote ? 'SAVING...' : 'ADD NOTE'}
             </button>

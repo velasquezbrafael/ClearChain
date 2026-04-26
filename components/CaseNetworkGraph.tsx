@@ -18,11 +18,11 @@ const RISK_COLORS: Record<string, string> = {
   CRITICAL: '#ff3b3b',
   HIGH: '#ff8c00',
   MEDIUM: '#ffd60a',
-  LOW: '#00ff88',
+  LOW: '#22d3ee',
 }
 
 function nodeColor(level: string) {
-  return RISK_COLORS[level] ?? '#8892a4'
+  return RISK_COLORS[level] ?? '#7ec8d8'
 }
 
 export default function CaseNetworkGraph({ addresses }: Props) {
@@ -85,7 +85,7 @@ export default function CaseNetworkGraph({ addresses }: Props) {
       .attr('dy', '2.4em')
       .attr('font-family', 'var(--font-jetbrains-mono), monospace')
       .attr('font-size', 7)
-      .attr('fill', '#3d4a5c')
+      .attr('fill', '#1e4d5c')
       .text(d => d.riskLevel)
 
     // Drag
@@ -106,8 +106,8 @@ export default function CaseNetworkGraph({ addresses }: Props) {
   if (addresses.length === 0) {
     return (
       <div style={{
-        background: '#080b14', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8,
-        padding: '40px 24px', textAlign: 'center', color: '#3d4a5c', fontSize: 13,
+        background: '#001824', border: '1px solid rgba(6,182,212,0.08)', borderRadius: 8,
+        padding: '40px 24px', textAlign: 'center', color: '#1e4d5c', fontSize: 13,
         fontFamily: 'var(--font-jetbrains-mono)',
       }}>
         Add addresses to this case to see the network graph
@@ -116,7 +116,7 @@ export default function CaseNetworkGraph({ addresses }: Props) {
   }
 
   return (
-    <div style={{ background: '#080b14', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, overflow: 'hidden' }}>
+    <div style={{ background: '#001824', border: '1px solid rgba(6,182,212,0.08)', borderRadius: 8, overflow: 'hidden' }}>
       <svg
         ref={svgRef}
         width="100%"
@@ -124,19 +124,19 @@ export default function CaseNetworkGraph({ addresses }: Props) {
         style={{ display: 'block' }}
       />
       <div style={{
-        borderTop: '1px solid rgba(255,255,255,0.04)',
+        borderTop: '1px solid rgba(6,182,212,0.05)',
         padding: '8px 16px',
         display: 'flex',
         alignItems: 'center',
         gap: 16,
       }}>
         {Object.entries(RISK_COLORS).map(([level, color]) => (
-          <span key={level} style={{ display: 'flex', alignItems: 'center', gap: 5, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.06em', color: '#3d4a5c' }}>
+          <span key={level} style={{ display: 'flex', alignItems: 'center', gap: 5, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.06em', color: '#1e4d5c' }}>
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: color, flexShrink: 0 }} />
             {level}
           </span>
         ))}
-        <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: '#3d4a5c' }}>
+        <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: '#1e4d5c' }}>
           Click node to open analysis · Drag to reposition
         </span>
       </div>

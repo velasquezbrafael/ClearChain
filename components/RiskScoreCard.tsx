@@ -10,7 +10,7 @@ function riskColor(level: RiskLevel): string {
     case 'CRITICAL': return '#ff3b3b';
     case 'HIGH':     return '#ff8c00';
     case 'MEDIUM':   return '#ffd60a';
-    default:         return '#00ff88';
+    default:         return '#06b6d4';
   }
 }
 
@@ -19,7 +19,7 @@ function riskGlow(level: RiskLevel): string {
     case 'CRITICAL': return '0 0 40px rgba(255,59,59,0.7), 0 0 80px rgba(255,59,59,0.3)';
     case 'HIGH':     return '0 0 40px rgba(255,140,0,0.6), 0 0 80px rgba(255,140,0,0.25)';
     case 'MEDIUM':   return '0 0 40px rgba(255,214,10,0.6), 0 0 80px rgba(255,214,10,0.25)';
-    default:         return '0 0 40px rgba(0,255,136,0.5), 0 0 80px rgba(0,255,136,0.2)';
+    default:         return '0 0 40px rgba(6,182,212,0.5), 0 0 80px rgba(6,182,212,0.2)';
   }
 }
 
@@ -27,7 +27,7 @@ function cardGlow(level: RiskLevel): string {
   switch (level) {
     case 'CRITICAL': return '0 0 40px rgba(255,59,59,0.12), inset 0 0 40px rgba(255,59,59,0.03)';
     case 'HIGH':     return '0 0 30px rgba(255,140,0,0.08)';
-    case 'LOW':      return '0 0 30px rgba(0,255,136,0.07)';
+    case 'LOW':      return '0 0 30px rgba(6,182,212,0.07)';
     default:         return 'none';
   }
 }
@@ -75,9 +75,9 @@ export default function RiskScoreCard({ riskScore }: RiskScoreCardProps) {
       <div
         style={{
           position: 'relative',
-          border: '1px solid rgba(255,255,255,0.06)',
+          border: '1px solid rgba(6,182,212,0.08)',
           borderRadius: 4,
-          background: '#080b14',
+          background: '#001824',
           boxShadow: cardGlow(level),
           overflow: 'hidden',
         }}
@@ -155,7 +155,7 @@ export default function RiskScoreCard({ riskScore }: RiskScoreCardProps) {
             style={{
               width: 48,
               height: 1,
-              background: 'rgba(255,255,255,0.06)',
+              background: 'rgba(6,182,212,0.08)',
               margin: '20px 0',
             }}
           />

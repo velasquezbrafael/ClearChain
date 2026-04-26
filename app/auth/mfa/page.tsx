@@ -73,7 +73,7 @@ export default function MFAPage() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: '#03040a',
+      background: '#00080f',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -84,21 +84,21 @@ export default function MFAPage() {
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
           <a href="/" style={{ textDecoration: 'none' }}>
-            <div style={{ fontSize: 13, letterSpacing: '0.2em', color: '#f0f4ff', fontFamily: 'var(--font-rubik-glitch)', fontWeight: 400, marginBottom: 8 }}>
+            <div style={{ fontSize: 13, letterSpacing: '0.2em', color: '#ecfeff', fontFamily: 'var(--font-rubik-glitch)', fontWeight: 400, marginBottom: 8 }}>
               CLEARCHAIN
             </div>
           </a>
-          <div style={{ fontSize: 22, fontWeight: 600, color: '#f0f4ff' }}>
+          <div style={{ fontSize: 22, fontWeight: 600, color: '#ecfeff' }}>
             Two-Factor Authentication
           </div>
-          <div style={{ marginTop: 10, fontSize: 13, color: '#8892a4', lineHeight: 1.6 }}>
+          <div style={{ marginTop: 10, fontSize: 13, color: '#7ec8d8', lineHeight: 1.6 }}>
             Enter the 6-digit code from your authenticator app.
           </div>
         </div>
 
         {/* Code input */}
         <div style={{ marginBottom: 24 }}>
-          <label style={{ display: 'block', fontSize: 11, letterSpacing: '0.12em', color: '#8892a4', marginBottom: 12, textAlign: 'center' }}>
+          <label style={{ display: 'block', fontSize: 11, letterSpacing: '0.12em', color: '#7ec8d8', marginBottom: 12, textAlign: 'center' }}>
             VERIFICATION CODE
           </label>
           <input
@@ -113,10 +113,10 @@ export default function MFAPage() {
             placeholder="000000"
             style={{
               width: '100%',
-              background: '#080b14',
+              background: '#001824',
               border: `1px solid ${error ? 'rgba(255,59,59,0.3)' : 'rgba(255,255,255,0.08)'}`,
               borderRadius: 4,
-              color: '#f0f4ff',
+              color: '#ecfeff',
               fontSize: 28,
               fontFamily: 'var(--font-jetbrains-mono)',
               letterSpacing: '0.35em',
@@ -152,10 +152,10 @@ export default function MFAPage() {
           style={{
             width: '100%',
             padding: '12px',
-            background: code.length === 6 && !verifying ? 'rgba(0,255,136,0.1)' : 'rgba(255,255,255,0.03)',
-            border: `1px solid ${code.length === 6 && !verifying ? 'rgba(0,255,136,0.3)' : 'rgba(255,255,255,0.06)'}`,
+            background: code.length === 6 && !verifying ? 'rgba(6,182,212,0.1)' : 'rgba(255,255,255,0.03)',
+            border: `1px solid ${code.length === 6 && !verifying ? 'rgba(6,182,212,0.3)' : 'rgba(6,182,212,0.08)'}`,
             borderRadius: 4,
-            color: code.length === 6 && !verifying ? '#00ff88' : '#3d4a5c',
+            color: code.length === 6 && !verifying ? '#06b6d4' : '#1e4d5c',
             fontSize: 12,
             letterSpacing: '0.15em',
             fontWeight: 600,
@@ -168,7 +168,7 @@ export default function MFAPage() {
         </button>
 
         <div style={{ textAlign: 'center', marginTop: 32 }}>
-          <a href="/auth/login" style={{ fontSize: 12, color: '#3d4a5c', textDecoration: 'none' }}>
+          <a href="/auth/login" style={{ fontSize: 12, color: '#1e4d5c', textDecoration: 'none' }}>
             ← Back to login
           </a>
         </div>

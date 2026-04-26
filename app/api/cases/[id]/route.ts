@@ -55,39 +55,39 @@ async function sendStatusEmail(to: string, caseTitle: string, newStatus: string,
 <!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"></head>
-<body style="margin:0;padding:0;background:#03040a;font-family:system-ui,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#03040a;min-height:100vh;">
+<body style="margin:0;padding:0;background:#00080f;font-family:system-ui,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#00080f;min-height:100vh;">
     <tr>
       <td align="center" style="padding:48px 16px;">
-        <table width="560" cellpadding="0" cellspacing="0" style="background:#080b14;border:1px solid rgba(255,255,255,0.06);border-radius:4px;">
+        <table width="560" cellpadding="0" cellspacing="0" style="background:#001824;border:1px solid rgba(6,182,212,0.08);border-radius:4px;">
           <!-- Header -->
           <tr>
-            <td style="padding:24px 32px;border-bottom:1px solid rgba(255,255,255,0.06);">
-              <span style="font-family:monospace;font-size:13px;letter-spacing:0.2em;color:#00ff88;font-weight:700;">CLEARCHAIN</span>
+            <td style="padding:24px 32px;border-bottom:1px solid rgba(6,182,212,0.08);">
+              <span style="font-family:monospace;font-size:13px;letter-spacing:0.2em;color:#06b6d4;font-weight:700;">CLEARCHAIN</span>
             </td>
           </tr>
           <!-- Body -->
           <tr>
             <td style="padding:32px;">
-              <div style="font-family:monospace;font-size:10px;letter-spacing:0.15em;color:#3d4a5c;margin-bottom:16px;text-transform:uppercase;">Case Status Update</div>
-              <h2 style="font-size:20px;font-weight:700;color:#f0f4ff;margin:0 0 8px;">${caseTitle}</h2>
+              <div style="font-family:monospace;font-size:10px;letter-spacing:0.15em;color:#1e4d5c;margin-bottom:16px;text-transform:uppercase;">Case Status Update</div>
+              <h2 style="font-size:20px;font-weight:700;color:#ecfeff;margin:0 0 8px;">${caseTitle}</h2>
               <div style="display:inline-block;padding:4px 12px;background:${accentColor}18;border:1px solid ${accentColor}40;border-radius:2px;font-family:monospace;font-size:11px;letter-spacing:0.1em;color:${accentColor};margin-bottom:24px;">
                 ${statusLabel.toUpperCase()}
               </div>
-              <p style="font-size:14px;color:#8892a4;line-height:1.6;margin:0 0 24px;">
+              <p style="font-size:14px;color:#7ec8d8;line-height:1.6;margin:0 0 24px;">
                 ${isSAR
-                  ? 'This case has been marked <strong style="color:#f0f4ff;">SAR Filed</strong>. The Suspicious Activity Report has been logged. Ensure the filing is submitted to FinCEN within the required timeframe.'
-                  : 'This case has been <strong style="color:#f0f4ff;">escalated</strong> and requires immediate attention from a qualified BSA/AML officer.'}
+                  ? 'This case has been marked <strong style="color:#ecfeff;">SAR Filed</strong>. The Suspicious Activity Report has been logged. Ensure the filing is submitted to FinCEN within the required timeframe.'
+                  : 'This case has been <strong style="color:#ecfeff;">escalated</strong> and requires immediate attention from a qualified BSA/AML officer.'}
               </p>
-              <a href="${caseUrl}" style="display:inline-block;padding:12px 24px;background:rgba(0,255,136,0.1);border:1px solid rgba(0,255,136,0.3);border-radius:2px;font-family:monospace;font-size:11px;letter-spacing:0.12em;color:#00ff88;text-decoration:none;">
+              <a href="${caseUrl}" style="display:inline-block;padding:12px 24px;background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.3);border-radius:2px;font-family:monospace;font-size:11px;letter-spacing:0.12em;color:#06b6d4;text-decoration:none;">
                 VIEW CASE →
               </a>
             </td>
           </tr>
           <!-- Footer -->
           <tr>
-            <td style="padding:20px 32px;border-top:1px solid rgba(255,255,255,0.04);">
-              <p style="font-family:monospace;font-size:10px;color:#3d4a5c;margin:0;line-height:1.6;">
+            <td style="padding:20px 32px;border-top:1px solid rgba(6,182,212,0.05);">
+              <p style="font-family:monospace;font-size:10px;color:#1e4d5c;margin:0;line-height:1.6;">
                 ClearChain · Crypto AML Intelligence<br>
                 SAR drafts require qualified BSA/AML officer review before filing. Not legal advice.
               </p>

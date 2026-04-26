@@ -110,7 +110,7 @@ function riskColor(level: RiskLevel): string {
     case 'CRITICAL': return '#ff3b3b';
     case 'HIGH':     return '#ff8c00';
     case 'MEDIUM':   return '#ffd60a';
-    default:         return '#00ff88';
+    default:         return '#06b6d4';
   }
 }
 
@@ -233,9 +233,9 @@ function SignalList({ signals, isMobile, riskLevel }: { signals: Record<string, 
   return (
     <div
       style={{
-        border: '1px solid rgba(255,255,255,0.06)',
+        border: '1px solid rgba(6,182,212,0.08)',
         borderRadius: 4,
-        background: '#080b14',
+        background: '#001824',
         padding: 24,
       }}
     >
@@ -270,7 +270,7 @@ function SignalList({ signals, isMobile, riskLevel }: { signals: Record<string, 
                   gap: 0,
                   padding: isMobile ? '8px 6px' : '0',
                   borderRadius: 2,
-                  background: showCleanTint ? 'rgba(0,255,136,0.03)' : 'transparent',
+                  background: showCleanTint ? 'rgba(6,182,212,0.03)' : 'transparent',
                   cursor: canExpand ? 'pointer' : 'default',
                   transition: 'background 0.15s',
                 }}
@@ -279,7 +279,7 @@ function SignalList({ signals, isMobile, riskLevel }: { signals: Record<string, 
                 <span
                   style={{
                     fontSize: 7,
-                    color: signal.triggered ? '#00ff88' : (isClean ? 'rgba(0,255,136,0.3)' : '#3d4a5c'),
+                    color: signal.triggered ? '#06b6d4' : (isClean ? 'rgba(6,182,212,0.3)' : '#1e4d5c'),
                     marginRight: 10,
                     flexShrink: 0,
                     lineHeight: 1,
@@ -294,7 +294,7 @@ function SignalList({ signals, isMobile, riskLevel }: { signals: Record<string, 
                     fontFamily: 'var(--font-jetbrains-mono)',
                     fontSize: 10,
                     letterSpacing: '0.05em',
-                    color: signal.triggered ? 'var(--text-primary)' : (isClean ? 'rgba(0,255,136,0.35)' : 'var(--text-dim)'),
+                    color: signal.triggered ? 'var(--text-primary)' : (isClean ? 'rgba(6,182,212,0.35)' : 'var(--text-dim)'),
                     flex: 1,
                     overflow: 'hidden',
                     whiteSpace: 'nowrap',
@@ -318,7 +318,7 @@ function SignalList({ signals, isMobile, riskLevel }: { signals: Record<string, 
                   style={{
                     fontFamily: 'var(--font-jetbrains-mono)',
                     fontSize: 12,
-                    color: signal.triggered ? '#ff8c00' : (isClean ? 'rgba(0,255,136,0.25)' : '#3d4a5c'),
+                    color: signal.triggered ? '#ff8c00' : (isClean ? 'rgba(6,182,212,0.25)' : '#1e4d5c'),
                     flexShrink: 0,
                     minWidth: 30,
                     textAlign: 'right',
@@ -360,7 +360,7 @@ function SignalList({ signals, isMobile, riskLevel }: { signals: Record<string, 
           style={{
             marginTop: 20,
             paddingTop: 16,
-            borderTop: '1px solid rgba(255,255,255,0.04)',
+            borderTop: '1px solid rgba(6,182,212,0.05)',
             display: 'flex',
             flexDirection: 'column',
             gap: 10,
@@ -411,7 +411,7 @@ function FeatureCard({ title, desc, icon }: { title: string; desc: string; icon?
       onMouseLeave={() => setHovered(false)}
       style={{
         padding: 32,
-        border: `1px solid ${hovered ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.06)'}`,
+        border: `1px solid ${hovered ? 'rgba(255,255,255,0.1)' : 'rgba(6,182,212,0.08)'}`,
         borderRadius: 4,
         background: hovered ? 'rgba(255,255,255,0.02)' : 'transparent',
         transition: 'border-color 0.2s, background 0.2s',
@@ -427,7 +427,7 @@ function FeatureCard({ title, desc, icon }: { title: string; desc: string; icon?
           fontFamily: 'var(--font-jetbrains-mono)',
           fontSize: 11,
           letterSpacing: '0.15em',
-          color: '#00ff88',
+          color: '#06b6d4',
           marginBottom: 10,
         }}
       >
@@ -517,9 +517,9 @@ function HeroContent({
       desc: '0–100 weighted score across 6 signals. OFAC match, mixer interaction, peel chains, coinjoin detection. Every point explained — no black box.',
       icon: (
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-          <path d="M3 14 A8 8 0 0 1 17 14" stroke="#00ff88" strokeWidth="1.5" strokeLinecap="round"/>
-          <path d="M10 14 L13 7" stroke="#00ff88" strokeWidth="1.5" strokeLinecap="round"/>
-          <circle cx="10" cy="14" r="1.5" fill="#00ff88"/>
+          <path d="M3 14 A8 8 0 0 1 17 14" stroke="#06b6d4" strokeWidth="1.5" strokeLinecap="round"/>
+          <path d="M10 14 L13 7" stroke="#06b6d4" strokeWidth="1.5" strokeLinecap="round"/>
+          <circle cx="10" cy="14" r="1.5" fill="#06b6d4"/>
         </svg>
       ),
     },
@@ -528,11 +528,11 @@ function HeroContent({
       desc: '7 FATF/FinCEN typologies automatically matched: smurfing, layering, mixer obfuscation, hop layering, convergence, peel chain, coinjoin. With regulatory citations.',
       icon: (
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-          <circle cx="10" cy="4" r="2" stroke="#00ff88" strokeWidth="1.5"/>
-          <circle cx="4" cy="16" r="2" stroke="#00ff88" strokeWidth="1.5"/>
-          <circle cx="16" cy="16" r="2" stroke="#00ff88" strokeWidth="1.5"/>
-          <line x1="10" y1="6" x2="4.8" y2="14" stroke="#00ff88" strokeWidth="1.5"/>
-          <line x1="10" y1="6" x2="15.2" y2="14" stroke="#00ff88" strokeWidth="1.5"/>
+          <circle cx="10" cy="4" r="2" stroke="#06b6d4" strokeWidth="1.5"/>
+          <circle cx="4" cy="16" r="2" stroke="#06b6d4" strokeWidth="1.5"/>
+          <circle cx="16" cy="16" r="2" stroke="#06b6d4" strokeWidth="1.5"/>
+          <line x1="10" y1="6" x2="4.8" y2="14" stroke="#06b6d4" strokeWidth="1.5"/>
+          <line x1="10" y1="6" x2="15.2" y2="14" stroke="#06b6d4" strokeWidth="1.5"/>
         </svg>
       ),
     },
@@ -541,15 +541,15 @@ function HeroContent({
       desc: 'Click any node to follow the money. Trace funds across hops, identify OFAC entities in red, detect when two wallets share a counterparty.',
       icon: (
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-          <circle cx="10" cy="10" r="2" stroke="#00ff88" strokeWidth="1.5"/>
-          <circle cx="3" cy="5" r="1.5" stroke="#00ff88" strokeWidth="1.5"/>
-          <circle cx="17" cy="5" r="1.5" stroke="#00ff88" strokeWidth="1.5"/>
-          <circle cx="3" cy="15" r="1.5" stroke="#00ff88" strokeWidth="1.5"/>
-          <circle cx="17" cy="15" r="1.5" stroke="#00ff88" strokeWidth="1.5"/>
-          <line x1="8.5" y1="8.8" x2="4.2" y2="6.2" stroke="#00ff88" strokeWidth="1"/>
-          <line x1="11.5" y1="8.8" x2="15.8" y2="6.2" stroke="#00ff88" strokeWidth="1"/>
-          <line x1="8.5" y1="11.2" x2="4.2" y2="13.8" stroke="#00ff88" strokeWidth="1"/>
-          <line x1="11.5" y1="11.2" x2="15.8" y2="13.8" stroke="#00ff88" strokeWidth="1"/>
+          <circle cx="10" cy="10" r="2" stroke="#06b6d4" strokeWidth="1.5"/>
+          <circle cx="3" cy="5" r="1.5" stroke="#06b6d4" strokeWidth="1.5"/>
+          <circle cx="17" cy="5" r="1.5" stroke="#06b6d4" strokeWidth="1.5"/>
+          <circle cx="3" cy="15" r="1.5" stroke="#06b6d4" strokeWidth="1.5"/>
+          <circle cx="17" cy="15" r="1.5" stroke="#06b6d4" strokeWidth="1.5"/>
+          <line x1="8.5" y1="8.8" x2="4.2" y2="6.2" stroke="#06b6d4" strokeWidth="1"/>
+          <line x1="11.5" y1="8.8" x2="15.8" y2="6.2" stroke="#06b6d4" strokeWidth="1"/>
+          <line x1="8.5" y1="11.2" x2="4.2" y2="13.8" stroke="#06b6d4" strokeWidth="1"/>
+          <line x1="11.5" y1="11.2" x2="15.8" y2="13.8" stroke="#06b6d4" strokeWidth="1"/>
         </svg>
       ),
     },
@@ -558,10 +558,10 @@ function HeroContent({
       desc: 'FinCEN-format Suspicious Activity Report generated in seconds. The work that takes compliance teams 2–3 hours — automated.',
       icon: (
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-          <rect x="4" y="2" width="12" height="16" rx="1" stroke="#00ff88" strokeWidth="1.5"/>
-          <line x1="7" y1="7" x2="13" y2="7" stroke="#00ff88" strokeWidth="1.5" strokeLinecap="round"/>
-          <line x1="7" y1="10" x2="13" y2="10" stroke="#00ff88" strokeWidth="1.5" strokeLinecap="round"/>
-          <line x1="7" y1="13" x2="10" y2="13" stroke="#00ff88" strokeWidth="1.5" strokeLinecap="round"/>
+          <rect x="4" y="2" width="12" height="16" rx="1" stroke="#06b6d4" strokeWidth="1.5"/>
+          <line x1="7" y1="7" x2="13" y2="7" stroke="#06b6d4" strokeWidth="1.5" strokeLinecap="round"/>
+          <line x1="7" y1="10" x2="13" y2="10" stroke="#06b6d4" strokeWidth="1.5" strokeLinecap="round"/>
+          <line x1="7" y1="13" x2="10" y2="13" stroke="#06b6d4" strokeWidth="1.5" strokeLinecap="round"/>
         </svg>
       ),
     },
@@ -570,12 +570,12 @@ function HeroContent({
       desc: 'Toggle risk factors and watch the score update in real time. The only AML tool with what-if scenario modeling.',
       icon: (
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-          <line x1="3" y1="5" x2="17" y2="5" stroke="#00ff88" strokeWidth="1.5" strokeLinecap="round"/>
-          <line x1="3" y1="10" x2="17" y2="10" stroke="#00ff88" strokeWidth="1.5" strokeLinecap="round"/>
-          <line x1="3" y1="15" x2="17" y2="15" stroke="#00ff88" strokeWidth="1.5" strokeLinecap="round"/>
-          <circle cx="8" cy="5" r="2" fill="#03040a" stroke="#00ff88" strokeWidth="1.5"/>
-          <circle cx="13" cy="10" r="2" fill="#03040a" stroke="#00ff88" strokeWidth="1.5"/>
-          <circle cx="7" cy="15" r="2" fill="#03040a" stroke="#00ff88" strokeWidth="1.5"/>
+          <line x1="3" y1="5" x2="17" y2="5" stroke="#06b6d4" strokeWidth="1.5" strokeLinecap="round"/>
+          <line x1="3" y1="10" x2="17" y2="10" stroke="#06b6d4" strokeWidth="1.5" strokeLinecap="round"/>
+          <line x1="3" y1="15" x2="17" y2="15" stroke="#06b6d4" strokeWidth="1.5" strokeLinecap="round"/>
+          <circle cx="8" cy="5" r="2" fill="#00080f" stroke="#06b6d4" strokeWidth="1.5"/>
+          <circle cx="13" cy="10" r="2" fill="#00080f" stroke="#06b6d4" strokeWidth="1.5"/>
+          <circle cx="7" cy="15" r="2" fill="#00080f" stroke="#06b6d4" strokeWidth="1.5"/>
         </svg>
       ),
     },
@@ -616,7 +616,7 @@ function HeroContent({
             fontFamily: 'var(--font-jetbrains-mono)',
             fontSize: 11,
             letterSpacing: '0.25em',
-            color: 'rgba(0,255,136,0.6)',
+            color: 'rgba(6,182,212,0.6)',
             marginBottom: 28,
             animation: 'fadeSlideUp 0.5s ease-out both',
             animationDelay: '0s',
@@ -633,7 +633,7 @@ function HeroContent({
               borderBottom: '1px solid transparent',
               transition: 'border-color 0.2s',
             }}
-            onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(0,255,136,0.4)'; }}
+            onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(6,182,212,0.4)'; }}
             onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = 'transparent'; }}
           >
             OPEN SOURCE
@@ -699,7 +699,7 @@ function HeroContent({
           {/* Chain selector */}
           <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
             {(['ETH', 'BTC', 'TRX'] as const).map(c => {
-              const chainColor = c === 'ETH' ? '#00ff88' : c === 'BTC' ? '#f97316' : '#ff4500';
+              const chainColor = c === 'ETH' ? '#06b6d4' : c === 'BTC' ? '#f97316' : '#ff4500';
               const isActive = selectedChain === c;
               return (
                 <button
@@ -730,7 +730,7 @@ function HeroContent({
             style={{
               display: 'flex',
               alignItems: 'center',
-              borderBottom: `1px solid ${inputFocused ? '#00ff88' : 'rgba(255,255,255,0.15)'}`,
+              borderBottom: `1px solid ${inputFocused ? '#06b6d4' : 'rgba(255,255,255,0.15)'}`,
               paddingBottom: 14,
               gap: 16,
               transition: 'border-color 0.2s',
@@ -756,7 +756,7 @@ function HeroContent({
                 fontFamily: 'var(--font-jetbrains-mono)',
                 fontSize: 20,
                 color: 'var(--text-primary)',
-                caretColor: '#00ff88',
+                caretColor: '#06b6d4',
                 letterSpacing: '0.02em',
               }}
             />
@@ -814,12 +814,12 @@ function HeroContent({
           <span
             style={{
               padding: '6px 14px',
-              border: '1px solid rgba(0,255,136,0.12)',
+              border: '1px solid rgba(6,182,212,0.12)',
               borderRadius: 2,
               fontFamily: 'var(--font-jetbrains-mono)',
               fontSize: 10,
               letterSpacing: '0.1em',
-              color: 'rgba(0,255,136,0.6)',
+              color: 'rgba(6,182,212,0.6)',
             }}
           >
             Free Forever
@@ -840,8 +840,8 @@ function HeroContent({
         >
           {(() => {
             const STYLE_MAP = {
-              red:    { border: 'rgba(255,255,255,0.06)', color: 'var(--text-secondary)', bg: 'none',                    hoverBorder: 'rgba(255,59,59,0.35)',    hoverColor: '#ff6b6b' },
-              green:  { border: 'rgba(0,255,136,0.2)',    color: 'rgba(0,255,136,0.8)',   bg: 'rgba(0,255,136,0.04)',    hoverBorder: 'rgba(0,255,136,0.4)',     hoverColor: '#00ff88' },
+              red:    { border: 'rgba(6,182,212,0.08)', color: 'var(--text-secondary)', bg: 'none',                    hoverBorder: 'rgba(255,59,59,0.35)',    hoverColor: '#ff6b6b' },
+              green:  { border: 'rgba(6,182,212,0.2)',    color: 'rgba(6,182,212,0.8)',   bg: 'rgba(6,182,212,0.04)',    hoverBorder: 'rgba(6,182,212,0.4)',     hoverColor: '#06b6d4' },
               blue:   { border: 'rgba(59,130,246,0.25)',  color: 'rgba(96,165,250,0.8)',  bg: 'rgba(59,130,246,0.04)',   hoverBorder: 'rgba(59,130,246,0.5)',    hoverColor: '#60a5fa' },
               orange: { border: 'rgba(255,69,0,0.25)',    color: 'rgba(255,100,0,0.8)',   bg: 'rgba(255,69,0,0.04)',     hoverBorder: 'rgba(255,69,0,0.5)',      hoverColor: '#ff4500' },
             };
@@ -867,12 +867,12 @@ function HeroContent({
                   <button
                     onClick={onSimulatorFill}
                     disabled={loading}
-                    style={{ padding: '6px 14px', border: '1px solid rgba(0,255,136,0.2)', borderRadius: 2, background: 'rgba(0,255,136,0.04)', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: 'rgba(0,255,136,0.8)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, transition: 'border-color 0.2s, color 0.2s' }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(0,255,136,0.4)'; e.currentTarget.style.color = '#00ff88'; }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(0,255,136,0.2)'; e.currentTarget.style.color = 'rgba(0,255,136,0.8)'; }}
+                    style={{ padding: '6px 14px', border: '1px solid rgba(6,182,212,0.2)', borderRadius: 2, background: 'rgba(6,182,212,0.04)', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: 'rgba(6,182,212,0.8)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, transition: 'border-color 0.2s, color 0.2s' }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(6,182,212,0.4)'; e.currentTarget.style.color = '#06b6d4'; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(6,182,212,0.2)'; e.currentTarget.style.color = 'rgba(6,182,212,0.8)'; }}
                   >
                     <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0 }}>
-                      <polygon points="2,1 9,5 2,9" fill="#00ff88"/>
+                      <polygon points="2,1 9,5 2,9" fill="#06b6d4"/>
                     </svg>
                     Try the Simulator
                   </button>
@@ -914,7 +914,7 @@ function HeroContent({
                   alignItems: 'center',
                   gap: 6,
                   padding: '4px 10px',
-                  border: '1px solid rgba(255,255,255,0.06)',
+                  border: '1px solid rgba(6,182,212,0.08)',
                   borderRadius: 2,
                 }}
               >
@@ -939,7 +939,7 @@ function HeroContent({
                       width: 5,
                       height: 5,
                       borderRadius: '50%',
-                      background: entry.level === 'CRITICAL' ? '#ff3b3b' : entry.level === 'HIGH' ? '#ff8c00' : entry.level === 'MEDIUM' ? '#ffd60a' : '#00ff88',
+                      background: entry.level === 'CRITICAL' ? '#ff3b3b' : entry.level === 'HIGH' ? '#ff8c00' : entry.level === 'MEDIUM' ? '#ffd60a' : '#06b6d4',
                       flexShrink: 0,
                     }}
                   />
@@ -969,7 +969,7 @@ function HeroContent({
       {/* Feature grid */}
       <div
         style={{
-          borderTop: '1px solid rgba(255,255,255,0.04)',
+          borderTop: '1px solid rgba(6,182,212,0.05)',
           padding: '48px 24px 16px',
           maxWidth: 1200,
           margin: '0 auto',
@@ -984,12 +984,12 @@ function HeroContent({
             display: 'grid',
             gridTemplateColumns: 'repeat(5, 1fr)',
             gap: 1,
-            background: 'rgba(255,255,255,0.04)',
+            background: 'rgba(6,182,212,0.05)',
             alignItems: 'stretch',
           }}
         >
           {features.map(f => (
-            <div key={f.title} style={{ background: '#03040a', display: 'flex', alignItems: 'stretch' }}>
+            <div key={f.title} style={{ background: '#00080f', display: 'flex', alignItems: 'stretch' }}>
               <FeatureCard title={f.title} desc={f.desc} icon={f.icon} />
             </div>
           ))}
@@ -999,7 +999,7 @@ function HeroContent({
       {/* How it works */}
       <div
         style={{
-          borderTop: '1px solid rgba(255,255,255,0.04)',
+          borderTop: '1px solid rgba(6,182,212,0.05)',
           padding: '32px 24px 64px',
           maxWidth: 1200,
           margin: '0 auto',
@@ -1025,7 +1025,7 @@ function HeroContent({
                   fontFamily: 'var(--font-space-grotesk)',
                   fontSize: 56,
                   fontWeight: 700,
-                  color: 'rgba(0,255,136,0.08)',
+                  color: 'rgba(6,182,212,0.08)',
                   lineHeight: 1,
                   marginBottom: 16,
                   letterSpacing: '-0.02em',
@@ -1062,17 +1062,17 @@ function HeroContent({
       </div>
 
       {/* Why ClearChain */}
-      <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', width: '100%' }}>
+      <div style={{ borderTop: '1px solid rgba(6,182,212,0.08)', width: '100%' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto', padding: '80px 32px' }}>
           {/* Header */}
           <div style={{ marginBottom: 60 }}>
-            <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.2em', color: '#3d4a5c', marginBottom: 16, textTransform: 'uppercase' as const }}>
+            <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.2em', color: '#1e4d5c', marginBottom: 16, textTransform: 'uppercase' as const }}>
               Why ClearChain
             </div>
-            <h2 style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 36, fontWeight: 700, color: '#f0f4ff', margin: '0 0 16px', letterSpacing: '-0.01em' }}>
+            <h2 style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 36, fontWeight: 700, color: '#ecfeff', margin: '0 0 16px', letterSpacing: '-0.01em' }}>
               Built for investigators, not checkboxes.
             </h2>
-            <p style={{ fontFamily: 'var(--font-inter)', fontSize: 16, color: '#8892a4', margin: 0, lineHeight: 1.6, maxWidth: 560 }}>
+            <p style={{ fontFamily: 'var(--font-inter)', fontSize: 16, color: '#7ec8d8', margin: 0, lineHeight: 1.6, maxWidth: 560 }}>
               Most AML tools produce reports for regulators. ClearChain produces intelligence for analysts.
             </p>
           </div>
@@ -1094,13 +1094,13 @@ function HeroContent({
               },
             ].map((row, i) => (
               <>
-                <div key={`left-${i}`} style={{ padding: '28px 32px', border: '1px solid rgba(255,255,255,0.06)', background: '#080b14' }}>
-                  <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.15em', color: '#3d4a5c', marginBottom: 12 }}>{row.left.label}</div>
-                  <p style={{ fontFamily: 'var(--font-inter)', fontSize: 15, color: '#8892a4', lineHeight: 1.7, margin: 0 }}>{row.left.body}</p>
+                <div key={`left-${i}`} style={{ padding: '28px 32px', border: '1px solid rgba(6,182,212,0.08)', background: '#001824' }}>
+                  <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.15em', color: '#1e4d5c', marginBottom: 12 }}>{row.left.label}</div>
+                  <p style={{ fontFamily: 'var(--font-inter)', fontSize: 15, color: '#7ec8d8', lineHeight: 1.7, margin: 0 }}>{row.left.body}</p>
                 </div>
-                <div key={`right-${i}`} style={{ padding: '28px 32px', border: '1px solid rgba(255,255,255,0.06)', background: 'transparent' }}>
-                  <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.15em', color: '#3d4a5c', marginBottom: 12 }}>{row.right.label}</div>
-                  <p style={{ fontFamily: 'var(--font-inter)', fontSize: 15, color: '#8892a4', lineHeight: 1.7, margin: 0 }}>{row.right.body}</p>
+                <div key={`right-${i}`} style={{ padding: '28px 32px', border: '1px solid rgba(6,182,212,0.08)', background: 'transparent' }}>
+                  <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.15em', color: '#1e4d5c', marginBottom: 12 }}>{row.right.label}</div>
+                  <p style={{ fontFamily: 'var(--font-inter)', fontSize: 15, color: '#7ec8d8', lineHeight: 1.7, margin: 0 }}>{row.right.body}</p>
                 </div>
               </>
             ))}
@@ -1114,10 +1114,10 @@ function HeroContent({
               { value: 'Free', label: 'no account required' },
             ].map((stat, i) => (
               <>
-                {i > 0 && <div key={`div-${i}`} style={{ width: 1, height: 40, background: 'rgba(255,255,255,0.06)', margin: '0 48px' }} />}
+                {i > 0 && <div key={`div-${i}`} style={{ width: 1, height: 40, background: 'rgba(6,182,212,0.08)', margin: '0 48px' }} />}
                 <div key={stat.value} style={{ textAlign: 'center' }}>
-                  <div style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 32, fontWeight: 700, color: '#00ff88', lineHeight: 1, marginBottom: 8 }}>{stat.value}</div>
-                  <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.12em', color: '#3d4a5c' }}>{stat.label}</div>
+                  <div style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 32, fontWeight: 700, color: '#06b6d4', lineHeight: 1, marginBottom: 8 }}>{stat.value}</div>
+                  <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.12em', color: '#1e4d5c' }}>{stat.label}</div>
                 </div>
               </>
             ))}
@@ -1149,9 +1149,9 @@ function AnalyzeButton({ loading, compact }: { loading: boolean; compact?: boole
           fontFamily: 'var(--font-jetbrains-mono)',
           fontSize: compact ? 11 : 13,
           letterSpacing: '0.12em',
-          color: '#00ff88',
+          color: '#06b6d4',
           padding: '0 4px',
-          textShadow: hovered && !loading ? '0 0 20px rgba(0,255,136,0.8), 0 0 40px rgba(0,255,136,0.4)' : 'none',
+          textShadow: hovered && !loading ? '0 0 20px rgba(6,182,212,0.8), 0 0 40px rgba(6,182,212,0.4)' : 'none',
           transform: hovered && !loading ? 'translateX(3px)' : 'translateX(0)',
           transition: 'text-shadow 0.2s, transform 0.15s',
           opacity: loading ? 0.5 : 1,
@@ -1167,7 +1167,7 @@ function AnalyzeButton({ loading, compact }: { loading: boolean; compact?: boole
             letterSpacing: '0.08em',
             color: 'var(--text-dim)',
             padding: '2px 6px',
-            border: '1px solid rgba(255,255,255,0.06)',
+            border: '1px solid rgba(6,182,212,0.08)',
             borderRadius: 2,
             lineHeight: 1.5,
           }}
@@ -1201,13 +1201,13 @@ function ShareButton() {
       onMouseLeave={() => setHovered(false)}
       style={{
         padding: '6px 14px',
-        border: `1px solid ${copied ? 'rgba(0,255,136,0.4)' : hovered ? 'rgba(0,255,136,0.3)' : 'rgba(255,255,255,0.06)'}`,
+        border: `1px solid ${copied ? 'rgba(6,182,212,0.4)' : hovered ? 'rgba(6,182,212,0.3)' : 'rgba(6,182,212,0.08)'}`,
         borderRadius: 2,
-        background: copied ? 'rgba(0,255,136,0.08)' : hovered ? 'rgba(0,255,136,0.05)' : 'none',
+        background: copied ? 'rgba(6,182,212,0.08)' : hovered ? 'rgba(6,182,212,0.05)' : 'none',
         fontFamily: 'var(--font-jetbrains-mono)',
         fontSize: 10,
         letterSpacing: '0.1em',
-        color: copied ? '#00ff88' : hovered ? '#00ff88' : 'var(--text-secondary)',
+        color: copied ? '#06b6d4' : hovered ? '#06b6d4' : 'var(--text-secondary)',
         cursor: 'pointer',
         flexShrink: 0,
         transition: 'all 0.2s',
@@ -1307,7 +1307,7 @@ function SaveToCaseButton({ address, analysisId }: { address: string; analysisId
   if (isLoggedIn === null) return null;
   if (!isLoggedIn) {
     return (
-      <a href="/auth/login" style={{ padding: '6px 14px', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 2, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.1em', color: 'var(--text-dim)', textDecoration: 'none', flexShrink: 0 }}>
+      <a href="/auth/login" style={{ padding: '6px 14px', border: '1px solid rgba(6,182,212,0.08)', borderRadius: 2, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.1em', color: 'var(--text-dim)', textDecoration: 'none', flexShrink: 0 }}>
         Sign in to save →
       </a>
     );
@@ -1321,7 +1321,7 @@ function SaveToCaseButton({ address, analysisId }: { address: string; analysisId
         top: dropdownPos.top,
         right: dropdownPos.right,
         zIndex: 9999,
-        background: '#080b14',
+        background: '#001824',
         border: '1px solid rgba(255,255,255,0.1)',
         borderRadius: 6,
         padding: 16,
@@ -1330,11 +1330,11 @@ function SaveToCaseButton({ address, analysisId }: { address: string; analysisId
         boxSizing: 'border-box',
       }}
     >
-      <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, letterSpacing: '0.15em', color: '#3d4a5c', marginBottom: 12 }}>+ SAVE TO CASE</div>
+      <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, letterSpacing: '0.15em', color: '#1e4d5c', marginBottom: 12 }}>+ SAVE TO CASE</div>
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
         {(['existing', 'new'] as const).map(m => (
-          <button key={m} onClick={() => setMode(m)} style={{ flex: 1, padding: '6px', border: `1px solid ${mode === m ? 'rgba(0,255,136,0.3)' : 'rgba(255,255,255,0.08)'}`, borderRadius: 3, background: mode === m ? 'rgba(0,255,136,0.08)' : 'transparent', color: mode === m ? '#00ff88' : '#8892a4', fontSize: 10, letterSpacing: '0.1em', cursor: 'pointer', fontFamily: 'var(--font-jetbrains-mono)' }}>
+          <button key={m} onClick={() => setMode(m)} style={{ flex: 1, padding: '6px', border: `1px solid ${mode === m ? 'rgba(6,182,212,0.3)' : 'rgba(255,255,255,0.08)'}`, borderRadius: 3, background: mode === m ? 'rgba(6,182,212,0.08)' : 'transparent', color: mode === m ? '#06b6d4' : '#7ec8d8', fontSize: 10, letterSpacing: '0.1em', cursor: 'pointer', fontFamily: 'var(--font-jetbrains-mono)' }}>
             {m === 'existing' ? 'EXISTING' : 'NEW CASE'}
           </button>
         ))}
@@ -1345,7 +1345,7 @@ function SaveToCaseButton({ address, analysisId }: { address: string; analysisId
           <select
             value={selectedCase}
             onChange={e => setSelectedCase(e.target.value)}
-            style={{ width: '100%', background: '#03040a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 3, color: '#f0f4ff', fontSize: 12, padding: '8px 10px', fontFamily: 'var(--font-jetbrains-mono)' }}
+            style={{ width: '100%', background: '#00080f', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 3, color: '#ecfeff', fontSize: 12, padding: '8px 10px', fontFamily: 'var(--font-jetbrains-mono)' }}
           >
             <option value="">Select a case...</option>
             {cases.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
@@ -1357,7 +1357,7 @@ function SaveToCaseButton({ address, analysisId }: { address: string; analysisId
             onChange={e => setNewTitle(e.target.value)}
             placeholder="Case name..."
             autoFocus
-            style={{ width: '100%', boxSizing: 'border-box', background: 'transparent', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.15)', color: '#f0f4ff', fontSize: 13, padding: '6px 0', outline: 'none', fontFamily: 'var(--font-jetbrains-mono)' }}
+            style={{ width: '100%', boxSizing: 'border-box', background: 'transparent', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.15)', color: '#ecfeff', fontSize: 13, padding: '6px 0', outline: 'none', fontFamily: 'var(--font-jetbrains-mono)' }}
           />
         )}
       </div>
@@ -1365,7 +1365,7 @@ function SaveToCaseButton({ address, analysisId }: { address: string; analysisId
       <button
         onClick={handleSave}
         disabled={saving || !canSave}
-        style={{ width: '100%', padding: '9px', background: 'rgba(0,255,136,0.1)', border: '1px solid rgba(0,255,136,0.3)', borderRadius: 3, color: '#00ff88', fontSize: 11, letterSpacing: '0.12em', cursor: saving || !canSave ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-jetbrains-mono)', opacity: saving || !canSave ? 0.5 : 1 }}
+        style={{ width: '100%', padding: '9px', background: 'rgba(6,182,212,0.1)', border: '1px solid rgba(6,182,212,0.3)', borderRadius: 3, color: '#06b6d4', fontSize: 11, letterSpacing: '0.12em', cursor: saving || !canSave ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-jetbrains-mono)', opacity: saving || !canSave ? 0.5 : 1 }}
       >
         {saving ? 'SAVING...' : '→ SAVE TO CASE'}
       </button>
@@ -1380,13 +1380,13 @@ function SaveToCaseButton({ address, analysisId }: { address: string; analysisId
         onClick={handleOpen}
         style={{
           padding: '6px 14px',
-          border: `1px solid ${saved ? 'rgba(0,255,136,0.4)' : open ? 'rgba(0,255,136,0.3)' : 'rgba(255,255,255,0.06)'}`,
+          border: `1px solid ${saved ? 'rgba(6,182,212,0.4)' : open ? 'rgba(6,182,212,0.3)' : 'rgba(6,182,212,0.08)'}`,
           borderRadius: 2,
-          background: saved ? 'rgba(0,255,136,0.08)' : open ? 'rgba(0,255,136,0.05)' : 'none',
+          background: saved ? 'rgba(6,182,212,0.08)' : open ? 'rgba(6,182,212,0.05)' : 'none',
           fontFamily: 'var(--font-jetbrains-mono)',
           fontSize: 10,
           letterSpacing: '0.1em',
-          color: saved ? '#00ff88' : open ? '#00ff88' : 'var(--text-secondary)',
+          color: saved ? '#06b6d4' : open ? '#06b6d4' : 'var(--text-secondary)',
           cursor: 'pointer',
           transition: 'all 0.2s',
         }}
@@ -1454,7 +1454,7 @@ function ResultsAddressBar({
   const overflowPortal = overflowOpen && typeof document !== 'undefined' ? createPortal(
     <div
       ref={overflowDropRef}
-      style={{ position: 'absolute', top: overflowPos.top, right: overflowPos.right, zIndex: 9999, background: '#0d1220', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 4, padding: '6px 0', minWidth: 160, boxShadow: '0 8px 24px rgba(0,0,0,0.4)', display: 'flex', flexDirection: 'column' }}
+      style={{ position: 'absolute', top: overflowPos.top, right: overflowPos.right, zIndex: 9999, background: '#001f2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 4, padding: '6px 0', minWidth: 160, boxShadow: '0 8px 24px rgba(0,0,0,0.4)', display: 'flex', flexDirection: 'column' }}
     >
       <div onClick={() => setOverflowOpen(false)} style={{ display: 'contents' }}>{saveButton}</div>
       <div onClick={() => setOverflowOpen(false)} style={{ display: 'contents' }}>{exportButton}</div>
@@ -1469,7 +1469,7 @@ function ResultsAddressBar({
         alignItems: 'center',
         gap: 16,
         padding: '16px 0 20px',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
+        borderBottom: '1px solid rgba(6,182,212,0.08)',
         marginBottom: 28,
         flexWrap: 'wrap',
         animation: 'fadeSlideUp 0.4s ease-out both',
@@ -1507,7 +1507,7 @@ function ResultsAddressBar({
             ? { border: 'rgba(249,115,22,0.35)', bg: 'rgba(249,115,22,0.07)', color: '#f97316' }
             : chain === 'TRX'
             ? { border: 'rgba(255,69,0,0.35)',   bg: 'rgba(255,69,0,0.07)',   color: '#ff4500' }
-            : { border: 'rgba(0,255,136,0.2)',   bg: 'rgba(0,255,136,0.05)', color: '#00ff88' };
+            : { border: 'rgba(6,182,212,0.2)',   bg: 'rgba(6,182,212,0.05)', color: '#06b6d4' };
           return (
             <span
               style={{
@@ -1533,7 +1533,7 @@ function ResultsAddressBar({
             sanctioned: { bg: 'rgba(255,59,59,0.1)', border: 'rgba(255,59,59,0.3)', text: '#ff3b3b' },
             exchange:   { bg: 'rgba(59,130,246,0.1)', border: 'rgba(59,130,246,0.3)', text: '#60a5fa' },
             defi:       { bg: 'rgba(139,92,246,0.1)', border: 'rgba(139,92,246,0.3)', text: '#a78bfa' },
-            notable:    { bg: 'rgba(0,255,136,0.08)', border: 'rgba(0,255,136,0.25)', text: '#00ff88' },
+            notable:    { bg: 'rgba(6,182,212,0.08)', border: 'rgba(6,182,212,0.25)', text: '#06b6d4' },
           }[lbl.category];
           return (
             <span
@@ -1574,7 +1574,7 @@ function ResultsAddressBar({
           display: 'flex',
           alignItems: 'center',
           gap: 10,
-          borderBottom: `1px solid ${inputFocused ? '#00ff88' : 'rgba(255,255,255,0.1)'}`,
+          borderBottom: `1px solid ${inputFocused ? '#06b6d4' : 'rgba(255,255,255,0.1)'}`,
           paddingBottom: 6,
           transition: 'border-color 0.2s',
         }}
@@ -1597,7 +1597,7 @@ function ResultsAddressBar({
             fontFamily: 'var(--font-jetbrains-mono)',
             fontSize: 12,
             color: 'var(--text-primary)',
-            caretColor: '#00ff88',
+            caretColor: '#06b6d4',
             width: 220,
           }}
         />
@@ -1908,7 +1908,7 @@ export default function HomePage() {
   const gridCols = isMobile ? '1fr' : isTablet ? '1fr 1fr' : '280px 1fr 280px';
 
   return (
-    <div style={{ minHeight: '100vh', background: '#03040a', position: 'relative' }}>
+    <div style={{ minHeight: '100vh', background: '#00080f', position: 'relative', backgroundImage: 'linear-gradient(rgba(6,182,212,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(6,182,212,0.04) 1px, transparent 1px)', backgroundSize: '48px 48px' }}>
 
       {/* Scanline */}
       <div
@@ -1919,7 +1919,7 @@ export default function HomePage() {
           left: 0,
           right: 0,
           height: 1,
-          background: 'linear-gradient(to right, transparent 0%, rgba(0,255,136,0.12) 50%, transparent 100%)',
+          background: 'linear-gradient(to right, transparent 0%, rgba(6,182,212,0.12) 50%, transparent 100%)',
           animation: 'scanline 12s linear infinite',
           pointerEvents: 'none',
           zIndex: 100,
@@ -1937,7 +1937,7 @@ export default function HomePage() {
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '0 32px',
-          borderBottom: '1px solid rgba(255,255,255,0.04)',
+          borderBottom: '1px solid rgba(6,182,212,0.05)',
           background: 'rgba(3,4,10,0.92)',
           backdropFilter: 'blur(16px)',
         }}
@@ -1975,7 +1975,7 @@ export default function HomePage() {
                 fontSize: 12,
                 color: 'var(--text-dim)',
                 paddingLeft: 12,
-                borderLeft: '1px solid rgba(255,255,255,0.06)',
+                borderLeft: '1px solid rgba(6,182,212,0.08)',
               }}
             >
               Crypto Intelligence Platform
@@ -2025,8 +2025,8 @@ export default function HomePage() {
                     width: 6,
                     height: 6,
                     borderRadius: '50%',
-                    background: '#00ff88',
-                    boxShadow: '0 0 8px rgba(0,255,136,0.8)',
+                    background: '#06b6d4',
+                    boxShadow: '0 0 8px rgba(6,182,212,0.8)',
                     animation: 'pulseGlow 2s ease-in-out infinite',
                   }}
                 />
@@ -2046,7 +2046,7 @@ export default function HomePage() {
 
           {/* Auth nav */}
           {navUser ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16, paddingLeft: 12, borderLeft: '1px solid rgba(255,255,255,0.06)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, paddingLeft: 12, borderLeft: '1px solid rgba(6,182,212,0.08)' }}>
               <a
                 href="/dashboard"
                 style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.1em', color: 'var(--accent-green)', textDecoration: 'none' }}
@@ -2057,7 +2057,7 @@ export default function HomePage() {
           ) : (
             <a
               href="/auth/login"
-              style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.1em', color: 'var(--text-dim)', textDecoration: 'none', paddingLeft: 12, borderLeft: '1px solid rgba(255,255,255,0.06)' }}
+              style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.1em', color: 'var(--text-dim)', textDecoration: 'none', paddingLeft: 12, borderLeft: '1px solid rgba(6,182,212,0.08)' }}
               onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-secondary)'; }}
               onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-dim)'; }}
             >
@@ -2265,7 +2265,7 @@ export default function HomePage() {
                     key={c.name}
                     style={{
                       padding: '3px 10px',
-                      border: '1px solid rgba(255,255,255,0.06)',
+                      border: '1px solid rgba(6,182,212,0.08)',
                       borderRadius: 2,
                       fontFamily: 'var(--font-jetbrains-mono)',
                       fontSize: 9,
@@ -2287,9 +2287,9 @@ export default function HomePage() {
           <div
             id="clearchain-tabs"
             style={{
-              border: '1px solid rgba(255,255,255,0.06)',
+              border: '1px solid rgba(6,182,212,0.08)',
               borderRadius: 4,
-              background: '#080b14',
+              background: '#001824',
               overflow: 'hidden',
               animation: 'fadeSlideUp 0.5s ease-out both',
               animationDelay: '0.2s',
@@ -2299,7 +2299,7 @@ export default function HomePage() {
             <div
               style={{
                 display: 'flex',
-                borderBottom: '1px solid rgba(255,255,255,0.06)',
+                borderBottom: '1px solid rgba(6,182,212,0.08)',
                 overflowX: 'auto',
                 WebkitOverflowScrolling: 'touch',
                 scrollbarWidth: 'none',
@@ -2327,7 +2327,7 @@ export default function HomePage() {
                       color: isActive ? 'var(--text-primary)' : 'var(--text-dim)',
                       background: 'none',
                       border: 'none',
-                      borderBottom: isActive ? '2px solid #00ff88' : '2px solid transparent',
+                      borderBottom: isActive ? '2px solid #06b6d4' : '2px solid transparent',
                       cursor: 'pointer',
                       whiteSpace: 'nowrap',
                       transition: 'color 0.2s, border-color 0.2s',
@@ -2421,7 +2421,7 @@ export default function HomePage() {
             style={{
               marginTop: 32,
               paddingTop: 20,
-              borderTop: '1px solid rgba(255,255,255,0.04)',
+              borderTop: '1px solid rgba(6,182,212,0.05)',
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
