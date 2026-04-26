@@ -171,7 +171,7 @@ export default function CasesPage() {
             {cases.length === 0 ? 'No cases yet. Click + NEW CASE to create one.' : 'No cases match this filter.'}
           </div>
         ) : (
-          <div className="glass" style={{ borderRadius: 8, overflow: 'hidden' }}>
+          <div className="glass" style={{ borderRadius: 8, overflow: 'clip' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid rgba(6,182,212,0.08)' }}>

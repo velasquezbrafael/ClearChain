@@ -101,11 +101,9 @@ export default function RiskScoreCard({ riskScore }: RiskScoreCardProps) {
         className="glass"
         style={{
           position: 'relative',
-          border: '1px solid rgba(6,182,212,0.08)',
           borderRadius: 4,
-          background: '#001824',
           boxShadow: cardGlow(level),
-          overflow: 'hidden',
+          overflow: 'clip',
         }}
       >
         {/* Vertical accent bar */}

@@ -2311,7 +2311,7 @@ export default function HomePage() {
             className="glass"
             style={{
               borderRadius: 4,
-              overflow: 'hidden',
+              overflow: 'clip',
               animation: 'fadeSlideUp 0.5s ease-out both',
               animationDelay: '0.2s',
             }}

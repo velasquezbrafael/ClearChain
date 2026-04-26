@@ -345,7 +345,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
               <a href="/" style={{ color: '#06b6d4', textDecoration: 'none' }}>Run your first analysis →</a>
             </div>
           ) : (
-            <div className="glass" style={{ borderRadius: 8, overflow: 'hidden' }}>
+            <div className="glass" style={{ borderRadius: 8, overflow: 'clip' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid rgba(6,182,212,0.08)' }}>

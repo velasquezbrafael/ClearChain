@@ -249,7 +249,7 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
           <div style={{ fontSize: 11, letterSpacing: '0.15em', color: '#7ec8d8', marginBottom: 16 }}>ADDRESSES IN THIS CASE</div>
 
           {addresses.length > 0 && (
-            <div className="glass" style={{ borderRadius: 8, overflow: 'hidden', marginBottom: 16 }}>
+            <div className="glass" style={{ borderRadius: 8, overflow: 'clip', marginBottom: 16 }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid rgba(6,182,212,0.08)' }}>
