@@ -96,7 +96,7 @@ export default function CasesPage() {
   return (
     <div style={{ minHeight: '100vh', background: '#00080f', color: '#ecfeff', fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif' }}>
       {/* Nav */}
-      <nav style={{ borderBottom: '1px solid rgba(6,182,212,0.08)', padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 56 }}>
+      <nav style={{ position: 'sticky', top: 0, zIndex: 50, borderBottom: '1px solid rgba(6,182,212,0.08)', padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 56, background: 'rgba(0,8,15,0.75)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
           <a href="/" style={{ fontSize: 15, letterSpacing: '0.15em', color: '#ecfeff', fontFamily: 'var(--font-rubik-glitch)', fontWeight: 400, textDecoration: 'none' }}>CLEARCHAIN</a>
           <a href="/" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none' }}>← Back to Tool</a>
@@ -142,7 +142,7 @@ export default function CasesPage() {
 
         {/* Inline create form */}
         {showForm && (
-          <form onSubmit={handleCreate} style={{ background: '#001824', border: '1px solid rgba(6,182,212,0.15)', borderRadius: 8, padding: '24px', marginBottom: 24 }}>
+          <form onSubmit={handleCreate} className="glass" style={{ borderRadius: 8, padding: '24px', marginBottom: 24 }}>
             <div style={{ fontSize: 11, letterSpacing: '0.15em', color: '#06b6d4', marginBottom: 20 }}>NEW CASE</div>
             <div style={{ marginBottom: 20 }}>
               <label style={{ display: 'block', fontSize: 11, letterSpacing: '0.12em', color: '#7ec8d8', marginBottom: 8 }}>TITLE *</label>
@@ -167,11 +167,11 @@ export default function CasesPage() {
         {loading ? (
           <div style={{ color: '#1e4d5c', fontSize: 13, textAlign: 'center', padding: 40 }}>Loading...</div>
         ) : filteredCases.length === 0 ? (
-          <div style={{ padding: '48px', textAlign: 'center', color: '#1e4d5c', fontSize: 13, background: '#001824', borderRadius: 8, border: '1px solid rgba(6,182,212,0.08)' }}>
+          <div className="glass" style={{ padding: '48px', textAlign: 'center', color: '#1e4d5c', fontSize: 13, borderRadius: 8 }}>
             {cases.length === 0 ? 'No cases yet. Click + NEW CASE to create one.' : 'No cases match this filter.'}
           </div>
         ) : (
-          <div style={{ background: '#001824', border: '1px solid rgba(6,182,212,0.08)', borderRadius: 8, overflow: 'hidden' }}>
+          <div className="glass" style={{ borderRadius: 8, overflow: 'hidden' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid rgba(6,182,212,0.08)' }}>

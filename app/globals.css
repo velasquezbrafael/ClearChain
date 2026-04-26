@@ -137,10 +137,37 @@ body {
 
 /* ── Glassmorphism card ─────────────────────────────────────── */
 .glass {
-  background: rgba(0, 24, 36, 0.55) !important;
+  background: rgba(0, 20, 35, 0.55) !important;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-color: rgba(6, 182, 212, 0.12) !important;
+  border: 1px solid rgba(6, 182, 212, 0.12) !important;
+  position: relative;
+}
+
+.glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    rgba(6, 182, 212, 0.35),
+    transparent 50%,
+    rgba(6, 182, 212, 0.08)
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.glass > * {
+  position: relative;
+  z-index: 1;
 }
 
 /* ── Input caret ────────────────────────────────────────────── */

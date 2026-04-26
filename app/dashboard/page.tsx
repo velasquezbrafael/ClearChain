@@ -147,7 +147,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   return (
     <div style={{ minHeight: '100vh', background: '#00080f', color: '#ecfeff', fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif' }}>
       {/* Nav */}
-      <nav style={{ borderBottom: '1px solid rgba(6,182,212,0.08)', padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 56 }}>
+      <nav style={{ position: 'sticky', top: 0, zIndex: 50, borderBottom: '1px solid rgba(6,182,212,0.08)', padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 56, background: 'rgba(0,8,15,0.75)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
           <a href="/" style={{ fontSize: 15, letterSpacing: '0.15em', color: '#ecfeff', fontFamily: 'var(--font-rubik-glitch)', fontWeight: 400, textDecoration: 'none' }}>CLEARCHAIN</a>
           <a href="/" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>← Back to Tool</a>
@@ -256,7 +256,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         {/* Stats row */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
           {/* Card 1: Unique addresses */}
-          <div style={{ background: '#001824', border: '1px solid rgba(6,182,212,0.08)', borderRadius: 8, padding: '24px 28px' }}>
+          <div className="glass" style={{ borderRadius: 8, padding: '24px 28px' }}>
             <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: '#7ec8d8', marginBottom: 14, textTransform: 'uppercase' }}>Addresses Analyzed</div>
             <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 40, fontWeight: 700, color: '#06b6d4', lineHeight: 1, letterSpacing: '-0.02em', marginBottom: 10 }}>{uniqueAddressCount}</div>
             <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#1e4d5c', letterSpacing: '0.08em' }}>
@@ -270,7 +270,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           </div>
 
           {/* Card 2: Active cases */}
-          <div style={{ background: '#001824', border: '1px solid rgba(6,182,212,0.08)', borderRadius: 8, padding: '24px 28px' }}>
+          <div className="glass" style={{ borderRadius: 8, padding: '24px 28px' }}>
             <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: '#7ec8d8', marginBottom: 14, textTransform: 'uppercase' }}>Active Cases</div>
             <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 40, fontWeight: 700, color: '#06b6d4', lineHeight: 1, letterSpacing: '-0.02em', marginBottom: 10 }}>{activeCaseCount}</div>
             <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#1e4d5c', letterSpacing: '0.08em' }}>
@@ -282,7 +282,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           </div>
 
           {/* Card 3: High risk findings (HIGH + CRITICAL) */}
-          <div style={{ background: '#001824', border: '1px solid rgba(6,182,212,0.08)', borderRadius: 8, padding: '24px 28px' }}>
+          <div className="glass" style={{ borderRadius: 8, padding: '24px 28px' }}>
             <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: '#7ec8d8', marginBottom: 14, textTransform: 'uppercase' }}>High Risk Findings</div>
             <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 40, fontWeight: 700, color: highRiskCount > 0 ? '#ff8c00' : '#06b6d4', lineHeight: 1, letterSpacing: '-0.02em', marginBottom: 10 }}>{highRiskCount}</div>
             <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#1e4d5c', letterSpacing: '0.08em' }}>
@@ -291,7 +291,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           </div>
 
           {/* Card 4: Last Analysis */}
-          <div style={{ background: '#001824', border: '1px solid rgba(6,182,212,0.08)', borderRadius: 8, padding: '24px 28px' }}>
+          <div className="glass" style={{ borderRadius: 8, padding: '24px 28px' }}>
             <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: '#7ec8d8', marginBottom: 14, textTransform: 'uppercase' }}>Last Analysis</div>
             <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 40, fontWeight: 700, color: '#06b6d4', lineHeight: 1, letterSpacing: '-0.02em', marginBottom: 10 }}>
               {lastAnalysisAgo ?? '—'}
@@ -304,7 +304,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
         {/* Risk distribution bar */}
         {riskTotal > 0 && (
-          <div style={{ background: '#001824', border: '1px solid rgba(6,182,212,0.08)', borderRadius: 8, padding: '18px 24px', marginBottom: 40 }}>
+          <div className="glass" style={{ borderRadius: 8, padding: '18px 24px', marginBottom: 40 }}>
             <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: '#7ec8d8', marginBottom: 14, textTransform: 'uppercase' }}>Risk Distribution</div>
             {/* Stacked bar */}
             <div style={{ display: 'flex', height: 6, borderRadius: 3, overflow: 'hidden', marginBottom: 12, background: 'rgba(6,182,212,0.05)' }}>
@@ -340,12 +340,12 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         <div style={{ marginBottom: 48 }}>
           <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.2em', color: '#7ec8d8', marginBottom: 16, textTransform: 'uppercase' }}>Recent Analyses</div>
           {deduped.length === 0 ? (
-            <div style={{ padding: '32px', textAlign: 'center', color: '#1e4d5c', fontSize: 13, background: '#001824', borderRadius: 8, border: '1px solid rgba(6,182,212,0.08)' }}>
+            <div className="glass" style={{ padding: '32px', textAlign: 'center', color: '#1e4d5c', fontSize: 13, borderRadius: 8 }}>
               No analyses yet.{' '}
               <a href="/" style={{ color: '#06b6d4', textDecoration: 'none' }}>Run your first analysis →</a>
             </div>
           ) : (
-            <div style={{ background: '#001824', border: '1px solid rgba(6,182,212,0.08)', borderRadius: 8, overflow: 'hidden' }}>
+            <div className="glass" style={{ borderRadius: 8, overflow: 'hidden' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid rgba(6,182,212,0.08)' }}>
@@ -413,7 +413,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
             <a href="/dashboard/cases" style={{ fontSize: 11, color: '#06b6d4', textDecoration: 'none', letterSpacing: '0.08em' }}>+ New Case →</a>
           </div>
           {!cases || cases.length === 0 ? (
-            <div style={{ padding: '32px', textAlign: 'center', color: '#1e4d5c', fontSize: 13, background: '#001824', borderRadius: 8, border: '1px solid rgba(6,182,212,0.08)' }}>
+            <div className="glass" style={{ padding: '32px', textAlign: 'center', color: '#1e4d5c', fontSize: 13, borderRadius: 8 }}>
               No cases yet.{' '}
               <a href="/dashboard/cases" style={{ color: '#06b6d4', textDecoration: 'none' }}>Create your first case →</a>
             </div>
@@ -423,7 +423,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                 const addrCount = Array.isArray(c.case_addresses) ? c.case_addresses[0]?.count ?? 0 : 0
                 return (
                   <a key={c.id} href={`/dashboard/cases/${c.id}`} style={{ textDecoration: 'none' }}>
-                    <div style={{ background: '#001824', border: '1px solid rgba(6,182,212,0.08)', borderRadius: 8, padding: '20px', transition: 'border-color 0.15s' }}>
+                    <div className="glass" style={{ borderRadius: 8, padding: '20px', transition: 'border-color 0.15s' }}>
                       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
                         <div style={{ fontSize: 14, fontWeight: 600, color: '#ecfeff', lineHeight: 1.3 }}>{c.title}</div>
                         <span style={{ fontSize: 10, letterSpacing: '0.1em', color: STATUS_COLORS[c.status] ?? '#7ec8d8', fontFamily: 'var(--font-jetbrains-mono)', whiteSpace: 'nowrap', marginLeft: 12 }}>

@@ -198,7 +198,7 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
   return (
     <div style={{ minHeight: '100vh', background: '#00080f', color: '#ecfeff', fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif' }}>
       {/* Nav */}
-      <nav style={{ borderBottom: '1px solid rgba(6,182,212,0.08)', padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 56 }}>
+      <nav style={{ position: 'sticky', top: 0, zIndex: 50, borderBottom: '1px solid rgba(6,182,212,0.08)', padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 56, background: 'rgba(0,8,15,0.75)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
           <a href="/" style={{ fontSize: 15, letterSpacing: '0.15em', color: '#ecfeff', fontFamily: 'var(--font-rubik-glitch)', fontWeight: 400, textDecoration: 'none' }}>CLEARCHAIN</a>
           <a href="/" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>← Back to Tool</a>
@@ -249,7 +249,7 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
           <div style={{ fontSize: 11, letterSpacing: '0.15em', color: '#7ec8d8', marginBottom: 16 }}>ADDRESSES IN THIS CASE</div>
 
           {addresses.length > 0 && (
-            <div style={{ background: '#001824', border: '1px solid rgba(6,182,212,0.08)', borderRadius: 8, overflow: 'hidden', marginBottom: 16 }}>
+            <div className="glass" style={{ borderRadius: 8, overflow: 'hidden', marginBottom: 16 }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid rgba(6,182,212,0.08)' }}>
@@ -318,7 +318,7 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
           {notes.length > 0 && (
             <div style={{ marginBottom: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
               {notes.map(n => (
-                <div key={n.id} style={{ background: '#001824', border: '1px solid rgba(6,182,212,0.08)', borderRadius: 6, padding: '14px 16px' }}>
+                <div key={n.id} className="glass" style={{ borderRadius: 6, padding: '14px 16px' }}>
                   <div style={{ fontSize: 11, color: '#1e4d5c', fontFamily: 'var(--font-jetbrains-mono)', marginBottom: 6 }}>
                     {n.author_name ?? 'Analyst'} · {fmtTime(n.created_at)}
                   </div>

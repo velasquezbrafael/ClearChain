@@ -233,10 +233,9 @@ function SignalList({ signals, isMobile, riskLevel }: { signals: Record<string, 
 
   return (
     <div
+      className="glass"
       style={{
-        border: '1px solid rgba(6,182,212,0.08)',
         borderRadius: 4,
-        background: '#001824',
         padding: 24,
       }}
     >
@@ -1114,7 +1113,7 @@ function HeroContent({
               },
             ].map((row, i) => (
               <>
-                <div key={`left-${i}`} style={{ padding: '28px 32px', border: '1px solid rgba(6,182,212,0.08)', background: '#001824' }}>
+                <div key={`left-${i}`} className="glass" style={{ padding: '28px 32px' }}>
                   <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.15em', color: '#1e4d5c', marginBottom: 12 }}>{row.left.label}</div>
                   <p style={{ fontFamily: 'var(--font-inter)', fontSize: 15, color: '#7ec8d8', lineHeight: 1.7, margin: 0 }}>{row.left.body}</p>
                 </div>
@@ -1959,9 +1958,10 @@ export default function HomePage() {
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '0 32px',
-          borderBottom: '1px solid rgba(6,182,212,0.05)',
-          background: 'rgba(0,8,15,0.85)',
+          borderBottom: '1px solid rgba(6,182,212,0.08)',
+          background: 'rgba(0,8,15,0.75)',
           backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
         }}
       >
         {/* Logo */}
@@ -2308,10 +2308,9 @@ export default function HomePage() {
           {/* Row 3: Tabbed panel */}
           <div
             id="clearchain-tabs"
+            className="glass"
             style={{
-              border: '1px solid rgba(6,182,212,0.08)',
               borderRadius: 4,
-              background: '#001824',
               overflow: 'hidden',
               animation: 'fadeSlideUp 0.5s ease-out both',
               animationDelay: '0.2s',
