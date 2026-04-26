@@ -126,7 +126,7 @@ export default async function IntelPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
           <a href="/" style={{ fontSize: 15, letterSpacing: '0.15em', color: '#f0f4ff', fontFamily: 'var(--font-rubik-glitch)', fontWeight: 400, textDecoration: 'none' }}>CLEARCHAIN</a>
           <a href="/" style={{ fontSize: 12, color: '#8892a4', textDecoration: 'none', letterSpacing: '0.08em' }}>← Back to Tool</a>
-          <a href="/api-docs" style={{ fontSize: 12, color: '#8892a4', textDecoration: 'none', letterSpacing: '0.08em' }}>API Docs</a>
+          <a href="/docs" style={{ fontSize: 12, color: '#8892a4', textDecoration: 'none', letterSpacing: '0.08em' }}>Docs</a>
         </div>
         {user ? (
           <a href="/dashboard" style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.1em', color: '#00ff88', textDecoration: 'none' }}>DASHBOARD →</a>

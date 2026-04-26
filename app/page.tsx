@@ -1988,7 +1988,7 @@ export default function HomePage() {
           {!isMobile && (
             <>
               <a
-                href="/api-docs"
+                href="/docs"
                 style={{
                   fontFamily: 'var(--font-jetbrains-mono)',
                   fontSize: 10,
@@ -2000,7 +2000,7 @@ export default function HomePage() {
                 onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-secondary)'; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-dim)'; }}
               >
-                API DOCS
+                DOCS
               </a>
               <a
                 href="/intel"
