@@ -5,12 +5,43 @@ import { hashApiKey } from '@/lib/apikeys'
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Methods': 'GET, POST, PATCH, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type',
 }
 
 export async function OPTIONS() {
   return new NextResponse(null, { status: 204, headers: CORS })
+}
+
+export async function GET() {
+  const cookieStore = await cookies()
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() { return cookieStore.getAll() },
+        setAll(s) { try { s.forEach(({ name, value, options }) => cookieStore.set(name, value, options)) } catch {} },
+      },
+    }
+  )
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401, headers: CORS })
+  }
+
+  const { data: keys, error } = await supabase
+    .from('api_keys')
+    .select('id, label, tier, usage_count, daily_usage_count, daily_reset_at, last_used_at, created_at, is_active')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    return NextResponse.json({ success: false, error: error.message }, { status: 500, headers: CORS })
+  }
+
+  return NextResponse.json({ success: true, keys }, { headers: CORS })
 }
 
 export async function POST(request: NextRequest) {

@@ -9,10 +9,53 @@ interface ApiKey {
   label: string
   tier: string
   usage_count: number
+  daily_usage_count: number
+  daily_reset_at: string
   last_used_at: string | null
   created_at: string
   is_active: boolean
   webhook_url: string | null
+}
+
+const TIER_LIMITS: Record<string, number> = { free: 100, analyst: 2000, team: Infinity }
+
+function RateLimitBar({ k }: { k: ApiKey }) {
+  const limit = TIER_LIMITS[k.tier] ?? 100
+  const now = Date.now()
+  const windowExpired = now - new Date(k.daily_reset_at).getTime() > 24 * 60 * 60 * 1000
+  const todayUsage = windowExpired ? 0 : k.daily_usage_count
+  const pct = limit === Infinity ? 0 : Math.min(100, (todayUsage / limit) * 100)
+  const barColor = pct > 90 ? '#ff3b3b' : pct > 70 ? '#ffd60a' : '#00ff88'
+  const resetMs = new Date(k.daily_reset_at).getTime() + 24 * 60 * 60 * 1000
+  const msLeft = Math.max(0, resetMs - now)
+  const hLeft = Math.floor(msLeft / 3600000)
+  const mLeft = Math.floor((msLeft % 3600000) / 60000)
+  const resetLabel = windowExpired ? 'now' : hLeft > 0 ? `${hLeft}h ${mLeft}m` : `${mLeft}m`
+  const limitLabel = limit === Infinity ? '∞' : limit.toLocaleString()
+
+  return (
+    <div style={{ padding: '10px 20px 14px', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
+        <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.16em', color: '#3d4a5c' }}>
+          TODAY&apos;S USAGE
+        </span>
+        <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: pct > 90 ? '#ff3b3b' : '#8892a4' }}>
+          {todayUsage.toLocaleString()} / {limitLabel}
+          {limit !== Infinity && (
+            <span style={{ color: '#3d4a5c', marginLeft: 8 }}>resets in {resetLabel}</span>
+          )}
+        </span>
+      </div>
+      {limit !== Infinity && (
+        <div style={{ height: 2, background: 'rgba(255,255,255,0.06)', borderRadius: 1, overflow: 'hidden' }}>
+          <div style={{ height: '100%', width: `${pct}%`, background: barColor, borderRadius: 1, transition: 'width 0.3s ease' }} />
+        </div>
+      )}
+      {limit === Infinity && (
+        <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#00ff88', letterSpacing: '0.08em' }}>Unlimited</div>
+      )}
+    </div>
+  )
 }
 
 interface WebhookEdit {
@@ -82,7 +125,7 @@ export default function SettingsPage() {
       const [{ data: keysData }, { data: factors }] = await Promise.all([
         supabase
           .from('api_keys')
-          .select('id, label, tier, usage_count, last_used_at, created_at, is_active, webhook_url')
+          .select('id, label, tier, usage_count, daily_usage_count, daily_reset_at, last_used_at, created_at, is_active, webhook_url')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false }),
         supabase.auth.mfa.listFactors(),
@@ -436,6 +479,9 @@ export default function SettingsPage() {
                     )}
                   </div>
 
+                  {/* Rate limit bar */}
+                  <RateLimitBar k={k} />
+
                   {/* Webhook subsection */}
                   <div style={{ borderTop: '1px solid rgba(255,255,255,0.04)', padding: '16px 20px' }}>
                     <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.18em', color: '#3d4a5c', marginBottom: 12 }}>WEBHOOK</div>
@@ -576,10 +622,10 @@ export default function SettingsPage() {
         <div style={{ marginTop: 48, padding: '24px', background: '#080b14', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 4 }}>
           <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: '#8892a4', marginBottom: 14 }}>USAGE EXAMPLE</div>
           <pre style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: '#8892a4', margin: 0, lineHeight: 1.7, overflowX: 'auto' }}>
-            <span style={{ color: '#3d4a5c' }}>curl</span>{` -X POST https://clear-chain-peach.vercel.app/api/analyze \\
+            <span style={{ color: '#3d4a5c' }}>curl</span>{` -X POST https://clear-chain-peach.vercel.app/api/v1/analyze \\
   `}<span style={{ color: '#ffd60a' }}>-H</span>{` "Authorization: Bearer ck_live_your_key_here" \\
   `}<span style={{ color: '#ffd60a' }}>-H</span>{` "Content-Type: application/json" \\
-  `}<span style={{ color: '#ffd60a' }}>-d</span>{` '{"address":"0x..."}'`}
+  `}<span style={{ color: '#ffd60a' }}>-d</span>{` '{"address":"vitalik.eth","chain":"ETH"}'`}
           </pre>
           <div style={{ marginTop: 12 }}>
             <a href="/api-docs" style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#00ff88', textDecoration: 'none', letterSpacing: '0.08em' }}>
