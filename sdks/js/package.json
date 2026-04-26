@@ -1,0 +1,21 @@
+{
+  "name": "clearchain-sdk",
+  "version": "1.0.0",
+  "description": "Official JavaScript/TypeScript SDK for the ClearChain AML intelligence API",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc --outDir dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": ["clearchain", "aml", "crypto", "compliance", "blockchain", "ofac", "risk"],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

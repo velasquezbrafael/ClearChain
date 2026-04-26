@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "clearchain"
+version = "1.0.0"
+description = "Official Python SDK for the ClearChain AML intelligence API"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+keywords = ["clearchain", "aml", "crypto", "compliance", "blockchain", "ofac", "risk"]
+dependencies = []
+
+[project.urls]
+Homepage = "https://clear-chain-peach.vercel.app"
+Documentation = "https://clear-chain-peach.vercel.app/docs"
+Repository = "https://github.com/velasquezbrafael/ClearChain"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["clearchain*"]

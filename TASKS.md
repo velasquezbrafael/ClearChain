@@ -28,6 +28,21 @@ Security section added to `/dashboard/settings`. MFA challenge page at `/auth/mf
 
 ## ✅ Completed
 
+### JS + Python SDKs (v3.2)
+- `sdks/js/src/errors.ts` — `ClearChainError`, `RateLimitError`, `InvalidAddressError` with proper prototype chain
+- `sdks/js/src/types.ts` — full type set aligned with openapi.json + lib/types.ts (camelCase, matches API response)
+- `sdks/js/src/index.ts` — `ClearChainClient({ apiKey, baseUrl? })` with `analyze()` + `batch()`; retry loop (max 3 retries, 1s/2s/4s backoff; 429 uses Retry-After); zero deps (native fetch, Node 18+)
+- `sdks/js/package.json` — name: clearchain-sdk, main: dist/index.js, types: dist/index.d.ts
+- `sdks/js/tsconfig.json` — strict, ES2020, lib DOM for fetch types
+- `sdks/js/README.md` — install, analyze(), batch(), error handling, full type reference tables
+- `sdks/python/clearchain/errors.py` — `ClearChainError`, `RateLimitError`, `InvalidAddressError`
+- `sdks/python/clearchain/models.py` — `AnalysisResult`, `BatchResult`, `BatchSummary`, `BatchRateLimitMeta`, `BatchResponse` dataclasses
+- `sdks/python/clearchain/client.py` — `ClearChain(api_key, base_url?)` with `analyze()` + `batch()`; urllib.request only; same retry logic; snake_case model fields
+- `sdks/python/clearchain/__init__.py` — public API exports
+- `sdks/python/pyproject.toml` — name: clearchain, requires-python >=3.9, zero deps
+- `sdks/python/README.md` — install, quick start, batch, error handling, type reference tables
+- `app/docs/page.tsx` — quickstart JS tab → clearchain-sdk; Python tab → clearchain (pip)
+
 ### Batch Screening API — POST /api/v1/batch (v2.6)
 - `lib/types.ts` — `SupportedChain`, `BatchAddressInput`, `BatchRequest`, `BatchResult`, `BatchSummary`, `BatchRateLimitMeta`, `BatchResponseData`, `BatchResponse`
 - `lib/apikeys.ts` — `checkBatchCapacity()`: pre-flight check for N calls (no increment); `incrementBatchUsage()`: single UPDATE for N-call bulk increment after processing

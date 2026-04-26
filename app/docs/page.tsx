@@ -24,37 +24,32 @@ const CURL = `curl -X POST ${BASE}/api/v1/analyze \\
     "chain": "ETH"
   }'`
 
-const JS = `const res = await fetch('${BASE}/api/v1/analyze', {
-  method: 'POST',
-  headers: {
-    'Authorization': 'Bearer ck_live_your_key_here',
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify({
-    address: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
-    chain: 'ETH',
-  }),
-})
+const JS = `import { ClearChainClient } from 'clearchain-sdk'
 
-const data = await res.json()
-console.log(data.data.riskScore.total)  // 12`
+const client = new ClearChainClient({ apiKey: 'ck_live_your_key_here' })
 
-const PYTHON = `import requests
-
-resp = requests.post(
-    '${BASE}/api/v1/analyze',
-    headers={
-        'Authorization': 'Bearer ck_live_your_key_here',
-        'Content-Type': 'application/json',
-    },
-    json={
-        'address': '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
-        'chain': 'ETH',
-    }
+const result = await client.analyze(
+  '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
+  'ETH'
 )
 
-data = resp.json()
-print(data['data']['riskScore']['total'])  # 12`
+console.log(result.riskScore.total)     // 12
+console.log(result.riskScore.level)     // "LOW"
+console.log(result.ofacResult.matched)  // false`
+
+const PYTHON = `from clearchain import ClearChain
+
+client = ClearChain(api_key="ck_live_your_key_here")
+
+result = client.analyze(
+    "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+    chain="ETH"
+)
+
+print(result.risk_score)   # 12
+print(result.risk_level)   # "LOW"
+print(result.ofac_match)   # False
+# install: pip install clearchain`
 
 const RESPONSE_JSON = `{
   "success": true,

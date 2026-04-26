@@ -1,0 +1,144 @@
+# clearchain
+
+Official Python SDK for the [ClearChain](https://clear-chain-peach.vercel.app) AML intelligence API.
+
+Zero external dependencies. Python 3.9+. Uses `urllib.request` only.
+
+## Installation
+
+```bash
+pip install clearchain
+```
+
+## Quick start
+
+```python
+from clearchain import ClearChain
+
+client = ClearChain(api_key="ck_live_your_key_here")
+
+# Analyze a single address
+result = client.analyze("0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045", chain="ETH")
+
+print(result.risk_score)          # 0–100
+print(result.risk_level)          # "LOW"
+print(result.ofac_match)          # False
+print(result.mixer_interaction)   # False
+print(result.typologies)          # ["Mixer/Tumbler Obfuscation"] or []
+print(result.narrative)           # AI-generated compliance narrative
+print(result.sar_draft)           # SAR-ready filing draft
+
+# ENS names are resolved automatically (ETH only)
+vitalik = client.analyze("vitalik.eth")
+print(vitalik.resolved_address)   # 0xd8dA...45
+```
+
+## Batch screening
+
+Screen up to 100 addresses in a single API call. Results are sorted by `risk_score` descending.
+
+```python
+from clearchain import ClearChain
+
+client = ClearChain(api_key="ck_live_your_key_here")
+
+result = client.batch([
+    {"address": "0xd882cfc20f52f2599d84b8e8d58c7fb62cfe344b", "chain": "ETH"},
+    {"address": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045", "chain": "ETH"},
+    {"address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7Divf5n",         "chain": "BTC"},
+])
+
+print(result.total)      # 3
+print(result.processed)  # 3
+print(result.summary)    # BatchSummary(critical=0, high=1, medium=0, low=0, clean=2)
+
+# Results are sorted by risk_score DESC
+for r in result.results:
+    if r.error:
+        print(f"{r.address}: ERROR — {r.error}")
+    else:
+        print(f"{r.address}: {r.risk_level} ({r.risk_score}) — {r.top_signal}")
+
+# Rate limit state
+print(result.rate_limit.remaining)  # calls left today
+print(result.rate_limit.reset_at)   # ISO timestamp
+```
+
+## Error handling
+
+```python
+from clearchain import ClearChain, RateLimitError, InvalidAddressError, ClearChainError
+
+client = ClearChain(api_key="ck_live_your_key_here")
+
+try:
+    result = client.analyze("not-a-valid-address", chain="ETH")
+except RateLimitError as e:
+    print(f"Rate limited. Retry in {e.retry_after} seconds.")
+    # The SDK already retried up to 3 times — this is the final failure.
+except InvalidAddressError as e:
+    print(f"Invalid address: {e.address}")
+except ClearChainError as e:
+    print(f"API error [{e.code}] HTTP {e.status}: {e.message}")
+```
+
+The SDK automatically retries on `429` (using `Retry-After`) and `5xx` responses with exponential backoff (1s, 2s, 4s). Errors are raised only after all retry attempts are exhausted.
+
+## Configuration
+
+```python
+client = ClearChain(
+    api_key="ck_live_your_key_here",
+    base_url="https://your-custom-deployment.vercel.app",  # optional
+)
+```
+
+## Type reference
+
+### `AnalysisResult`
+
+| Field | Type | Description |
+|---|---|---|
+| `address` | `str` | Address as submitted |
+| `chain` | `str` | Chain analyzed: "ETH", "BTC", or "TRX" |
+| `resolved_address` | `str` | Resolved checksummed address (ENS resolved for ETH) |
+| `risk_score` | `int \| None` | Aggregate risk score 0–100 |
+| `risk_level` | `str \| None` | "LOW", "MEDIUM", "HIGH", or "CRITICAL" |
+| `ofac_match` | `bool \| None` | OFAC SDN list match |
+| `mixer_interaction` | `bool \| None` | Mixer/CoinJoin interaction detected |
+| `typologies` | `list[str]` | Triggered AML typology names |
+| `narrative` | `str` | AI-generated plain-English risk narrative |
+| `sar_draft` | `str` | FinCEN SAR-ready draft. Requires BSA/AML officer review. |
+| `analyzed_at` | `str` | ISO 8601 analysis timestamp |
+
+### `BatchResult` (per-address in `batch()` response)
+
+| Field | Type | Description |
+|---|---|---|
+| `address` | `str` | Address as submitted |
+| `chain` | `str` | Chain analyzed |
+| `risk_score` | `int \| None` | Score 0–100. None if failed |
+| `risk_level` | `str \| None` | Risk band. None if failed |
+| `ofac_match` | `bool \| None` | OFAC match. None if failed |
+| `mixer_interaction` | `bool \| None` | Mixer/CoinJoin detected. None if failed |
+| `top_signal` | `str \| None` | Highest-scoring triggered signal name |
+| `typologies` | `list[str] \| None` | Triggered typology names |
+| `error` | `str \| None` | Error code on failure, otherwise None |
+
+### Error classes
+
+| Class | When raised | Extra attributes |
+|---|---|---|
+| `ClearChainError` | All non-2xx responses (base class) | `.code: str`, `.status: int` |
+| `RateLimitError` | 429 after all retries | `.retry_after: int` (seconds) |
+| `InvalidAddressError` | 400 INVALID_ADDRESS | `.address: str` |
+
+## Rate limits
+
+| Tier | Daily limit |
+|---|---|
+| `free` | 100 requests |
+| `analyst` | 2,000 requests |
+| `team` | Unlimited |
+
+Batch requests count as N calls (one per address). Get your API key at [/dashboard/settings](https://clear-chain-peach.vercel.app/dashboard/settings).
