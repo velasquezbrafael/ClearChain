@@ -1,0 +1,363 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "ClearChain API",
+    "version": "1.0.0",
+    "description": "Crypto AML intelligence API. Analyze wallet addresses for sanctions exposure, risk scoring, typology detection, and AI-generated compliance narratives.\n\nLive base URL: https://clear-chain-peach.vercel.app\n\nAll v1 endpoints require an API key passed as a Bearer token:\n```\nAuthorization: Bearer ck_live_<your_key>\n```\n\nGet your key at https://clear-chain-peach.vercel.app/dashboard/settings",
+    "contact": {
+      "name": "ClearChain Support",
+      "url": "https://clear-chain-peach.vercel.app"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://clear-chain-peach.vercel.app",
+      "description": "Production"
+    }
+  ],
+  "security": [
+    { "BearerAuth": [] }
+  ],
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "ClearChain API key. Format: `ck_live_<32_hex_chars>`. Obtain from your dashboard at /dashboard/settings."
+      }
+    },
+    "schemas": {
+      "ScoringSignal": {
+        "type": "object",
+        "required": ["name", "weight", "triggered", "score", "detail"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Machine-readable signal identifier.",
+            "examples": ["ofac_match", "mixer_interaction", "rapid_fund_movement"]
+          },
+          "weight": {
+            "type": "integer",
+            "description": "Maximum points this signal can contribute (0–40)."
+          },
+          "triggered": {
+            "type": "boolean",
+            "description": "Whether the risk factor was detected."
+          },
+          "score": {
+            "type": "integer",
+            "description": "Points added to the total score (0 if not triggered)."
+          },
+          "detail": {
+            "type": "string",
+            "description": "Human-readable explanation written for compliance analysts."
+          }
+        }
+      },
+      "RiskScore": {
+        "type": "object",
+        "required": ["total", "level", "signals"],
+        "properties": {
+          "total": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Aggregate risk score 0–100."
+          },
+          "level": {
+            "type": "string",
+            "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
+            "description": "Qualitative risk band. LOW: 0–24 | MEDIUM: 25–49 | HIGH: 50–74 | CRITICAL: 75–100"
+          },
+          "signals": {
+            "type": "object",
+            "description": "All evaluated signals, keyed by signal name. Both triggered and clean signals are included for full transparency.",
+            "additionalProperties": { "$ref": "#/components/schemas/ScoringSignal" },
+            "examples": [
+              {
+                "ofac_match": { "name": "ofac_match", "weight": 40, "triggered": true, "score": 40, "detail": "Address is listed on the OFAC SDN list as \"BLENDER.IO\"." },
+                "mixer_interaction": { "name": "mixer_interaction", "weight": 25, "triggered": true, "score": 25, "detail": "Address itself is a known mixer." }
+              }
+            ]
+          }
+        }
+      },
+      "AMLTypology": {
+        "type": "object",
+        "required": ["id", "name", "description", "fatfReference", "triggered", "confidence", "rationale"],
+        "properties": {
+          "id":           { "type": "string", "description": "Unique typology identifier." },
+          "name":         { "type": "string", "description": "Human-readable typology name." },
+          "description":  { "type": "string", "description": "Short description of the pattern and its AML significance." },
+          "fatfReference":{ "type": "string", "description": "FATF or FinCEN guidance citation." },
+          "triggered":    { "type": "boolean", "description": "Whether this typology was detected." },
+          "confidence":   { "type": "number", "minimum": 0, "maximum": 1, "description": "Detection confidence (0–1)." },
+          "rationale":    { "type": "string", "description": "On-chain evidence that triggered this typology, suitable for SAR narrative." }
+        }
+      },
+      "WalletTransaction": {
+        "type": "object",
+        "required": ["hash", "from", "to", "value", "timestamp", "blockNumber"],
+        "properties": {
+          "hash":         { "type": "string" },
+          "from":         { "type": "string" },
+          "to":           { "type": "string" },
+          "value":        { "type": "number", "description": "Amount in native units (ETH, BTC, TRX)." },
+          "timestamp":    { "type": "integer", "description": "Unix epoch timestamp (seconds)." },
+          "blockNumber":  { "type": "integer" },
+          "tokenSymbol":  { "type": "string", "description": "ERC-20 token ticker, if applicable." },
+          "tokenAddress": { "type": "string", "description": "ERC-20 contract address, if applicable." },
+          "isInbound":    { "type": "boolean", "description": "True if this is an inbound transaction relative to the analyzed wallet." }
+        }
+      },
+      "OFACResult": {
+        "type": "object",
+        "required": ["matched", "confidence"],
+        "properties": {
+          "matched":       { "type": "boolean" },
+          "matchedEntity": { "type": "string", "description": "Name of the sanctioned entity, if matched." },
+          "confidence":    { "type": "number", "minimum": 0, "maximum": 1 },
+          "listLastFetched":{ "type": "string", "format": "date-time" }
+        }
+      },
+      "HopEntry": {
+        "type": "object",
+        "required": ["address", "transactions"],
+        "properties": {
+          "address":      { "type": "string" },
+          "transactions": { "type": "array", "items": { "$ref": "#/components/schemas/WalletTransaction" } }
+        }
+      },
+      "AnalysisData": {
+        "type": "object",
+        "required": ["address", "chain", "riskScore", "typologies", "transactions", "ofacResult", "analyzedAt", "narrative", "sarDraft", "hopData", "resolvedAddress"],
+        "properties": {
+          "address":         { "type": "string", "description": "Analyzed wallet address (checksummed)." },
+          "chain":           { "type": "string", "enum": ["ETH", "BTC", "TRX"] },
+          "riskScore":       { "$ref": "#/components/schemas/RiskScore" },
+          "typologies":      { "type": "array", "items": { "$ref": "#/components/schemas/AMLTypology" }, "description": "All evaluated AML typologies (triggered and clean)." },
+          "transactions":    { "type": "array", "items": { "$ref": "#/components/schemas/WalletTransaction" }, "description": "Transaction history used for scoring." },
+          "ofacResult":      { "$ref": "#/components/schemas/OFACResult" },
+          "analyzedAt":      { "type": "string", "format": "date-time" },
+          "narrative":       { "type": "string", "description": "AI-generated plain-English compliance narrative (Claude Haiku)." },
+          "sarDraft":        { "type": "string", "description": "AI-generated FinCEN SAR draft narrative. Requires qualified BSA/AML officer review before filing." },
+          "hopData":         { "type": "array", "items": { "$ref": "#/components/schemas/HopEntry" }, "description": "Transaction data for top counterparty addresses (multi-hop graph support)." },
+          "resolvedAddress": { "type": "string", "description": "Final resolved address (after ENS resolution, if applicable)." }
+        }
+      },
+      "SuccessResponse": {
+        "type": "object",
+        "required": ["success", "data"],
+        "properties": {
+          "success": { "type": "boolean", "const": true },
+          "data":    { "$ref": "#/components/schemas/AnalysisData" }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": ["success", "error"],
+        "properties": {
+          "success": { "type": "boolean", "const": false },
+          "error": {
+            "type": "object",
+            "required": ["code", "message"],
+            "properties": {
+              "code":    { "type": "string", "description": "Machine-readable error code." },
+              "message": { "type": "string", "description": "Human-readable error description." },
+              "limit":    { "type": "integer", "description": "Rate limit (RATE_LIMIT_EXCEEDED only)." },
+              "used":     { "type": "integer", "description": "Requests used in current window (RATE_LIMIT_EXCEEDED only)." },
+              "reset_at": { "type": "string", "format": "date-time", "description": "Window reset timestamp (RATE_LIMIT_EXCEEDED only)." }
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/api/v1/analyze": {
+      "post": {
+        "operationId": "analyzeWallet",
+        "summary": "Analyze a wallet address",
+        "description": "Runs the full ClearChain analysis pipeline on a wallet address: OFAC sanctions screening, 6-signal risk scoring (0–100), FATF/FinCEN typology matching, AI-generated narrative, SAR draft, and multi-hop counterparty data.\n\nSupported chains: ETH (Ethereum mainnet + ERC-20), BTC (Bitcoin), TRX (Tron)\n\nENS names (e.g. `vitalik.eth`) are accepted for ETH chain.",
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["address"],
+                "properties": {
+                  "address": {
+                    "type": "string",
+                    "description": "Wallet address or ENS name to analyze.",
+                    "examples": ["vitalik.eth", "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045", "1A1zP1eP5QGefi2DMPTfTL5SLmv7Divf5n", "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"]
+                  },
+                  "chain": {
+                    "type": "string",
+                    "enum": ["ETH", "BTC", "TRX"],
+                    "default": "ETH",
+                    "description": "Blockchain to analyze. Defaults to ETH."
+                  }
+                }
+              },
+              "examples": {
+                "eth_address": {
+                  "summary": "Ethereum address",
+                  "value": { "address": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045", "chain": "ETH" }
+                },
+                "ens_name": {
+                  "summary": "ENS name (ETH)",
+                  "value": { "address": "vitalik.eth" }
+                },
+                "btc_address": {
+                  "summary": "Bitcoin address",
+                  "value": { "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7Divf5n", "chain": "BTC" }
+                },
+                "trx_address": {
+                  "summary": "Tron address",
+                  "value": { "address": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t", "chain": "TRX" }
+                },
+                "sanctioned": {
+                  "summary": "Sanctioned mixer (Blender.io — OFAC SDN)",
+                  "value": { "address": "0xd882cfc20f52f2599d84b8e8d58c7fb62cfe344b", "chain": "ETH" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Analysis complete.",
+            "headers": {
+              "X-RateLimit-Limit": {
+                "schema": { "type": "string" },
+                "description": "Maximum requests per 24-hour window for your tier. '∞' for Team tier."
+              },
+              "X-RateLimit-Remaining": {
+                "schema": { "type": "string" },
+                "description": "Remaining requests in the current window. '∞' for Team tier."
+              },
+              "X-RateLimit-Reset": {
+                "schema": { "type": "integer" },
+                "description": "Unix epoch timestamp (seconds) when the current window resets."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "address": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+                    "chain": "ETH",
+                    "riskScore": {
+                      "total": 0,
+                      "level": "LOW",
+                      "signals": {
+                        "ofac_match":            { "name": "ofac_match",            "weight": 40, "triggered": false, "score": 0, "detail": "No match on OFAC SDN list." },
+                        "mixer_interaction":     { "name": "mixer_interaction",     "weight": 25, "triggered": false, "score": 0, "detail": "No mixer interactions detected." },
+                        "rapid_fund_movement":   { "name": "rapid_fund_movement",   "weight": 15, "triggered": false, "score": 0, "detail": "Contextual gate not met." },
+                        "high_risk_counterparty":{ "name": "high_risk_counterparty","weight": 10, "triggered": false, "score": 0, "detail": "No high-risk counterparties." },
+                        "volume_anomaly":        { "name": "volume_anomaly",        "weight": 5,  "triggered": false, "score": 0, "detail": "Volume within expected range." },
+                        "community_flags":       { "name": "community_flags",       "weight": 5,  "triggered": false, "score": 0, "detail": "No community risk flags." }
+                      }
+                    },
+                    "typologies": [],
+                    "transactions": [],
+                    "ofacResult": { "matched": false, "confidence": 0 },
+                    "analyzedAt": "2026-04-26T10:00:00.000Z",
+                    "narrative": "Wallet 0xd8dA...45 exhibits no indicators of suspicious activity.",
+                    "sarDraft": "No SAR filing recommended at this time based on available on-chain data.",
+                    "hopData": [],
+                    "resolvedAddress": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request — bad address format, unsupported chain, or ENS resolution failure.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "examples": {
+                  "INVALID_ADDRESS": {
+                    "summary": "Invalid address format",
+                    "value": { "success": false, "error": { "code": "INVALID_ADDRESS", "message": "Invalid Bitcoin address format" } }
+                  },
+                  "UNSUPPORTED_CHAIN": {
+                    "summary": "Unsupported chain",
+                    "value": { "success": false, "error": { "code": "UNSUPPORTED_CHAIN", "message": "Chain \"SOL\" is not supported. Supported chains: ETH, BTC, TRX" } }
+                  },
+                  "ENS_RESOLUTION_FAILED": {
+                    "summary": "ENS name could not be resolved",
+                    "value": { "success": false, "error": { "code": "ENS_RESOLUTION_FAILED", "message": "Could not resolve ENS name: notaname.eth" } }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required or API key invalid/revoked.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "examples": {
+                  "INVALID_API_KEY": {
+                    "summary": "Missing or invalid key",
+                    "value": { "success": false, "error": { "code": "INVALID_API_KEY", "message": "Invalid API key. Provide a valid ck_live_... key in the Authorization header." } }
+                  },
+                  "KEY_INACTIVE": {
+                    "summary": "Revoked key",
+                    "value": { "success": false, "error": { "code": "KEY_INACTIVE", "message": "This API key has been revoked. Generate a new key in your ClearChain dashboard." } }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded.",
+            "headers": {
+              "Retry-After":         { "schema": { "type": "integer" }, "description": "Seconds until the rate limit window resets." },
+              "X-RateLimit-Limit":   { "schema": { "type": "string" } },
+              "X-RateLimit-Remaining":{ "schema": { "type": "string" }, "description": "Always '0' on a 429 response." },
+              "X-RateLimit-Reset":   { "schema": { "type": "integer" } }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": {
+                  "success": false,
+                  "error": {
+                    "code": "RATE_LIMIT_EXCEEDED",
+                    "message": "Rate limit exceeded. 100 requests per 24h on free tier. Resets at 2026-04-27T10:00:00.000Z.",
+                    "limit": 100,
+                    "used": 100,
+                    "reset_at": "2026-04-27T10:00:00.000Z"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Analysis pipeline failure (upstream API error, AI generation failure, etc.).",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": {
+                  "success": false,
+                  "error": { "code": "ANALYSIS_FAILED", "message": "Failed to fetch transaction history from Alchemy" }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

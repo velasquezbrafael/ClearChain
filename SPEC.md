@@ -1,5 +1,5 @@
 # ClearChain — Product Spec v2
-_Updated: 2026-04-23 — Rescoped from lookup tool to compliance workflow platform_
+_Updated: 2026-04-26 — Path B (API/developer platform) prioritized over compliance workflow_
 
 ---
 
@@ -134,17 +134,40 @@ api_keys        — id, workspace_id, key_hash, label, usage_count, last_used, c
 
 ## Build Roadmap
 
-| Phase | What | Status |
+### Strategy: Path B (API Platform) first → Path A (Compliance Workflow) second
+
+The analysis engine is the hard part and it's already built. Path B packages it into a developer product — lower effort, faster to ship, self-service distribution. Path A (monitoring, audit trails, team workflows) follows once there's a user base.
+
+---
+
+### Phase 1 — API & Developer Platform (now)
+
+| Version | What | Status |
 |---|---|---|
-| v1.0 | Public lookup tool — ETH analysis, OFAC, typologies, narrative, SAR, simulator | ✅ Live |
-| v2.0 | Supabase auth + user accounts + dashboard | 🔨 Next |
-| v2.1 | Case management — create cases, attach addresses, notes, status tracking | 🔨 Next |
-| v2.2 | API key system — issue keys, track usage, rate limiting per tier | Planned |
-| v3.0 | Bitcoin support — UTXO scoring engine, blockchain.info/mempool API | Planned |
-| v3.1 | Tron support | Planned |
-| v3.2 | Solana support | Planned |
-| v4.0 | Monetization — Stripe integration, tier enforcement | Planned |
-| v4.1 | Team workspaces — multi-user, role-based access | Planned |
+| v1.0 | Public lookup tool — ETH, OFAC, typologies, narrative, SAR, Investigation Mode | ✅ Live |
+| v2.0 | Auth + dashboard + case management (v2 already in progress) | 🔨 In progress |
+| v2.1 | **API productization** — OpenAPI spec, versioned endpoints (`/v1/`), clean error codes, rate limiting by key | Next |
+| v2.2 | **API key dashboard** — self-service key issuance, usage tracking, per-key rate limits, revocation | Next |
+| v2.3 | **Developer docs site** — standalone docs with quickstart, endpoint reference, code examples in JS + Python | Next |
+| v2.4 | **SDKs** — `npm install clearchain-sdk` (JS) + `pip install clearchain` (Python) with typed responses | Planned |
+| v2.5 | **Tron chain support** — Tron is the #1 sanctions evasion chain; higher compliance priority than Bitcoin | Planned |
+| v2.6 | **Batch screening API** — `POST /v1/batch` accepts up to 100 addresses, returns prioritized risk report | Planned |
+| v2.7 | **Webhook events** — `wallet.risk_changed`, `wallet.sanctioned` — push events to developer endpoints | Planned |
+
+---
+
+### Phase 2 — Compliance Workflow Platform (later)
+
+| Version | What | Status |
+|---|---|---|
+| v3.0 | **Watchlists + monitoring** — add wallets to watchlist, get email/webhook alerts on risk changes or new OFAC hits | Planned |
+| v3.1 | **Audit trail** — immutable log of who analyzed what and when (required for regulatory due diligence) | Planned |
+| v3.2 | **Batch screening UI** — CSV upload in the dashboard for compliance ops teams | Planned |
+| v3.3 | **Regulatory intelligence feed** — auto-pull new OFAC designations, alert on newly sanctioned watched wallets | Planned |
+| v4.0 | **Monetization** — Stripe integration, tier enforcement, pay-per-use API billing | Planned |
+| v4.1 | **Team workspaces** — multi-analyst accounts, role-based access, case assignment | Planned |
+| v4.2 | **Bitcoin support** — UTXO scoring engine | Planned |
+| v4.3 | **Solana support** | Planned |
 
 ---
 
