@@ -1,25 +1,26 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import type { RiskScore, RiskLevel } from '@/types';
 import ScoreModal from '@/components/ScoreModal';
 import InfoTooltip from '@/components/InfoTooltip';
+import { useCountUp } from '@/lib/useCountUp';
 
 function riskColor(level: RiskLevel): string {
   switch (level) {
     case 'CRITICAL': return '#ff3b3b';
     case 'HIGH':     return '#ff8c00';
     case 'MEDIUM':   return '#ffd60a';
-    default:         return '#06b6d4';
+    default:         return '#22d3ee';
   }
 }
 
 function riskGlow(level: RiskLevel): string {
   switch (level) {
-    case 'CRITICAL': return '0 0 40px rgba(255,59,59,0.7), 0 0 80px rgba(255,59,59,0.3)';
-    case 'HIGH':     return '0 0 40px rgba(255,140,0,0.6), 0 0 80px rgba(255,140,0,0.25)';
-    case 'MEDIUM':   return '0 0 40px rgba(255,214,10,0.6), 0 0 80px rgba(255,214,10,0.25)';
-    default:         return '0 0 40px rgba(6,182,212,0.5), 0 0 80px rgba(6,182,212,0.2)';
+    case 'CRITICAL': return '0 0 30px rgba(255,59,59,0.8), 0 0 60px rgba(255,59,59,0.3)';
+    case 'HIGH':     return '0 0 30px rgba(255,140,0,0.7), 0 0 60px rgba(255,140,0,0.25)';
+    case 'MEDIUM':   return '0 0 30px rgba(255,214,10,0.7), 0 0 60px rgba(255,214,10,0.25)';
+    default:         return '0 0 30px rgba(34,211,238,0.6), 0 0 60px rgba(34,211,238,0.2)';
   }
 }
 
@@ -27,7 +28,7 @@ function cardGlow(level: RiskLevel): string {
   switch (level) {
     case 'CRITICAL': return '0 0 40px rgba(255,59,59,0.12), inset 0 0 40px rgba(255,59,59,0.03)';
     case 'HIGH':     return '0 0 30px rgba(255,140,0,0.08)';
-    case 'LOW':      return '0 0 30px rgba(6,182,212,0.07)';
+    case 'LOW':      return '0 0 30px rgba(34,211,238,0.07)';
     default:         return 'none';
   }
 }
@@ -39,25 +40,46 @@ const DESCRIPTIONS: Record<RiskLevel, string> = {
   LOW:      'No significant risk indicators detected. Standard monitoring applies.',
 };
 
-function CountUp({ to, duration = 900 }: { to: number; duration?: number }) {
-  const [value, setValue] = useState(0);
+/** SVG gauge ring — animates as count-up progresses */
+function RiskRing({ score, color, size = 160 }: { score: number; color: string; size?: number }) {
+  const r  = size * 0.43;        // radius ~68 at size=160
+  const cx = size / 2;
+  const cy = size / 2;
+  const circumference = 2 * Math.PI * r;
+  const offset = circumference * (1 - Math.max(0, Math.min(100, score)) / 100);
 
-  useEffect(() => {
-    let raf: number;
-    const start = performance.now();
-
-    function tick(now: number) {
-      const elapsed = Math.min(1, (now - start) / duration);
-      const eased = 1 - Math.pow(1 - elapsed, 3);
-      setValue(Math.round(eased * to));
-      if (elapsed < 1) raf = requestAnimationFrame(tick);
-    }
-
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [to, duration]);
-
-  return <>{value}</>;
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      style={{ pointerEvents: 'none', flexShrink: 0 }}
+      aria-hidden="true"
+    >
+      {/* Track */}
+      <circle
+        cx={cx} cy={cy} r={r}
+        fill="none"
+        stroke="rgba(6,182,212,0.07)"
+        strokeWidth={6}
+      />
+      {/* Value arc */}
+      <circle
+        cx={cx} cy={cy} r={r}
+        fill="none"
+        stroke={color}
+        strokeWidth={6}
+        strokeLinecap="round"
+        strokeDasharray={circumference}
+        strokeDashoffset={offset}
+        transform={`rotate(-90 ${cx} ${cy})`}
+        style={{
+          transition: 'stroke-dashoffset 0.04s linear',
+          filter: `drop-shadow(0 0 6px ${color})`,
+        }}
+      />
+    </svg>
+  );
 }
 
 interface RiskScoreCardProps {
@@ -70,9 +92,13 @@ export default function RiskScoreCard({ riskScore }: RiskScoreCardProps) {
   const [modalOpen, setModalOpen] = useState(false);
   const [scoreHovered, setScoreHovered] = useState(false);
 
+  // Animated count-up — drives both the number and the ring
+  const displayCount = useCountUp(total, 950);
+
   return (
     <>
       <div
+        className="glass"
         style={{
           position: 'relative',
           border: '1px solid rgba(6,182,212,0.08)',
@@ -86,9 +112,7 @@ export default function RiskScoreCard({ riskScore }: RiskScoreCardProps) {
         <div
           style={{
             position: 'absolute',
-            left: 0,
-            top: 0,
-            bottom: 0,
+            left: 0, top: 0, bottom: 0,
             width: 3,
             background: color,
             boxShadow: `0 0 16px ${color}`,
@@ -103,7 +127,7 @@ export default function RiskScoreCard({ riskScore }: RiskScoreCardProps) {
               fontSize: 10,
               letterSpacing: '0.18em',
               color: 'var(--text-dim)',
-              marginBottom: 28,
+              marginBottom: 24,
               display: 'flex',
               alignItems: 'center',
               gap: 8,
@@ -113,26 +137,46 @@ export default function RiskScoreCard({ riskScore }: RiskScoreCardProps) {
             <InfoTooltip text="A 0–100 score based on 6 weighted signals. 0–24 = Low, 25–49 = Medium, 50–74 = High, 75–100 = Critical. Every point is explained — no black box." />
           </div>
 
-          {/* Score number — clickable */}
+          {/* Score ring + number */}
           <div
             onClick={() => setModalOpen(true)}
             onMouseEnter={() => setScoreHovered(true)}
             onMouseLeave={() => setScoreHovered(false)}
             title="Click to see score breakdown"
             style={{
-              fontSize: 120,
-              fontFamily: 'var(--font-space-grotesk)',
-              fontWeight: 700,
-              lineHeight: 1,
-              color,
-              textShadow: riskGlow(level),
-              letterSpacing: '-0.03em',
+              position: 'relative',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 160,
+              height: 160,
+              marginBottom: 8,
               cursor: 'pointer',
               transition: 'opacity 0.15s',
               opacity: scoreHovered ? 0.8 : 1,
-            } as React.CSSProperties}
+            }}
           >
-            <CountUp to={total} />
+            {/* Animated SVG ring */}
+            <div style={{ position: 'absolute', inset: 0 }}>
+              <RiskRing score={displayCount} color={color} size={160} />
+            </div>
+
+            {/* Score number centered inside ring */}
+            <span
+              style={{
+                fontSize: 62,
+                fontFamily: 'var(--font-space-grotesk)',
+                fontWeight: 700,
+                lineHeight: 1,
+                color,
+                textShadow: riskGlow(level),
+                letterSpacing: '-0.03em',
+                position: 'relative',
+                zIndex: 1,
+              } as React.CSSProperties}
+            >
+              {displayCount}
+            </span>
           </div>
 
           {/* Click hint */}
@@ -142,7 +186,7 @@ export default function RiskScoreCard({ riskScore }: RiskScoreCardProps) {
               fontSize: 9,
               letterSpacing: '0.1em',
               color: 'var(--text-dim)',
-              marginTop: 6,
+              marginBottom: 20,
               cursor: 'pointer',
             }}
             onClick={() => setModalOpen(true)}
@@ -156,7 +200,7 @@ export default function RiskScoreCard({ riskScore }: RiskScoreCardProps) {
               width: 48,
               height: 1,
               background: 'rgba(6,182,212,0.08)',
-              margin: '20px 0',
+              marginBottom: 20,
             }}
           />
 
@@ -169,10 +213,11 @@ export default function RiskScoreCard({ riskScore }: RiskScoreCardProps) {
                 fontWeight: 700,
                 letterSpacing: '0.15em',
                 padding: '5px 14px',
-                border: `1px solid ${color}44`,
-                background: `${color}12`,
+                border: `1px solid ${color}55`,
+                background: `${color}14`,
                 color,
                 borderRadius: 2,
+                boxShadow: `0 0 12px ${color}22`,
               }}
             >
               {level === 'LOW' ? 'CLEAN' : `${level} RISK`}

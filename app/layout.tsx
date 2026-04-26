@@ -72,7 +72,42 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       lang="en"
       className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} ${inter.variable} ${nunito.variable} ${rubikGlitch.variable}`}
     >
-      <body className="min-h-screen antialiased">{children}</body>
+      <body className="min-h-screen antialiased">
+        {/* Aurora — fixed decorative blobs, z-index 0, no interaction */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 0,
+            pointerEvents: 'none',
+            overflow: 'hidden',
+          }}
+        >
+          <div style={{
+            position: 'absolute', width: 640, height: 640, borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(6,182,212,0.11) 0%, transparent 70%)',
+            top: '-8%', left: '-4%',
+            animation: 'auroraBlob1 20s ease-in-out infinite',
+          }} />
+          <div style={{
+            position: 'absolute', width: 520, height: 520, borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(6,182,212,0.07) 0%, transparent 70%)',
+            top: '38%', right: '-7%',
+            animation: 'auroraBlob2 25s ease-in-out infinite',
+          }} />
+          <div style={{
+            position: 'absolute', width: 440, height: 440, borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(34,211,238,0.06) 0%, transparent 70%)',
+            bottom: '-4%', left: '28%',
+            animation: 'auroraBlob3 30s ease-in-out infinite',
+          }} />
+        </div>
+        {/* Content above aurora */}
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          {children}
+        </div>
+      </body>
     </html>
   );
 }

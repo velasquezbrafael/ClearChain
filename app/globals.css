@@ -114,8 +114,38 @@ body {
 }
 
 ::selection {
-  background: rgba(0, 255, 136, 0.15);
+  background: rgba(6, 182, 212, 0.2);
   color: var(--text-primary);
+}
+
+/* ── Aurora background blobs ───────────────────────────────── */
+@keyframes auroraBlob1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%      { transform: translate(80px, 60px) scale(1.12); }
+  66%      { transform: translate(-40px, 100px) scale(0.88); }
+}
+@keyframes auroraBlob2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  40%      { transform: translate(-100px, -80px) scale(1.18); }
+  70%      { transform: translate(60px, -40px) scale(0.85); }
+}
+@keyframes auroraBlob3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  30%      { transform: translate(60px, -80px) scale(1.1); }
+  60%      { transform: translate(-80px, 40px) scale(0.9); }
+}
+
+/* ── Glassmorphism card ─────────────────────────────────────── */
+.glass {
+  background: rgba(0, 24, 36, 0.55) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-color: rgba(6, 182, 212, 0.12) !important;
+}
+
+/* ── Input caret ────────────────────────────────────────────── */
+input, textarea {
+  caret-color: #06b6d4;
 }
 
 /* Hero headline — single line on desktop */

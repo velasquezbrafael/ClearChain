@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import type { WalletAnalysis, ScoringSignal, RiskLevel } from '@/types';
 import RiskScoreCard from '@/components/RiskScoreCard';
+import TiltCard from '@/components/TiltCard';
 import TypologyCard from '@/components/TypologyCard';
 import NarrativeCard from '@/components/NarrativeCard';
 import SARDraftCard from '@/components/SARDraftCard';
@@ -486,6 +487,8 @@ function HeroContent({
   const [nextIdx, setNextIdx] = useState(1);
   const [langVisible, setLangVisible] = useState(true);
   const isFirstLangRender = useRef(true);
+  const [spotlightPos, setSpotlightPos] = useState({ x: -999, y: -999 });
+  const heroWrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isFirstLangRender.current) { isFirstLangRender.current = false; return; }
@@ -595,8 +598,24 @@ function HeroContent({
 
   const visibleQuickFills = quickFills.filter(q => q.chain === selectedChain);
 
+  function handleHeroMouse(e: React.MouseEvent<HTMLDivElement>) {
+    const rect = heroWrapperRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    setSpotlightPos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+  }
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column' }}>
+    <div
+      ref={heroWrapperRef}
+      onMouseMove={handleHeroMouse}
+      onMouseLeave={() => setSpotlightPos({ x: -999, y: -999 })}
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        position: 'relative',
+        background: `radial-gradient(600px at ${spotlightPos.x}px ${spotlightPos.y}px, rgba(6,182,212,0.05), transparent 70%)`,
+      }}
+    >
       {/* Center section */}
       <div
         style={{
@@ -733,7 +752,8 @@ function HeroContent({
               borderBottom: `1px solid ${inputFocused ? '#06b6d4' : 'rgba(255,255,255,0.15)'}`,
               paddingBottom: 14,
               gap: 16,
-              transition: 'border-color 0.2s',
+              transition: 'border-color 0.2s, box-shadow 0.2s',
+              boxShadow: inputFocused ? '0 4px 20px rgba(6,182,212,0.08)' : 'none',
             }}
           >
             <input
@@ -1143,18 +1163,20 @@ function AnalyzeButton({ loading, compact }: { loading: boolean; compact?: boole
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         style={{
-          background: 'none',
+          background: loading ? 'rgba(6,182,212,0.4)' : hovered ? '#22d3ee' : '#06b6d4',
           border: 'none',
           cursor: loading ? 'wait' : 'pointer',
           fontFamily: 'var(--font-jetbrains-mono)',
-          fontSize: compact ? 11 : 13,
+          fontSize: compact ? 10 : 12,
+          fontWeight: 600,
           letterSpacing: '0.12em',
-          color: '#06b6d4',
-          padding: '0 4px',
-          textShadow: hovered && !loading ? '0 0 20px rgba(6,182,212,0.8), 0 0 40px rgba(6,182,212,0.4)' : 'none',
-          transform: hovered && !loading ? 'translateX(3px)' : 'translateX(0)',
-          transition: 'text-shadow 0.2s, transform 0.15s',
-          opacity: loading ? 0.5 : 1,
+          color: '#00080f',
+          padding: compact ? '6px 14px' : '9px 20px',
+          borderRadius: 3,
+          boxShadow: hovered && !loading ? '0 0 20px rgba(6,182,212,0.5), 0 0 40px rgba(6,182,212,0.2)' : '0 0 0 rgba(0,0,0,0)',
+          transform: hovered && !loading ? 'translateY(-1px)' : 'translateY(0)',
+          transition: 'background 0.15s, box-shadow 0.2s, transform 0.15s',
+          opacity: loading ? 0.6 : 1,
         }}
       >
         {loading ? '...' : '→ ANALYZE'}
@@ -1938,7 +1960,7 @@ export default function HomePage() {
           justifyContent: 'space-between',
           padding: '0 32px',
           borderBottom: '1px solid rgba(6,182,212,0.05)',
-          background: 'rgba(3,4,10,0.92)',
+          background: 'rgba(0,8,15,0.85)',
           backdropFilter: 'blur(16px)',
         }}
       >
@@ -1962,7 +1984,7 @@ export default function HomePage() {
                 fontSize: 15,
                 fontWeight: 400,
                 letterSpacing: '0.15em',
-                color: 'var(--text-primary)',
+                color: '#22d3ee',
               }}
             >
               CLEARCHAIN
@@ -2205,7 +2227,7 @@ export default function HomePage() {
             }}
           >
             {/* Col 1: Risk score */}
-            <RiskScoreCard riskScore={analysis.riskScore} />
+            <TiltCard><RiskScoreCard riskScore={analysis.riskScore} /></TiltCard>
 
             {/* Col 2: Transaction graph */}
             <TransactionGraph
