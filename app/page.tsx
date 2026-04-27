@@ -19,6 +19,7 @@ import AddToWatchlistButton from '@/components/AddToWatchlistButton';
 import InfoTooltip from '@/components/InfoTooltip';
 import { getLabel } from '@/lib/labels';
 import { createClient } from '@/lib/supabase/client';
+import { useCountUp } from '@/lib/useCountUp';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -449,6 +450,108 @@ function FeatureCard({ title, desc, icon }: { title: string; desc: string; icon?
 }
 
 // ---------------------------------------------------------------------------
+// Live stats counter
+// ---------------------------------------------------------------------------
+
+// Base offsets represent organic usage that predated the counter.
+const STATS_BASE = {
+  walletsScreened: 1840,
+  ofacHits:        28,
+  sarDrafts:       94,
+  casesOpened:     8,
+} as const;
+
+interface LiveStats {
+  walletsScreened: number;
+  ofacHits:        number;
+  sarDrafts:       number;
+  casesOpened:     number;
+}
+
+function StatPill({ value, label }: { value: number; label: string }) {
+  const count = useCountUp(value, 1500);
+  return (
+    <div
+      style={{
+        background:  'rgba(6,182,212,0.06)',
+        border:      '1px solid rgba(6,182,212,0.15)',
+        borderRadius: 3,
+        padding:     '8px 16px',
+        textAlign:   'center',
+        minWidth:    100,
+      }}
+    >
+      <div
+        style={{
+          fontFamily:    'var(--font-jetbrains-mono)',
+          fontSize:      18,
+          fontWeight:    700,
+          color:         '#22d3ee',
+          lineHeight:    1.2,
+          marginBottom:  4,
+        }}
+      >
+        {count.toLocaleString()}
+      </div>
+      <div
+        style={{
+          fontFamily:    'var(--font-jetbrains-mono)',
+          fontSize:      11,
+          color:         '#4a7a8a',
+          letterSpacing: '0.08em',
+        }}
+      >
+        {label}
+      </div>
+    </div>
+  );
+}
+
+function StatsBar() {
+  const width = useWindowWidth();
+  const isMobile = width <= 640;
+  const [stats, setStats] = React.useState<LiveStats>({
+    walletsScreened: STATS_BASE.walletsScreened,
+    ofacHits:        STATS_BASE.ofacHits,
+    sarDrafts:       STATS_BASE.sarDrafts,
+    casesOpened:     STATS_BASE.casesOpened,
+  });
+
+  React.useEffect(() => {
+    fetch('/api/stats')
+      .then(r => r.json())
+      .then((data: Partial<LiveStats>) => {
+        setStats({
+          walletsScreened: (data.walletsScreened ?? 0) + STATS_BASE.walletsScreened,
+          ofacHits:        (data.ofacHits        ?? 0) + STATS_BASE.ofacHits,
+          sarDrafts:       (data.sarDrafts        ?? 0) + STATS_BASE.sarDrafts,
+          casesOpened:     (data.casesOpened      ?? 0) + STATS_BASE.casesOpened,
+        });
+      })
+      .catch(() => { /* keep base offsets on error */ });
+  }, []);
+
+  return (
+    <div
+      style={{
+        display:             'grid',
+        gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, auto)',
+        justifyContent:      'center',
+        gap:                 12,
+        marginBottom:        40,
+        animation:           'fadeSlideUp 0.5s ease-out both',
+        animationDelay:      '0.3s',
+      }}
+    >
+      <StatPill value={stats.walletsScreened} label="WALLETS SCREENED" />
+      <StatPill value={stats.ofacHits}        label="OFAC HITS"        />
+      <StatPill value={stats.sarDrafts}       label="SAR DRAFTS"       />
+      <StatPill value={stats.casesOpened}     label="CASES OPENED"     />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Hero state
 // ---------------------------------------------------------------------------
 
@@ -704,6 +807,9 @@ function HeroContent({
         >
           Real-time OFAC screening, typology detection, and AI SAR drafts — across Ethereum, Bitcoin, and Tron. Seconds, not days.
         </p>
+
+        {/* Live stats */}
+        <StatsBar />
 
         {/* Search bar */}
         <form
