@@ -925,7 +925,7 @@ function HeroContent({
             animationDelay: '0.55s',
           }}
         >
-          {['OFAC Screening', '7 AML Typologies', 'SAR Auto-Draft', 'ETH + BTC + TRX', 'Investigation Mode'].map(label => (
+          {['OFAC Screening', '7 AML Typologies', 'SAR Auto-Draft', 'ETH + BTC + TRX + SOL', 'Investigation Mode'].map(label => (
             <span
               key={label}
               style={{
@@ -1145,8 +1145,8 @@ function HeroContent({
           }}
         >
           {[
-            { n: '01', title: 'PASTE ANY ADDRESS', body: 'Ethereum wallet, Bitcoin address, or ENS name. No wallet connection. No account required.' },
-            { n: '02', title: 'INTELLIGENCE IN SECONDS', body: 'Real-time OFAC screening, on-chain transaction analysis, AML typology matching — across ETH, BTC, and TRX.' },
+            { n: '01', title: 'PASTE ANY ADDRESS', body: 'Ethereum, Bitcoin, Tron, or Solana address — or an ENS name. No wallet connection. No account required.' },
+            { n: '02', title: 'INTELLIGENCE IN SECONDS', body: 'Real-time OFAC screening, on-chain transaction analysis, AML typology matching — across ETH, BTC, TRX, and SOL.' },
             { n: '03', title: 'INVESTIGATION + COMPLIANCE', body: 'Click nodes to trace fund flows. Download the SAR draft. Save to a case. From raw address to filed-ready report.' },
           ].map(({ n, title, body }) => (
             <div key={n}>
@@ -1215,8 +1215,8 @@ function HeroContent({
                 right: { label: 'CLEARCHAIN', body: 'Every point explained. Six signals, each with detail. You know exactly why a wallet scored 65.' },
               },
               {
-                left: { label: 'LEGACY TOOLS', body: 'Ethereum-only, or multi-chain at 10× the price. Bitcoin and Tron are afterthoughts.' },
-                right: { label: 'CLEARCHAIN', body: 'ETH, BTC, and TRX in one tool. OFAC-designated addresses across all three chains. Free.' },
+                left: { label: 'LEGACY TOOLS', body: 'Ethereum-only, or multi-chain at 10× the price. Bitcoin, Tron, and Solana are afterthoughts.' },
+                right: { label: 'CLEARCHAIN', body: 'ETH, BTC, TRX, and SOL in one tool. OFAC-designated addresses across all four chains. Free.' },
               },
               {
                 left: { label: 'LEGACY TOOLS', body: 'SAR generation is a separate workflow. Copy the report, open another tool, rewrite it.' },
@@ -1984,6 +1984,9 @@ export default function HomePage() {
     } else if (selectedChain === 'TRX') {
       const isTrx = /^T[a-zA-Z0-9]{33}$/.test(trimmed);
       if (!isTrx) { setError('Invalid Tron address format. Must start with T and be 34 characters.'); return; }
+    } else if (selectedChain === 'SOL') {
+      const isSol = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(trimmed);
+      if (!isSol) { setError('Invalid Solana address format. Must be a base58 string (32–44 chars).'); return; }
     } else {
       const isHexAddr = /^0x[a-fA-F0-9]{40}$/.test(trimmed);
       const isEns = trimmed.includes('.');
@@ -2177,7 +2180,7 @@ export default function HomePage() {
                     color: 'var(--text-dim)',
                   }}
                 >
-                  ETH · BTC · TRX
+                  ETH · BTC · TRX · SOL
                 </span>
               </div>
             </>
