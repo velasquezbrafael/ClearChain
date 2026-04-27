@@ -1349,7 +1349,7 @@ function HeroContent({
             <h2 style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 36, fontWeight: 700, color: '#ecfeff', margin: '0 0 16px', letterSpacing: '-0.01em' }}>
               Built for investigators, not checkboxes.
             </h2>
-            <p style={{ fontFamily: 'var(--font-inter)', fontSize: 16, color: '#7ec8d8', margin: 0, lineHeight: 1.6, maxWidth: 560 }}>
+            <p style={{ fontFamily: 'var(--font-inter)', fontSize: 16, color: '#7ec8d8', margin: 0, lineHeight: 1.6, whiteSpace: 'nowrap' }}>
               Most AML tools produce reports for regulators. ClearChain produces intelligence for analysts.
             </p>
           </div>
