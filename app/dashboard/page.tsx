@@ -71,13 +71,20 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const summary = allSummary ?? []
 
   // Unique addresses (across all time)
-  const uniqueKeys = new Set(summary.map(a => `${a.address}-${a.chain}`))
-  const uniqueAddressCount = uniqueKeys.size
-
-  const ethCount      = summary.filter(a => a.chain === 'ETH').length
-  const btcCount      = summary.filter(a => a.chain === 'BTC').length
-  const trxCount      = summary.filter(a => a.chain === 'TRX').length
-  const solCount      = summary.filter(a => a.chain === 'SOL').length
+  const uniqueByChain: Record<string, number> = { ETH: 0, BTC: 0, TRX: 0, SOL: 0 }
+  const seenAddrChain = new Set<string>()
+  for (const a of summary) {
+    const key = `${a.address}-${a.chain}`
+    if (!seenAddrChain.has(key)) {
+      seenAddrChain.add(key)
+      if (a.chain in uniqueByChain) uniqueByChain[a.chain]++
+    }
+  }
+  const uniqueAddressCount = seenAddrChain.size
+  const ethCount = uniqueByChain.ETH
+  const btcCount = uniqueByChain.BTC
+  const trxCount = uniqueByChain.TRX
+  const solCount = uniqueByChain.SOL
   // Deduplicate: per address+chain, keep only the highest risk level seen
   const uniqueRiskMap = new Map<string, string>()
   const priority: Record<string, number> = { CRITICAL: 4, HIGH: 3, MEDIUM: 2, LOW: 1 }
@@ -147,19 +154,30 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
   return (
     <div style={{ minHeight: '100vh', background: '#00080f', color: '#ecfeff', fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif' }}>
+      <style>{`
+        @media (max-width: 767px) {
+          .dash-secondary-nav { display: none !important; }
+          .dash-user-email    { display: none !important; }
+          .dash-content       { padding: 32px 16px !important; }
+          .dash-stats-grid    { grid-template-columns: repeat(2, 1fr) !important; }
+          .dash-table-scroll  { overflow-x: auto !important; }
+        }
+      `}</style>
       {/* Nav */}
       <nav style={{ position: 'sticky', top: 0, zIndex: 50, borderBottom: '1px solid rgba(6,182,212,0.08)', padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 56, background: 'rgba(0,8,15,0.75)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
-          <a href="/" style={{ fontSize: 15, letterSpacing: '0.15em', color: '#ecfeff', fontFamily: 'var(--font-rubik-glitch)', fontWeight: 400, textDecoration: 'none' }}>CLEARCHAIN</a>
-          <a href="/" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>← Back to Tool</a>
-          <a href="/dashboard/cases" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>Cases</a>
-          <a href="/dashboard/watchlist" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>Watchlist</a>
-          <a href="/dashboard/bulk" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>Bulk Screen</a>
-          <a href="/dashboard/settings" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>Settings</a>
-          <a href="/intel" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>Intel</a>
+          <a href="/" style={{ fontSize: 15, letterSpacing: '0.15em', color: '#22d3ee', fontFamily: 'var(--font-rubik-glitch)', fontWeight: 400, textDecoration: 'none' }}>CLEARCHAIN</a>
+          <div className="dash-secondary-nav" style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
+            <a href="/" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>← Back to Tool</a>
+            <a href="/dashboard/cases" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>Cases</a>
+            <a href="/dashboard/watchlist" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>Watchlist</a>
+            <a href="/dashboard/bulk" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>Bulk Screen</a>
+            <a href="/dashboard/settings" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>Settings</a>
+            <a href="/intel" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>Intel</a>
+          </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-          <span style={{ fontSize: 12, color: '#1e4d5c', fontFamily: 'var(--font-jetbrains-mono)' }}>{user.email}</span>
+          <span className="dash-user-email" style={{ fontSize: 12, color: '#1e4d5c', fontFamily: 'var(--font-jetbrains-mono)' }}>{user.email}</span>
           <form action={signOut}>
             <button type="submit" style={{ fontSize: 12, color: '#7ec8d8', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: '0.08em' }}>
               Sign out
@@ -168,7 +186,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         </div>
       </nav>
 
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '48px 32px' }}>
+      <div className="dash-content" style={{ maxWidth: 1100, margin: '0 auto', padding: '48px 32px' }}>
 
         {/* Greeting + Quick Actions */}
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 40, flexWrap: 'wrap', gap: 20 }}>
@@ -255,7 +273,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         </div>
 
         {/* Stats row */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
+        <div className="dash-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
           {/* Card 1: Unique addresses */}
           <div className="glass" style={{ borderRadius: 8, padding: '24px 28px' }}>
             <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: '#7ec8d8', marginBottom: 14, textTransform: 'uppercase' }}>Addresses Analyzed</div>
@@ -348,7 +366,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
               <a href="/" style={{ color: '#06b6d4', textDecoration: 'none' }}>Run your first analysis →</a>
             </div>
           ) : (
-            <div className="glass" style={{ borderRadius: 8, overflow: 'clip' }}>
+            <div className="glass dash-table-scroll" style={{ borderRadius: 8, overflow: 'clip' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid rgba(6,182,212,0.08)' }}>

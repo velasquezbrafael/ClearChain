@@ -3,6 +3,7 @@
 interface SkeletonLoaderProps {
   step: number;
   steps: string[];
+  isMobile?: boolean;
 }
 
 function Skel({ w, h = 16 }: { w: number | string; h?: number }) {
@@ -19,7 +20,7 @@ function Skel({ w, h = 16 }: { w: number | string; h?: number }) {
   );
 }
 
-export default function SkeletonLoader({ step, steps }: SkeletonLoaderProps) {
+export default function SkeletonLoader({ step, steps, isMobile = false }: SkeletonLoaderProps) {
   return (
     <div
       style={{
@@ -108,45 +109,49 @@ export default function SkeletonLoader({ step, steps }: SkeletonLoaderProps) {
 
       {/* Row 1: address bar placeholder */}
       <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 32 }}>
-        <Skel w={320} h={14} />
-        <Skel w={160} h={14} />
-        <div style={{ marginLeft: 'auto' }}>
-          <Skel w={100} h={14} />
-        </div>
+        <Skel w={isMobile ? '55%' : 320} h={14} />
+        <Skel w={isMobile ? '30%' : 160} h={14} />
+        {!isMobile && (
+          <div style={{ marginLeft: 'auto' }}>
+            <Skel w={100} h={14} />
+          </div>
+        )}
       </div>
 
-      {/* Row 2: 3-col layout */}
+      {/* Row 2: 3-col layout (single col on mobile — graph only) */}
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: '280px 1fr 280px',
+          gridTemplateColumns: isMobile ? '1fr' : '280px 1fr 280px',
           gap: 24,
           marginBottom: 24,
           alignItems: 'start',
         }}
       >
-        {/* Col 1: Risk score skeleton */}
-        <div
-          style={{
-            border: '1px solid rgba(6,182,212,0.08)',
-            borderRadius: 4,
-            background: '#001824',
-            padding: 32,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 20,
-          }}
-        >
-          <Skel w={80} h={10} />
-          <Skel w={120} h={100} />
-          <Skel w={40} h={1} />
-          <Skel w={100} h={28} />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <Skel w="100%" h={12} />
-            <Skel w="85%" h={12} />
-            <Skel w="70%" h={12} />
+        {/* Col 1: Risk score skeleton — hidden on mobile */}
+        {!isMobile && (
+          <div
+            style={{
+              border: '1px solid rgba(6,182,212,0.08)',
+              borderRadius: 4,
+              background: '#001824',
+              padding: 32,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 20,
+            }}
+          >
+            <Skel w={80} h={10} />
+            <Skel w={120} h={100} />
+            <Skel w={40} h={1} />
+            <Skel w={100} h={28} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <Skel w="100%" h={12} />
+              <Skel w="85%" h={12} />
+              <Skel w="70%" h={12} />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Col 2: Graph skeleton */}
         <div
@@ -155,7 +160,7 @@ export default function SkeletonLoader({ step, steps }: SkeletonLoaderProps) {
             borderRadius: 4,
             background: '#001824',
             overflow: 'hidden',
-            minHeight: 500,
+            minHeight: isMobile ? 280 : 500,
             position: 'relative',
           }}
         >
@@ -190,27 +195,29 @@ export default function SkeletonLoader({ step, steps }: SkeletonLoaderProps) {
           </div>
         </div>
 
-        {/* Col 3: Signal list skeleton */}
-        <div
-          style={{
-            border: '1px solid rgba(6,182,212,0.08)',
-            borderRadius: 4,
-            background: '#001824',
-            padding: 24,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 16,
-          }}
-        >
-          <Skel w={80} h={10} />
-          {[100, 85, 95, 70, 80, 65].map((w, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <Skel w={8} h={8} />
-              <Skel w={`${w}%`} h={11} />
-              <Skel w={28} h={11} />
-            </div>
-          ))}
-        </div>
+        {/* Col 3: Signal list skeleton — hidden on mobile */}
+        {!isMobile && (
+          <div
+            style={{
+              border: '1px solid rgba(6,182,212,0.08)',
+              borderRadius: 4,
+              background: '#001824',
+              padding: 24,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 16,
+            }}
+          >
+            <Skel w={80} h={10} />
+            {[100, 85, 95, 70, 80, 65].map((w, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Skel w={8} h={8} />
+                <Skel w={`${w}%`} h={11} />
+                <Skel w={28} h={11} />
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Row 3: Tab panel skeleton */}

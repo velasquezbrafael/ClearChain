@@ -2398,7 +2398,7 @@ export default function HomePage() {
       {/* Loading skeleton */}
       {loading && (
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 32px' }}>
-          <SkeletonLoader step={loadingStep} steps={LOADING_STEPS} />
+          <SkeletonLoader step={loadingStep} steps={LOADING_STEPS} isMobile={isMobile} />
         </div>
       )}
 

@@ -95,24 +95,34 @@ export default function CasesPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#00080f', color: '#ecfeff', fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif' }}>
+      <style>{`
+        @media (max-width: 767px) {
+          .dash-secondary-nav { display: none !important; }
+          .dash-user-email    { display: none !important; }
+          .dash-content       { padding: 32px 16px !important; }
+          .dash-table-scroll  { overflow-x: auto !important; }
+        }
+      `}</style>
       {/* Nav */}
       <nav style={{ position: 'sticky', top: 0, zIndex: 50, borderBottom: '1px solid rgba(6,182,212,0.08)', padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 56, background: 'rgba(0,8,15,0.75)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
-          <a href="/" style={{ fontSize: 15, letterSpacing: '0.15em', color: '#ecfeff', fontFamily: 'var(--font-rubik-glitch)', fontWeight: 400, textDecoration: 'none' }}>CLEARCHAIN</a>
-          <a href="/" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none' }}>← Back to Tool</a>
-          <a href="/dashboard" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none' }}>Dashboard</a>
-          <a href="/dashboard/watchlist" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none' }}>Watchlist</a>
-          <a href="/dashboard/bulk" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none' }}>Bulk Screen</a>
-          <a href="/dashboard/settings" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none' }}>Settings</a>
-          <a href="/intel" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none' }}>Intel</a>
+          <a href="/" style={{ fontSize: 15, letterSpacing: '0.15em', color: '#22d3ee', fontFamily: 'var(--font-rubik-glitch)', fontWeight: 400, textDecoration: 'none' }}>CLEARCHAIN</a>
+          <div className="dash-secondary-nav" style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
+            <a href="/" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none' }}>← Back to Tool</a>
+            <a href="/dashboard" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none' }}>Dashboard</a>
+            <a href="/dashboard/watchlist" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none' }}>Watchlist</a>
+            <a href="/dashboard/bulk" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none' }}>Bulk Screen</a>
+            <a href="/dashboard/settings" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none' }}>Settings</a>
+            <a href="/intel" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none' }}>Intel</a>
+          </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-          <span style={{ fontSize: 12, color: '#1e4d5c', fontFamily: 'var(--font-jetbrains-mono)' }}>{userEmail}</span>
+          <span className="dash-user-email" style={{ fontSize: 12, color: '#1e4d5c', fontFamily: 'var(--font-jetbrains-mono)' }}>{userEmail}</span>
           <button onClick={signOut} style={{ fontSize: 12, color: '#7ec8d8', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: '0.08em' }}>Sign out</button>
         </div>
       </nav>
 
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: '48px 32px' }}>
+      <div className="dash-content" style={{ maxWidth: 900, margin: '0 auto', padding: '48px 32px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
           <div>
             <div style={{ fontSize: 11, letterSpacing: '0.2em', color: '#1e4d5c', marginBottom: 4 }}>COMPLIANCE</div>
@@ -171,7 +181,7 @@ export default function CasesPage() {
             {cases.length === 0 ? 'No cases yet. Click + NEW CASE to create one.' : 'No cases match this filter.'}
           </div>
         ) : (
-          <div className="glass" style={{ borderRadius: 8, overflow: 'clip' }}>
+          <div className="glass dash-table-scroll" style={{ borderRadius: 8, overflow: 'clip' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid rgba(6,182,212,0.08)' }}>
