@@ -73,6 +73,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} ${inter.variable} ${nunito.variable} ${rubikGlitch.variable}`}
     >
       <body className="min-h-screen antialiased">
+        {/* Bypass build CSS stripping — inject backdrop-filter directly */}
+        <style dangerouslySetInnerHTML={{ __html: `.glass { backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important; }` }} />
         {/* Aurora — fixed decorative blobs, z-index 0, no interaction */}
         <div
           aria-hidden="true"
