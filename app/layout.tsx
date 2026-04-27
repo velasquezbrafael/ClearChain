@@ -74,7 +74,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <body className="min-h-screen antialiased">
         {/* Bypass build CSS stripping — inject backdrop-filter directly */}
-        <style dangerouslySetInnerHTML={{ __html: `.glass { backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important; }` }} />
+        <style dangerouslySetInnerHTML={{ __html: `.glass { backdrop-filter: blur(28px) !important; -webkit-backdrop-filter: blur(28px) !important; }` }} />
         {/* Aurora — fixed decorative blobs, z-index 0, no interaction */}
         <div
           aria-hidden="true"
@@ -86,23 +86,33 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             overflow: 'hidden',
           }}
         >
+          {/* Blob 1 — large cyan, top-left */}
           <div style={{
-            position: 'absolute', width: 640, height: 640, borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(6,182,212,0.11) 0%, transparent 70%)',
-            top: '-8%', left: '-4%',
+            position: 'absolute', width: 800, height: 800, borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(6,182,212,0.22) 0%, transparent 70%)',
+            top: '-12%', left: '-8%',
             animation: 'auroraBlob1 20s ease-in-out infinite',
           }} />
+          {/* Blob 2 — violet, mid-right */}
           <div style={{
-            position: 'absolute', width: 520, height: 520, borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(6,182,212,0.07) 0%, transparent 70%)',
-            top: '38%', right: '-7%',
+            position: 'absolute', width: 700, height: 700, borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(79,70,229,0.18) 0%, transparent 70%)',
+            top: '30%', right: '-10%',
             animation: 'auroraBlob2 25s ease-in-out infinite',
           }} />
+          {/* Blob 3 — cyan, bottom-center */}
           <div style={{
-            position: 'absolute', width: 440, height: 440, borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(34,211,238,0.06) 0%, transparent 70%)',
-            bottom: '-4%', left: '28%',
+            position: 'absolute', width: 600, height: 600, borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(34,211,238,0.16) 0%, transparent 70%)',
+            bottom: '-8%', left: '25%',
             animation: 'auroraBlob3 30s ease-in-out infinite',
+          }} />
+          {/* Blob 4 — deep violet, top-right — bleeds into results area */}
+          <div style={{
+            position: 'absolute', width: 500, height: 500, borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(99,102,241,0.14) 0%, transparent 70%)',
+            top: '10%', right: '15%',
+            animation: 'auroraBlob2 35s ease-in-out infinite reverse',
           }} />
         </div>
         {/* Content above aurora */}
