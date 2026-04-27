@@ -18,6 +18,9 @@ _Nothing active. See Planned for next priorities._
 ### ~~Live stats counter on homepage~~ [DONE — commit 455fa14]
 `GET /api/stats` returns aggregate counts (service role, 5-min cache). StatsBar + StatPill components animate from 0 with useCountUp. Base offsets: 1840 wallets / 28 OFAC / 94 SARs / 8 cases. 2x2 grid on mobile.
 
+### ~~Stats counter fix + highRiskWallets~~ [DONE — commit 4180722]
+Fixed broken OFAC query (PostgREST JSONB: `.filter('signals->ofac_match->>triggered', 'eq', 'true')`). Removed all STATS_BASE fake padding — real data only. Added 5th stat: highRiskWallets (HIGH + CRITICAL, accent #ff8c00). Desktop grid → 5-column.
+
 ---
 
 ## 🔵 Planned
