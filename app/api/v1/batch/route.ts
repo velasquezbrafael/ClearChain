@@ -32,6 +32,7 @@ import {
 } from '@/lib/apikeys'
 import { resolveENS } from '@/lib/etherscan'
 import { validateTronAddress } from '@/lib/tron'
+import { validateSolAddress } from '@/lib/solana'
 import { runAnalysis, PipelineError } from '@/lib/analyze-pipeline'
 import type { BatchResult, BatchSummary, SupportedChain } from '@/lib/types'
 import type { WalletAnalysis, ScoringSignal } from '@/types'
@@ -56,7 +57,7 @@ export async function OPTIONS() {
 
 const MAX_BATCH   = 100
 const CONCURRENCY = 5
-const SUPPORTED   = ['ETH', 'BTC', 'TRX'] as const
+const SUPPORTED   = ['ETH', 'BTC', 'TRX', 'SOL'] as const
 
 // ---------------------------------------------------------------------------
 // Response helpers
@@ -134,6 +135,17 @@ async function resolveAddress(
         ok: false,
         errorCode: 'INVALID_ADDRESS',
         errorMsg: 'Invalid Tron address format. Must start with T and be 34 characters.',
+      }
+    }
+    return { ok: true, resolved: trimmed }
+  }
+
+  if (chain === 'SOL') {
+    if (!validateSolAddress(trimmed)) {
+      return {
+        ok: false,
+        errorCode: 'INVALID_ADDRESS',
+        errorMsg: 'Invalid Solana address format. Must be a base58 string (32–44 chars).',
       }
     }
     return { ok: true, resolved: trimmed }

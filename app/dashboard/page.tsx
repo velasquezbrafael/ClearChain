@@ -77,6 +77,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const ethCount      = summary.filter(a => a.chain === 'ETH').length
   const btcCount      = summary.filter(a => a.chain === 'BTC').length
   const trxCount      = summary.filter(a => a.chain === 'TRX').length
+  const solCount      = summary.filter(a => a.chain === 'SOL').length
   // Deduplicate: per address+chain, keep only the highest risk level seen
   const uniqueRiskMap = new Map<string, string>()
   const priority: Record<string, number> = { CRITICAL: 4, HIGH: 3, MEDIUM: 2, LOW: 1 }
@@ -265,7 +266,9 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
               {btcCount > 0 && <span style={{ color: '#7a6030' }}>{btcCount} BTC</span>}
               {(ethCount > 0 || btcCount > 0) && trxCount > 0 && <span style={{ margin: '0 6px' }}>·</span>}
               {trxCount > 0 && <span style={{ color: '#993d2a' }}>{trxCount} TRX</span>}
-              {ethCount === 0 && btcCount === 0 && trxCount === 0 && '—'}
+              {(ethCount > 0 || btcCount > 0 || trxCount > 0) && solCount > 0 && <span style={{ margin: '0 6px' }}>·</span>}
+              {solCount > 0 && <span style={{ color: '#7b5fb5' }}>{solCount} SOL</span>}
+              {ethCount === 0 && btcCount === 0 && trxCount === 0 && solCount === 0 && '—'}
             </div>
           </div>
 

@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
-type Chain = 'ETH' | 'BTC' | 'TRX'
+type Chain = 'ETH' | 'BTC' | 'TRX' | 'SOL'
 type RowStatus = 'queued' | 'running' | 'done' | 'error'
 
 interface BulkRow {
@@ -42,7 +42,7 @@ function parseLines(text: string, defaultChain: Chain): Array<{ address: string;
     const address = parts[0].trim()
     if (!address) continue
     const chainRaw = (parts[1]?.trim().toUpperCase()) as Chain
-    const chain: Chain = (['ETH', 'BTC', 'TRX'] as Chain[]).includes(chainRaw) ? chainRaw : defaultChain
+    const chain: Chain = (['ETH', 'BTC', 'TRX', 'SOL'] as Chain[]).includes(chainRaw) ? chainRaw : defaultChain
     const key = `${address.toLowerCase()}-${chain}`
     if (seen.has(key)) continue
     seen.add(key)
@@ -53,9 +53,9 @@ function parseLines(text: string, defaultChain: Chain): Array<{ address: string;
 
 function buildPreview(rows: Array<{ address: string; chain: Chain }>): string {
   if (rows.length === 0) return ''
-  const counts: Record<Chain, number> = { ETH: 0, BTC: 0, TRX: 0 }
+  const counts: Record<Chain, number> = { ETH: 0, BTC: 0, TRX: 0, SOL: 0 }
   for (const r of rows) counts[r.chain]++
-  const parts = (['ETH', 'BTC', 'TRX'] as Chain[])
+  const parts = (['ETH', 'BTC', 'TRX', 'SOL'] as Chain[])
     .filter(c => counts[c] > 0)
     .map(c => `${c}: ${counts[c]}`)
   return `${rows.length} address${rows.length !== 1 ? 'es' : ''} detected — ${parts.join(' · ')}`
@@ -252,7 +252,7 @@ export default function BulkPage() {
           {/* Top row: default chain + upload */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
             <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: '#7ec8d8' }}>DEFAULT CHAIN</span>
-            {(['ETH', 'BTC', 'TRX'] as Chain[]).map(c => (
+            {(['ETH', 'BTC', 'TRX', 'SOL'] as Chain[]).map(c => (
               <button
                 key={c}
                 onClick={() => setDefaultChain(c)}
@@ -293,7 +293,7 @@ export default function BulkPage() {
           <textarea
             value={textarea}
             onChange={e => setTextarea(e.target.value)}
-            placeholder={'0xAbc123...  (ETH, default chain)\n0xDef456...,BTC  (override chain per row)\nbc1qxy2kgdyfoo...  (BTC address)'}
+            placeholder={'0xAbc123...  (ETH, default chain)\n0xDef456...,BTC  (override chain per row)\nbc1qxy2kgdyfoo...  (BTC address)\nDRpbCBMxVnDK7maPM5tGv6MvB3v1sRMC73bMBiibYaUn,SOL'}
             rows={8}
             style={{
               width: '100%',

@@ -1777,7 +1777,14 @@ function ResultsAddressBar({
 export default function HomePage() {
   const [address, setAddress] = useState<string>(() => {
     if (typeof window === 'undefined') return '';
-    const urlAddr = new URLSearchParams(window.location.search).get('address') ?? '';
+    const params  = new URLSearchParams(window.location.search);
+    const urlAddr = params.get('address') ?? '';
+    const urlChain = params.get('chain') ?? 'ETH';
+    if (!urlAddr) return '';
+    // Accept any valid address format for the detected chain
+    if (urlChain === 'SOL' && /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(urlAddr)) return urlAddr;
+    if (urlChain === 'BTC' && (/^(1|3)[a-km-zA-HJ-NP-Z1-9]{25,34}$/.test(urlAddr) || /^bc1[a-z0-9]{39,59}$/.test(urlAddr))) return urlAddr;
+    if (urlChain === 'TRX' && /^T[a-zA-Z0-9]{33}$/.test(urlAddr)) return urlAddr;
     return /^0x[a-fA-F0-9]{40}$/.test(urlAddr) ? urlAddr : '';
   });
   const [selectedChain, setSelectedChain] = useState<'ETH' | 'BTC' | 'TRX' | 'SOL'>(() => {
