@@ -504,8 +504,9 @@ function StatPill({ value, label, accent = '#22d3ee' }: { value: number; label: 
 }
 
 function StatsBar() {
-  const width = useWindowWidth();
+  const width    = useWindowWidth();
   const isMobile = width <= 640;
+
   const [stats, setStats] = React.useState<LiveStats>({
     walletsScreened: 0,
     ofacHits:        0,
@@ -515,18 +516,50 @@ function StatsBar() {
   });
 
   React.useEffect(() => {
-    fetch('/api/stats')
-      .then(r => r.json())
-      .then((data: Partial<LiveStats>) => {
-        setStats({
-          walletsScreened: data.walletsScreened ?? 0,
-          ofacHits:        data.ofacHits        ?? 0,
-          sarDrafts:       data.sarDrafts        ?? 0,
-          casesOpened:     data.casesOpened      ?? 0,
-          highRiskWallets: data.highRiskWallets  ?? 0,
+    const supabase = createClient();
+
+    // Initial load from global_stats
+    supabase
+      .from('global_stats')
+      .select('wallets_screened, ofac_hits, sar_drafts, cases_opened, high_risk_wallets')
+      .eq('id', 1)
+      .single()
+      .then(({ data }) => {
+        if (data) setStats({
+          walletsScreened: data.wallets_screened as number,
+          ofacHits:        data.ofac_hits        as number,
+          sarDrafts:       data.sar_drafts        as number,
+          casesOpened:     data.cases_opened      as number,
+          highRiskWallets: data.high_risk_wallets as number,
         });
-      })
-      .catch(() => { /* leave zeros on error */ });
+      });
+
+    // Realtime subscription — fires for every visitor when any analysis is saved
+    const channel = supabase
+      .channel('global-stats-live')
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'global_stats', filter: 'id=eq.1' },
+        (payload) => {
+          const row = payload.new as {
+            wallets_screened:  number;
+            ofac_hits:         number;
+            sar_drafts:        number;
+            cases_opened:      number;
+            high_risk_wallets: number;
+          };
+          setStats({
+            walletsScreened: row.wallets_screened,
+            ofacHits:        row.ofac_hits,
+            sarDrafts:       row.sar_drafts,
+            casesOpened:     row.cases_opened,
+            highRiskWallets: row.high_risk_wallets,
+          });
+        },
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   return (
