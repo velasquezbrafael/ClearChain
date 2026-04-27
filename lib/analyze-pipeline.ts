@@ -11,7 +11,7 @@
 
 import type { WalletAnalysis, WalletTransaction, ScoringSignal, RiskScore } from '@/types'
 import { getBitcoinTransactions, getBitcoinRawTxs, detectBtcPatterns } from './bitcoin'
-import { getTronTransactions, detectTrxPatterns } from './tron'
+import { getTronTransactions, getTronTRC20Transfers, detectTrxPatterns } from './tron'
 import {
   getSolBalance, getSolTransactions, getSPLTokenTransfers,
   detectSolPatterns, validateSolAddress,
@@ -240,8 +240,19 @@ export async function runAnalysis(
   // ── TRX pipeline ───────────────────────────────────────────────────────────
   if (chain === 'TRX') {
     try {
-      const rawTrxTxs = await getTronTransactions(address)
-      const trxTxs    = rawTrxTxs.filter(tx => tx.from && tx.to)
+      const [nativeTxs, trc20Txs] = await Promise.all([
+        getTronTransactions(address),
+        getTronTRC20Transfers(address),
+      ])
+      const seenHashes = new Set<string>()
+      const rawTrxTxs: WalletTransaction[] = []
+      for (const tx of [...nativeTxs, ...trc20Txs]) {
+        if (!seenHashes.has(tx.hash)) {
+          seenHashes.add(tx.hash)
+          rawTrxTxs.push(tx)
+        }
+      }
+      const trxTxs = rawTrxTxs.filter(tx => tx.from && tx.to)
       const TRX_SDN   = new Map(Object.entries(OFAC_TRX as Record<string, string>))
 
       const trxOfacEntity = TRX_SDN.get(address)

@@ -168,6 +168,60 @@ export async function getTronTransactions(address: string): Promise<WalletTransa
   return result.sort((a, b) => a.timestamp - b.timestamp);
 }
 
+// ---------------------------------------------------------------------------
+// TRC-20 token transfers (USDT, USDC, etc.)
+// ---------------------------------------------------------------------------
+
+interface TRC20Transfer {
+  transaction_id: string;
+  block_timestamp: number;
+  from: string;
+  to: string;
+  value: string; // raw integer as string
+  token_info: {
+    symbol?: string;
+    decimals?: number;
+    address?: string;
+  };
+}
+
+interface TRC20Response {
+  data?: TRC20Transfer[];
+  success?: boolean;
+}
+
+export async function getTronTRC20Transfers(address: string): Promise<WalletTransaction[]> {
+  const res = await fetch(
+    `${TRONGRID_BASE}/v1/accounts/${address}/transactions/trc20?limit=50&only_confirmed=true`,
+    { next: { revalidate: 60 } }
+  );
+  if (!res.ok) return []; // fail-open — native TRX data still flows through
+
+  let json: TRC20Response;
+  try { json = await res.json(); } catch { return []; }
+
+  const result: WalletTransaction[] = [];
+  for (const tx of json.data ?? []) {
+    if (!tx.from || !tx.to) continue;
+    const decimals = tx.token_info?.decimals ?? 6;
+    const rawValue = parseFloat(tx.value ?? '0');
+    if (isNaN(rawValue) || rawValue === 0) continue;
+    const amount = rawValue / Math.pow(10, decimals);
+    const timestamp = Math.floor((tx.block_timestamp ?? Date.now()) / 1000);
+    result.push({
+      hash:        tx.transaction_id,
+      from:        tx.from,
+      to:          tx.to,
+      value:       amount,
+      timestamp,
+      blockNumber: 0,
+      tokenSymbol: tx.token_info?.symbol,
+      isInbound:   tx.to === address,
+    });
+  }
+  return result;
+}
+
 export async function getTronBalance(address: string): Promise<number> {
   const res = await fetch(`${TRONGRID_BASE}/v1/accounts/${address}`, {
     next: { revalidate: 60 },
@@ -211,11 +265,14 @@ export function detectTrxPatterns(
     if (count >= 3) { rapidHops = true; break; }
   }
 
-  // High volume in young wallet
-  const totalVolume = transactions.reduce((s, tx) => s + tx.value, 0);
+  // High volume in young wallet — native TRX only (no tokenSymbol)
+  // TRC-20 values are in token units (e.g. USDT) and must not be mixed with TRX
+  const nativeVolume = transactions
+    .filter(tx => !tx.tokenSymbol)
+    .reduce((s, tx) => s + tx.value, 0);
   const earliestTs = sorted[0]?.timestamp ?? Date.now() / 1000;
   const walletAgeDays = Math.floor((Date.now() / 1000 - earliestTs) / 86400);
-  const highVolume = totalVolume > 10_000 && walletAgeDays < 30;
+  const highVolume = nativeVolume > 10_000 && walletAgeDays < 30;
 
   return { rapidHops, highVolume };
 }

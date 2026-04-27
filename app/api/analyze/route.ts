@@ -11,7 +11,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { getTransactions, getTokenTransfers, resolveENS, getTopCounterparties } from '@/lib/etherscan';
 import { getBitcoinTransactions, getBitcoinRawTxs, detectBtcPatterns } from '@/lib/bitcoin';
-import { getTronTransactions, detectTrxPatterns } from '@/lib/tron';
+import { getTronTransactions, getTronTRC20Transfers, detectTrxPatterns } from '@/lib/tron';
 import { getSolBalance, getSolTransactions, getSPLTokenTransfers, detectSolPatterns, validateSolAddress } from '@/lib/solana';
 import OFAC_TRX from '@/data/ofac-trx-addresses.json';
 import { checkAddress, checkOfacSol } from '@/lib/ofac';
@@ -412,7 +412,18 @@ export async function POST(request: NextRequest) {
   // ── TRX pipeline ──────────────────────────────────────────────────────────
   if (chain === 'TRX') {
     try {
-      const rawTrxTxs = await getTronTransactions(address);
+      const [nativeTxs, trc20Txs] = await Promise.all([
+        getTronTransactions(address),
+        getTronTRC20Transfers(address),
+      ]);
+      const seenHashes = new Set<string>();
+      const rawTrxTxs: WalletTransaction[] = [];
+      for (const tx of [...nativeTxs, ...trc20Txs]) {
+        if (!seenHashes.has(tx.hash)) {
+          seenHashes.add(tx.hash);
+          rawTrxTxs.push(tx);
+        }
+      }
       const trxTxs = rawTrxTxs.filter(tx => tx.from && tx.to);
       const TRX_SDN = new Map(
         Object.entries(OFAC_TRX as Record<string, string>).map(([a, e]) => [a, e])
