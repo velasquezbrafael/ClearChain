@@ -24,6 +24,7 @@ const CHAIN_COLORS: Record<string, string> = {
   ETH: '#06b6d4',
   BTC: '#f97316',
   TRX: '#ff4500',
+  SOL: '#9945ff',
 };
 
 function fmtTime(iso: string) {
@@ -88,11 +89,12 @@ export default async function IntelPage() {
   const cleanToday     = today.filter(r => r.risk_level === 'LOW').length;
 
   // Chain breakdown (all time)
-  const chainTotals = { ETH: 0, BTC: 0, TRX: 0, other: 0 };
+  const chainTotals = { ETH: 0, BTC: 0, TRX: 0, SOL: 0, other: 0 };
   for (const r of all) {
     if (r.chain === 'ETH') chainTotals.ETH++;
     else if (r.chain === 'BTC') chainTotals.BTC++;
     else if (r.chain === 'TRX') chainTotals.TRX++;
+    else if (r.chain === 'SOL') chainTotals.SOL++;
     else chainTotals.other++;
   }
   const chainTotal = all.length || 1;
@@ -157,7 +159,7 @@ export default async function IntelPage() {
         {/* Chain breakdown */}
         <div style={{ background: '#001824', border: '1px solid rgba(6,182,212,0.08)', borderRadius: 8, padding: '20px 24px', marginBottom: 40 }}>
           <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: '#7ec8d8', marginBottom: 16, textTransform: 'uppercase' }}>Chain Breakdown (All Time)</div>
-          {(['ETH', 'BTC', 'TRX'] as const).map(c => {
+          {(['ETH', 'BTC', 'TRX', 'SOL'] as const).map(c => {
             const count = chainTotals[c];
             const pct = Math.round((count / chainTotal) * 100);
             return (

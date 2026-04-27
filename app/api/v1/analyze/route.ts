@@ -24,6 +24,7 @@ import { cookies } from 'next/headers'
 import { validateApiKey, checkAndIncrementUsage } from '@/lib/apikeys'
 import { resolveENS } from '@/lib/etherscan'
 import { validateTronAddress } from '@/lib/tron'
+import { validateSolAddress } from '@/lib/solana'
 import { runAnalysis, PipelineError } from '@/lib/analyze-pipeline'
 
 // ---------------------------------------------------------------------------
@@ -83,16 +84,16 @@ export async function POST(request: NextRequest) {
   }
 
   // ── 2. Validate chain ──────────────────────────────────────────────────────
-  const SUPPORTED = ['ETH', 'BTC', 'TRX'] as const
+  const SUPPORTED = ['ETH', 'BTC', 'TRX', 'SOL'] as const
   const chainUpper = typeof rawChain === 'string' ? rawChain.toUpperCase() : 'ETH'
   if (!SUPPORTED.includes(chainUpper as (typeof SUPPORTED)[number])) {
     return errorJson(
       'UNSUPPORTED_CHAIN',
-      `Chain "${rawChain}" is not supported. Supported chains: ETH, BTC, TRX`,
+      `Chain "${rawChain}" is not supported. Supported chains: ETH, BTC, TRX, SOL`,
       400,
     )
   }
-  const chain = chainUpper as 'ETH' | 'BTC' | 'TRX'
+  const chain = chainUpper as 'ETH' | 'BTC' | 'TRX' | 'SOL'
 
   // ── 3. Validate + resolve address ──────────────────────────────────────────
   let address: string
@@ -110,6 +111,16 @@ export async function POST(request: NextRequest) {
       return errorJson(
         'INVALID_ADDRESS',
         'Invalid Tron address format. Must start with T and be 34 characters.',
+        400,
+      )
+    }
+    address = trimmed
+
+  } else if (chain === 'SOL') {
+    if (!validateSolAddress(trimmed)) {
+      return errorJson(
+        'INVALID_ADDRESS',
+        'Invalid Solana address format. Must be a base58 string (32–44 chars).',
         400,
       )
     }

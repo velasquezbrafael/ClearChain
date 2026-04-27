@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
-type Chain = 'ETH' | 'BTC' | 'TRX'
+type Chain = 'ETH' | 'BTC' | 'TRX' | 'SOL'
 
 interface WatchlistEntry {
   id: string
@@ -168,7 +168,7 @@ export default function WatchlistPage() {
                 type="text"
                 value={addAddress}
                 onChange={e => setAddAddress(e.target.value)}
-                placeholder="0x... or bc1q... or T..."
+                placeholder="0x... or bc1q... or T... or base58..."
                 required
                 style={inputStyle}
               />
@@ -176,7 +176,7 @@ export default function WatchlistPage() {
             <div>
               <label style={{ display: 'block', fontSize: 10, letterSpacing: '0.12em', color: '#1e4d5c', marginBottom: 6 }}>CHAIN</label>
               <div style={{ display: 'flex', gap: 4 }}>
-                {(['ETH', 'BTC', 'TRX'] as Chain[]).map(c => (
+                {(['ETH', 'BTC', 'TRX', 'SOL'] as Chain[]).map(c => (
                   <button
                     key={c}
                     type="button"

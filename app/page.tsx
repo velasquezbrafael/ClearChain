@@ -75,6 +75,70 @@ interface ErrorAPIResponse {
 type APIResponse = AnalysisAPIResponse | ErrorAPIResponse;
 
 // ---------------------------------------------------------------------------
+// Error state — label + detail for user-facing display
+// ---------------------------------------------------------------------------
+
+interface ErrorState {
+  label: string;
+  detail: string;
+}
+
+function makeError(detail: string, label = 'ERROR'): ErrorState {
+  return { label, detail };
+}
+
+function apiErrorToState(code: string | undefined, msg: string, chain: string): ErrorState {
+  switch (code) {
+    case 'INVALID_ADDRESS':
+      return {
+        label: 'FORMAT ERROR',
+        detail:
+          chain === 'BTC' ? 'Not a valid Bitcoin address. Bitcoin addresses start with 1, 3, or bc1.' :
+          chain === 'TRX' ? 'Not a valid Tron address. Must start with T and be exactly 34 characters.' :
+          chain === 'SOL' ? 'Not a valid Solana address. Must be a 32–44 character base58 string (no 0, O, I, or l).' :
+          'Not a valid Ethereum address. Use a 0x hex address (42 chars) or an ENS name like vitalik.eth.',
+      };
+    case 'ENS_RESOLUTION_FAILED':
+      return {
+        label: 'RESOLVE ERROR',
+        detail: 'That ENS name couldn\'t be resolved — it may not be registered or may not point to an address.',
+      };
+    case 'RATE_LIMIT_EXCEEDED':
+      return {
+        label: 'RATE LIMITED',
+        detail: 'Free tier limit reached (10 analyses/day). Check your dashboard to track usage, or try again tomorrow.',
+      };
+    case 'UNSUPPORTED_CHAIN':
+      return { label: 'UNSUPPORTED CHAIN', detail: msg };
+    default: {
+      const lower = msg.toLowerCase();
+      if (lower.includes('not found') || lower.includes('does not exist') || lower.includes('no on-chain')) {
+        return {
+          label: 'NOT FOUND',
+          detail: 'No on-chain activity found for that address. It may not exist on this chain yet, or the address format may be wrong.',
+        };
+      }
+      if (lower.includes('rate limit') || lower.includes('too many') || lower.includes('retry')) {
+        return {
+          label: 'RATE LIMITED',
+          detail: 'The blockchain data provider is temporarily rate-limiting requests. Wait a moment and try again.',
+        };
+      }
+      if (lower.includes('invalid') && lower.includes('address')) {
+        return { label: 'FORMAT ERROR', detail: msg };
+      }
+      if (lower.includes('timeout') || lower.includes('warming up')) {
+        return { label: 'TIMEOUT', detail: msg };
+      }
+      if (lower.includes('network') || lower.includes('could not reach')) {
+        return { label: 'NETWORK ERROR', detail: msg };
+      }
+      return { label: 'ERROR', detail: msg };
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
@@ -610,7 +674,7 @@ function HeroContent({
   onSubmit: (e: React.FormEvent) => void;
   onQuickFill: (addr: string) => void;
   onSimulatorFill: () => void;
-  error: string | null;
+  error: ErrorState | null;
   selectedChain: 'ETH' | 'BTC' | 'TRX' | 'SOL';
   setSelectedChain: (c: 'ETH' | 'BTC' | 'TRX' | 'SOL') => void;
   history: HistoryEntry[];
@@ -927,17 +991,31 @@ function HeroContent({
               role="alert"
               style={{
                 marginTop: 16,
-                padding: '10px 16px',
+                padding: '12px 16px',
                 border: '1px solid rgba(255,59,59,0.25)',
                 borderRadius: 2,
                 background: 'rgba(255,59,59,0.06)',
-                fontFamily: 'var(--font-jetbrains-mono)',
-                fontSize: 11,
-                color: '#ff6b6b',
                 textAlign: 'left',
               }}
             >
-              {error}
+              <div style={{
+                fontFamily: 'var(--font-jetbrains-mono)',
+                fontSize: 9,
+                letterSpacing: '0.15em',
+                color: '#ff3b3b',
+                marginBottom: 5,
+                fontWeight: 700,
+              }}>
+                {error.label}
+              </div>
+              <div style={{
+                fontFamily: 'var(--font-jetbrains-mono)',
+                fontSize: 11,
+                color: '#ff6b6b',
+                lineHeight: 1.55,
+              }}>
+                {error.detail}
+              </div>
             </div>
           )}
         </form>
@@ -1823,7 +1901,7 @@ export default function HomePage() {
   });
   const [loading, setLoading]       = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
-  const [error, setError]           = useState<string | null>(null);
+  const [error, setError]           = useState<ErrorState | null>(null);
   const [analysis, setAnalysis]     = useState<WalletAnalysis | null>(null);
   const [narrative, setNarrative]   = useState<string | null>(null);
   const [sarDraft, setSarDraft]     = useState<string | null>(null);
@@ -1965,7 +2043,8 @@ export default function HomePage() {
       const json: APIResponse = await res.json();
 
       if (!json.success) {
-        setError((json as ErrorAPIResponse).error ?? 'An unexpected error occurred.');
+        const e = json as ErrorAPIResponse;
+        setError(apiErrorToState(e.code, e.error ?? 'An unexpected error occurred.', activeChain));
         return;
       }
 
@@ -1974,7 +2053,7 @@ export default function HomePage() {
       // Defensive: ensure required nested fields exist before setting state
       if (!data?.riskScore || !Array.isArray(data?.transactions)) {
         console.error('[ClearChain] Unexpected response shape:', data);
-        setError('Analysis returned an unexpected data format. Please try again.');
+        setError(makeError('Analysis returned an unexpected data format. Please try again.', 'SERVER ERROR'));
         return;
       }
       // Ensure typologies is always an array (BTC/TRX return [])
@@ -1993,9 +2072,9 @@ export default function HomePage() {
       clearTimeout(timeout);
       console.error('[ClearChain] runAnalysis error:', err);
       if (err instanceof Error && err.name === 'AbortError') {
-        setError('Analysis is taking longer than expected — the server may be warming up. Please try again.');
+        setError(makeError('Analysis is taking longer than expected — the server may be warming up. Please try again.', 'TIMEOUT'));
       } else {
-        setError('Network error — could not reach the ClearChain API. Please try again.');
+        setError(makeError('Could not reach the ClearChain API. Check your connection and try again.', 'NETWORK ERROR'));
       }
     } finally {
       setLoading(false);
@@ -2006,28 +2085,29 @@ export default function HomePage() {
     e.preventDefault();
     const trimmed = address.trim();
     if (!trimmed) {
-      setError(
+      setError(makeError(
         selectedChain === 'BTC' ? 'Please enter a Bitcoin address.' :
         selectedChain === 'TRX' ? 'Please enter a Tron address.' :
         selectedChain === 'SOL' ? 'Please enter a Solana address.' :
-        'Please enter an Ethereum wallet address or ENS name.'
-      );
+        'Please enter an Ethereum wallet address or ENS name.',
+        'MISSING INPUT',
+      ));
       return;
     }
     if (selectedChain === 'BTC') {
       const isBtc = /^(1|3)[a-km-zA-HJ-NP-Z1-9]{25,34}$/.test(trimmed) || /^bc1[a-z0-9]{39,59}$/.test(trimmed);
-      if (!isBtc) { setError('Invalid Bitcoin address format. Must start with 1, 3, or bc1.'); return; }
+      if (!isBtc) { setError(makeError('Not a valid Bitcoin address. Addresses start with 1, 3, or bc1.', 'FORMAT ERROR')); return; }
     } else if (selectedChain === 'TRX') {
       const isTrx = /^T[a-zA-Z0-9]{33}$/.test(trimmed);
-      if (!isTrx) { setError('Invalid Tron address format. Must start with T and be 34 characters.'); return; }
+      if (!isTrx) { setError(makeError('Not a valid Tron address. Must start with T and be exactly 34 characters.', 'FORMAT ERROR')); return; }
     } else if (selectedChain === 'SOL') {
       const isSol = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(trimmed);
-      if (!isSol) { setError('Invalid Solana address format. Must be a base58 string (32–44 chars).'); return; }
+      if (!isSol) { setError(makeError('Not a valid Solana address. Must be a 32–44 character base58 string (no 0, O, I, or l).', 'FORMAT ERROR')); return; }
     } else {
       const isHexAddr = /^0x[a-fA-F0-9]{40}$/.test(trimmed);
       const isEns = trimmed.includes('.');
       if (!isHexAddr && !isEns) {
-        setError('Invalid input. Enter a 0x address (42 chars) or an ENS name like vitalik.eth.');
+        setError(makeError('Not a valid Ethereum address. Use a 0x hex address (42 chars) or an ENS name like vitalik.eth.', 'FORMAT ERROR'));
         return;
       }
     }
