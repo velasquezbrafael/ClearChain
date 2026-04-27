@@ -14,6 +14,7 @@ import TransactionGraph from '@/components/TransactionGraph';
 import FundFlowDiagram from '@/components/FundFlowDiagram';
 import TransactionTimeline from '@/components/TransactionTimeline';
 import SkeletonLoader from '@/components/SkeletonLoader';
+import TerminalLoader from '@/components/TerminalLoader';
 import ExportButton from '@/components/ExportButton';
 import AddToWatchlistButton from '@/components/AddToWatchlistButton';
 import InfoTooltip from '@/components/InfoTooltip';
@@ -2398,7 +2399,13 @@ export default function HomePage() {
       {/* Loading skeleton */}
       {loading && (
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 32px' }}>
-          <SkeletonLoader step={loadingStep} steps={LOADING_STEPS} isMobile={isMobile} />
+          <TerminalLoader
+            step={loadingStep}
+            steps={LOADING_STEPS}
+            address={address}
+            chain={selectedChain}
+            isMobile={isMobile}
+          />
         </div>
       )}
 
