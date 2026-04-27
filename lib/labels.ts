@@ -24,8 +24,18 @@ export const KNOWN_LABELS: Record<string, { label: string; category: 'sanctioned
   '0x7be8076f4ea4a4ad08075c2508e481d6c946d12b': { label: 'OpenSea Wyvern Exchange', category: 'defi' },
   '0x00000000006c3852cbef3e08e8df289169ede581': { label: 'Seaport 1.1 (OpenSea)', category: 'defi' },
   '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2': { label: 'WETH Contract', category: 'defi' },
+
+  // ── Solana (SOL) — case-sensitive base58 addresses ───────────────────────
+  // OFAC-sanctioned
+  'DRpbCBMxVnDK7maPM5tGv6MvB3v1sRMC73bMBiibYaUn': { label: 'Lazarus Group / DPRK (OFAC SDN)', category: 'sanctioned' },
+  // Known Solana DeFi programs (program addresses, not user wallets)
+  '675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8': { label: 'Raydium AMM v4', category: 'defi' },
+  'JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4': { label: 'Jupiter Aggregator v6', category: 'defi' },
+  'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA':  { label: 'SPL Token Program', category: 'defi' },
 };
 
 export function getLabel(address: string): { label: string; category: 'sanctioned' | 'exchange' | 'defi' | 'notable' } | null {
-  return KNOWN_LABELS[address.toLowerCase()] ?? null;
+  // ETH addresses are lowercase; SOL addresses are case-sensitive base58.
+  // Try exact match first (SOL), then lowercase fallback (ETH/TRX).
+  return KNOWN_LABELS[address] ?? KNOWN_LABELS[address.toLowerCase()] ?? null;
 }

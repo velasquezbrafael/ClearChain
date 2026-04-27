@@ -12,10 +12,15 @@
 import type { WalletAnalysis, WalletTransaction, ScoringSignal, RiskScore } from '@/types'
 import { getBitcoinTransactions, getBitcoinRawTxs, detectBtcPatterns } from './bitcoin'
 import { getTronTransactions, detectTrxPatterns } from './tron'
+import {
+  getSolBalance, getSolTransactions, getSPLTokenTransfers,
+  detectSolPatterns, validateSolAddress,
+} from './solana'
 import { getTransactions, getTokenTransfers, getTopCounterparties } from './etherscan'
 import OFAC_TRX from '@/data/ofac-trx-addresses.json'
-import { checkAddress } from './ofac'
+import { checkAddress, checkOfacSol } from './ofac'
 import { computeRiskScore } from './scoring'
+import { scoreSolana } from './scoring-sol'
 import { matchTypologies } from './typology'
 import { generateAll } from './claude'
 import { fireWebhook } from './webhook'
@@ -121,7 +126,7 @@ export interface PipelineResult {
 
 export async function runAnalysis(
   address: string,
-  chain: 'ETH' | 'BTC' | 'TRX',
+  chain: 'ETH' | 'BTC' | 'TRX' | 'SOL',
   options: PipelineOptions = {},
 ): Promise<PipelineResult> {
   const { userId, apiKeyId, webhookUrl, webhookSecret, onSave } = options
@@ -331,6 +336,77 @@ export async function runAnalysis(
     } catch (err) {
       if (err instanceof PipelineError) throw err
       const msg = err instanceof Error ? err.message : 'Failed to fetch Tron transaction history'
+      const s = err instanceof Error ? (err as Error & { statusCode?: number }).statusCode : undefined
+      throw new PipelineError(msg, 'ANALYSIS_FAILED', s && s >= 400 && s < 600 ? s : 500)
+    }
+  }
+
+  // ── SOL pipeline ───────────────────────────────────────────────────────────
+  if (chain === 'SOL') {
+    if (!validateSolAddress(address)) {
+      throw new PipelineError(
+        'Invalid Solana address format. Must be a 32–44 character base58 public key.',
+        'INVALID_ADDRESS',
+        400,
+      )
+    }
+
+    try {
+      const [, solTxs] = await Promise.all([
+        getSolBalance(address),
+        getSolTransactions(address),
+        getSPLTokenTransfers(address),
+      ])
+
+      const ofacResult  = checkOfacSol(address)
+      const patterns    = detectSolPatterns(address, solTxs)
+      const solRisk     = scoreSolana(address, solTxs, ofacResult, patterns)
+
+      const analysis: WalletAnalysis = {
+        address, chain: 'SOL',
+        riskScore:    solRisk,
+        typologies:   [],
+        transactions: solTxs,
+        ofacResult,
+        analyzedAt:   new Date().toISOString(),
+      }
+
+      const { narrative, sarDraft: sarDraftRaw } = await generateAll(analysis)
+
+      if (userId && onSave) {
+        onSave({
+          user_id: userId, address, chain: 'SOL',
+          risk_score:  solRisk.total, risk_level: solRisk.level,
+          signals:     solRisk.signals, typologies: [],
+          narrative:   narrative   ?? '',
+          sar_draft:   sarDraftRaw ?? '',
+          analyzed_at: analysis.analyzedAt,
+        }).catch(err => console.error('[pipeline] SOL save failed:', err))
+      }
+
+      if (webhookUrl && apiKeyId) {
+        fireWebhook(webhookUrl, webhookSecret ?? null, {
+          event: 'analysis.complete', timestamp: new Date().toISOString(), api_key_id: apiKeyId,
+          data: {
+            address, chain: 'SOL',
+            risk_score:  solRisk.total, risk_level: solRisk.level,
+            signals:     Object.fromEntries(Object.entries(solRisk.signals).map(([k, s]) => [k, s.triggered])),
+            typologies: [], narrative: narrative ?? '', sar_draft: sarDraftRaw ?? '',
+            analyzed_at: analysis.analyzedAt,
+          },
+        })
+      }
+
+      const result: PipelineResult = {
+        data: analysis, narrative: narrative ?? '', sarDraft: sarDraftRaw ?? '',
+        hopData: [], resolvedAddress: address,
+      }
+      pipelineCache.set(cacheKey, { data: result.data, narrative: result.narrative, sarDraft: result.sarDraft, hopData: [], cachedAt: Date.now() })
+      return result
+
+    } catch (err) {
+      if (err instanceof PipelineError) throw err
+      const msg = err instanceof Error ? err.message : 'Failed to fetch Solana transaction history'
       const s = err instanceof Error ? (err as Error & { statusCode?: number }).statusCode : undefined
       throw new PipelineError(msg, 'ANALYSIS_FAILED', s && s >= 400 && s < 600 ? s : 500)
     }

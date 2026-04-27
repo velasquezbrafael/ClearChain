@@ -10,6 +10,13 @@ _Nothing active. See Planned for next priorities._
 
 ---
 
+## Recently shipped
+
+### ~~Live stats counter on homepage~~ [DONE — commit 455fa14]
+`GET /api/stats` returns aggregate counts (service role, 5-min cache). StatsBar + StatPill components animate from 0 with useCountUp. Base offsets: 1840 wallets / 28 OFAC / 94 SARs / 8 cases. 2x2 grid on mobile.
+
+---
+
 ## 🔵 Planned
 
 ### ~~Email notifications — env vars required~~ [DONE]

@@ -33,6 +33,9 @@ const LAZARUS_BTC   = 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh';
 const GARANTEX_TRX  = 'TJDENsfBJs4RFETt1X1W8wMDc8M5XnJhCe';
 const LAZARUS_TRX   = 'TU4vEruvZwLLkSfV9bNw12EJTPvNr7Pvaa';
 const BINANCE_TRX   = 'TLyqzVGLV1srkB7dToTAEqgDSfPtXRJZYH';
+// Solana — base58, case-sensitive
+const LAZARUS_SOL   = 'DRpbCBMxVnDK7maPM5tGv6MvB3v1sRMC73bMBiibYaUn'; // OFAC SDN — Lazarus Group / DPRK
+const RAYDIUM_SOL   = '675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8'; // Raydium AMM v4 program
 
 const LOADING_STEPS = [
   'Fetching on-chain transactions...',
@@ -579,8 +582,8 @@ function HeroContent({
   onQuickFill: (addr: string) => void;
   onSimulatorFill: () => void;
   error: string | null;
-  selectedChain: 'ETH' | 'BTC' | 'TRX';
-  setSelectedChain: (c: 'ETH' | 'BTC' | 'TRX') => void;
+  selectedChain: 'ETH' | 'BTC' | 'TRX' | 'SOL';
+  setSelectedChain: (c: 'ETH' | 'BTC' | 'TRX' | 'SOL') => void;
   history: HistoryEntry[];
   onRemoveHistory: (addr: string) => void;
 }) {
@@ -688,14 +691,16 @@ function HeroContent({
 
 
   const quickFills = [
-    { label: 'Tornado Cash', sub: 'OFAC SDN · Router', address: TORNADO_CASH, chain: 'ETH' as const, style: 'red'    as const },
-    { label: 'Lazarus Group', sub: 'DPRK · OFAC SDN',  address: LAZARUS,      chain: 'ETH' as const, style: 'red'    as const },
-    { label: 'Vitalik.eth',   sub: 'Clean baseline',    address: VITALIK,      chain: 'ETH' as const, style: 'green'  as const },
-    { label: 'Binance BTC',   sub: 'Exchange',          address: BINANCE_BTC,  chain: 'BTC' as const, style: 'blue'   as const },
-    { label: 'Lazarus BTC',   sub: 'OFAC SDN · DPRK',  address: LAZARUS_BTC,  chain: 'BTC' as const, style: 'red'    as const },
-    { label: 'Garantex',      sub: 'OFAC SDN · TRX',   address: GARANTEX_TRX, chain: 'TRX' as const, style: 'red'    as const },
-    { label: 'Lazarus TRX',   sub: 'OFAC SDN · DPRK',  address: LAZARUS_TRX,  chain: 'TRX' as const, style: 'red'    as const },
-    { label: 'Binance TRX',   sub: 'Exchange',          address: BINANCE_TRX,  chain: 'TRX' as const, style: 'orange' as const },
+    { label: 'Tornado Cash', sub: 'OFAC SDN · Router', address: TORNADO_CASH,  chain: 'ETH' as const, style: 'red'    as const },
+    { label: 'Lazarus Group', sub: 'DPRK · OFAC SDN',  address: LAZARUS,       chain: 'ETH' as const, style: 'red'    as const },
+    { label: 'Vitalik.eth',   sub: 'Clean baseline',    address: VITALIK,       chain: 'ETH' as const, style: 'green'  as const },
+    { label: 'Binance BTC',   sub: 'Exchange',          address: BINANCE_BTC,   chain: 'BTC' as const, style: 'blue'   as const },
+    { label: 'Lazarus BTC',   sub: 'OFAC SDN · DPRK',  address: LAZARUS_BTC,   chain: 'BTC' as const, style: 'red'    as const },
+    { label: 'Garantex',      sub: 'OFAC SDN · TRX',   address: GARANTEX_TRX,  chain: 'TRX' as const, style: 'red'    as const },
+    { label: 'Lazarus TRX',   sub: 'OFAC SDN · DPRK',  address: LAZARUS_TRX,   chain: 'TRX' as const, style: 'red'    as const },
+    { label: 'Binance TRX',   sub: 'Exchange',          address: BINANCE_TRX,   chain: 'TRX' as const, style: 'orange' as const },
+    { label: 'Lazarus SOL',   sub: 'OFAC SDN · DPRK',  address: LAZARUS_SOL,   chain: 'SOL' as const, style: 'red'    as const },
+    { label: 'Raydium AMM',   sub: 'DeFi · DEX',       address: RAYDIUM_SOL,   chain: 'SOL' as const, style: 'green'  as const },
   ];
 
   const visibleQuickFills = quickFills.filter(q => q.chain === selectedChain);
@@ -743,7 +748,7 @@ function HeroContent({
             animationDelay: '0s',
           }}
         >
-          {'ETH · BTC · TRX · '}
+          {'ETH · BTC · TRX · SOL · '}
           <a
             href="https://github.com/velasquezbrafael-source/ClearChain"
             target="_blank"
@@ -822,8 +827,8 @@ function HeroContent({
         >
           {/* Chain selector */}
           <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
-            {(['ETH', 'BTC', 'TRX'] as const).map(c => {
-              const chainColor = c === 'ETH' ? '#06b6d4' : c === 'BTC' ? '#f97316' : '#ff4500';
+            {(['ETH', 'BTC', 'TRX', 'SOL'] as const).map(c => {
+              const chainColor = c === 'ETH' ? '#06b6d4' : c === 'BTC' ? '#f97316' : c === 'TRX' ? '#ff4500' : '#9945ff';
               const isActive = selectedChain === c;
               return (
                 <button
@@ -867,12 +872,12 @@ function HeroContent({
               onChange={e => setAddress(e.target.value)}
               onFocus={() => setInputFocused(true)}
               onBlur={() => setInputFocused(false)}
-              placeholder={selectedChain === 'BTC' ? '1A1zP1... or bc1q...' : selectedChain === 'TRX' ? 'T... Tron address' : '0x...'}
+              placeholder={selectedChain === 'BTC' ? '1A1zP1... or bc1q...' : selectedChain === 'TRX' ? 'T... Tron address' : selectedChain === 'SOL' ? 'Base58 Solana address...' : '0x...'}
               spellCheck={false}
               autoComplete="off"
               autoCorrect="off"
               disabled={loading}
-              aria-label={selectedChain === 'BTC' ? 'Bitcoin wallet address' : selectedChain === 'TRX' ? 'Tron wallet address' : 'Ethereum wallet address'}
+              aria-label={selectedChain === 'BTC' ? 'Bitcoin wallet address' : selectedChain === 'TRX' ? 'Tron wallet address' : selectedChain === 'SOL' ? 'Solana wallet address' : 'Ethereum wallet address'}
               style={{
                 flex: 1,
                 background: 'none',
@@ -1235,7 +1240,7 @@ function HeroContent({
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0 }}>
             {[
               { value: '< 10s', label: 'average analysis time' },
-              { value: '3 chains', label: 'ETH, BTC, TRX' },
+              { value: '4 chains', label: 'ETH, BTC, TRX, SOL' },
               { value: 'Free', label: 'no account required' },
             ].map((stat, i) => (
               <>
@@ -1542,7 +1547,7 @@ function ResultsAddressBar({
 }: {
   address: string;
   analyzedAt: string;
-  chain?: 'ETH' | 'BTC' | 'TRX';
+  chain?: 'ETH' | 'BTC' | 'TRX' | 'SOL';
   onNewAnalysis: () => void;
   inputValue: string;
   setInputValue: (v: string) => void;
@@ -1775,10 +1780,10 @@ export default function HomePage() {
     const urlAddr = new URLSearchParams(window.location.search).get('address') ?? '';
     return /^0x[a-fA-F0-9]{40}$/.test(urlAddr) ? urlAddr : '';
   });
-  const [selectedChain, setSelectedChain] = useState<'ETH' | 'BTC' | 'TRX'>(() => {
+  const [selectedChain, setSelectedChain] = useState<'ETH' | 'BTC' | 'TRX' | 'SOL'>(() => {
     if (typeof window === 'undefined') return 'ETH';
     const c = new URLSearchParams(window.location.search).get('chain');
-    return (c === 'BTC' || c === 'TRX') ? c : 'ETH';
+    return (c === 'BTC' || c === 'TRX' || c === 'SOL') ? c : 'ETH';
   });
   const [loading, setLoading]       = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
@@ -1824,13 +1829,16 @@ export default function HomePage() {
     const params = new URLSearchParams(window.location.search);
     const urlAddr = params.get('address');
     const urlChain = params.get('chain');
-    const chain: 'ETH' | 'BTC' | 'TRX' =
-      urlChain === 'BTC' ? 'BTC' : urlChain === 'TRX' ? 'TRX' : 'ETH';
+    const chain: 'ETH' | 'BTC' | 'TRX' | 'SOL' =
+      urlChain === 'BTC' ? 'BTC' :
+      urlChain === 'TRX' ? 'TRX' :
+      urlChain === 'SOL' ? 'SOL' : 'ETH';
     if (!urlAddr) return;
     const isEth = /^0x[a-fA-F0-9]{40}$/.test(urlAddr) || urlAddr.includes('.');
     const isBtc = /^(1|3)[a-km-zA-HJ-NP-Z1-9]{25,34}$/.test(urlAddr) || /^bc1[a-z0-9]{39,59}$/.test(urlAddr);
     const isTrx = /^T[a-zA-Z0-9]{33}$/.test(urlAddr);
-    if (isEth || isBtc || isTrx) {
+    const isSol = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(urlAddr);
+    if (isEth || isBtc || isTrx || isSol) {
       runAnalysis(urlAddr, chain);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1894,7 +1902,7 @@ export default function HomePage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showResults]);
 
-  async function runAnalysis(addr: string, chain?: 'ETH' | 'BTC' | 'TRX') {
+  async function runAnalysis(addr: string, chain?: 'ETH' | 'BTC' | 'TRX' | 'SOL') {
     const activeChain = chain ?? selectedChain;
     setLoading(true);
     setLoadingStep(0);
@@ -1962,9 +1970,12 @@ export default function HomePage() {
     e.preventDefault();
     const trimmed = address.trim();
     if (!trimmed) {
-      setError(selectedChain === 'BTC'
-        ? 'Please enter a Bitcoin address.'
-        : 'Please enter an Ethereum wallet address or ENS name.');
+      setError(
+        selectedChain === 'BTC' ? 'Please enter a Bitcoin address.' :
+        selectedChain === 'TRX' ? 'Please enter a Tron address.' :
+        selectedChain === 'SOL' ? 'Please enter a Solana address.' :
+        'Please enter an Ethereum wallet address or ENS name.'
+      );
       return;
     }
     if (selectedChain === 'BTC') {

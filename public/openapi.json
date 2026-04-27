@@ -137,7 +137,7 @@
         "required": ["address", "chain", "riskScore", "typologies", "transactions", "ofacResult", "analyzedAt", "narrative", "sarDraft", "hopData", "resolvedAddress"],
         "properties": {
           "address":         { "type": "string", "description": "Analyzed wallet address (checksummed)." },
-          "chain":           { "type": "string", "enum": ["ETH", "BTC", "TRX"] },
+          "chain":           { "type": "string", "enum": ["ETH", "BTC", "TRX", "SOL"] },
           "riskScore":       { "$ref": "#/components/schemas/RiskScore" },
           "typologies":      { "type": "array", "items": { "$ref": "#/components/schemas/AMLTypology" }, "description": "All evaluated AML typologies (triggered and clean)." },
           "transactions":    { "type": "array", "items": { "$ref": "#/components/schemas/WalletTransaction" }, "description": "Transaction history used for scoring." },
@@ -195,7 +195,7 @@
                 },
                 "chain": {
                   "type": "string",
-                  "enum": ["ETH", "BTC", "TRX"],
+                  "enum": ["ETH", "BTC", "TRX", "SOL"],
                   "default": "ETH",
                   "description": "Chain to analyze. Defaults to ETH if omitted."
                 }
@@ -209,7 +209,7 @@
         "required": ["address", "chain", "risk_score", "risk_level", "ofac_match", "mixer_interaction", "top_signal", "typologies", "error"],
         "properties": {
           "address":           { "type": "string", "description": "The address as submitted." },
-          "chain":             { "type": "string", "enum": ["ETH", "BTC", "TRX"] },
+          "chain":             { "type": "string", "enum": ["ETH", "BTC", "TRX", "SOL"] },
           "risk_score":        { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "description": "Aggregate risk score. null if analysis failed." },
           "risk_level":        { "type": ["string", "null"], "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL", null], "description": "Risk band. null if analysis failed." },
           "ofac_match":        { "type": ["boolean", "null"], "description": "OFAC SDN match. null if analysis failed." },
@@ -273,7 +273,7 @@
       "post": {
         "operationId": "analyzeWallet",
         "summary": "Analyze a wallet address",
-        "description": "Runs the full ClearChain analysis pipeline on a wallet address: OFAC sanctions screening, 6-signal risk scoring (0–100), FATF/FinCEN typology matching, AI-generated narrative, SAR draft, and multi-hop counterparty data.\n\nSupported chains: ETH (Ethereum mainnet + ERC-20), BTC (Bitcoin), TRX (Tron)\n\nENS names (e.g. `vitalik.eth`) are accepted for ETH chain.",
+        "description": "Runs the full ClearChain analysis pipeline on a wallet address: OFAC sanctions screening, 6-signal risk scoring (0–100), FATF/FinCEN typology matching, AI-generated narrative, SAR draft, and multi-hop counterparty data.\n\nSupported chains: ETH (Ethereum mainnet + ERC-20), BTC (Bitcoin), TRX (Tron), SOL (Solana)\n\nENS names (e.g. `vitalik.eth`) are accepted for ETH chain.",
         "security": [{ "BearerAuth": [] }],
         "requestBody": {
           "required": true,
@@ -290,7 +290,7 @@
                   },
                   "chain": {
                     "type": "string",
-                    "enum": ["ETH", "BTC", "TRX"],
+                    "enum": ["ETH", "BTC", "TRX", "SOL"],
                     "default": "ETH",
                     "description": "Blockchain to analyze. Defaults to ETH."
                   }

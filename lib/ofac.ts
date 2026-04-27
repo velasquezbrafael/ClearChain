@@ -3,6 +3,7 @@
 
 import type { OFACResult } from '@/types';
 import OFAC_ADDRESSES from '@/data/ofac-eth-addresses.json';
+import OFAC_SOL       from '@/data/ofac-sol-addresses.json';
 
 // ---------------------------------------------------------------------------
 // In-house SDN address map — no network calls, instant on cold start
@@ -44,4 +45,21 @@ export async function checkAddress(address: string): Promise<OFACResult> {
 
 export function getSDNCacheStatus() {
   return { loaded: true, addressCount: SDN_MAP.size, loadedAt };
+}
+
+// ---------------------------------------------------------------------------
+// Solana OFAC check (addresses are case-sensitive base58 — no lowercasing)
+// ---------------------------------------------------------------------------
+
+const SOL_SDN_MAP: Map<string, string> = new Map(
+  Object.entries(OFAC_SOL as Record<string, string>)
+);
+
+export function checkOfacSol(address: string): OFACResult {
+  const matchedEntity = SOL_SDN_MAP.get(address);
+  if (matchedEntity) {
+    console.warn(`[ClearChain/ofac] OFAC SOL MATCH: ${address} — "${matchedEntity}"`);
+    return { matched: true, matchedEntity, confidence: 1.0, listLastFetched: loadedAt };
+  }
+  return { matched: false, confidence: 0, listLastFetched: loadedAt };
 }

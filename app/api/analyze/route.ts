@@ -12,9 +12,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getTransactions, getTokenTransfers, resolveENS, getTopCounterparties } from '@/lib/etherscan';
 import { getBitcoinTransactions, getBitcoinRawTxs, detectBtcPatterns } from '@/lib/bitcoin';
 import { getTronTransactions, detectTrxPatterns } from '@/lib/tron';
+import { getSolBalance, getSolTransactions, getSPLTokenTransfers, detectSolPatterns, validateSolAddress } from '@/lib/solana';
 import OFAC_TRX from '@/data/ofac-trx-addresses.json';
-import { checkAddress } from '@/lib/ofac';
+import { checkAddress, checkOfacSol } from '@/lib/ofac';
 import { computeRiskScore } from '@/lib/scoring';
+import { scoreSolana } from '@/lib/scoring-sol';
 import { matchTypologies } from '@/lib/typology';
 import { generateAll } from '@/lib/claude';
 import { hashApiKey } from '@/lib/apikeys';
@@ -190,8 +192,10 @@ export async function POST(request: NextRequest) {
 
   const rawAddress = ((body as Record<string, unknown>).address as string).trim();
   const rawChain = (body as Record<string, unknown>).chain;
-  const chain: 'ETH' | 'BTC' | 'TRX' =
-    rawChain === 'BTC' ? 'BTC' : rawChain === 'TRX' ? 'TRX' : 'ETH';
+  const chain: 'ETH' | 'BTC' | 'TRX' | 'SOL' =
+    rawChain === 'BTC' ? 'BTC' :
+    rawChain === 'TRX' ? 'TRX' :
+    rawChain === 'SOL' ? 'SOL' : 'ETH';
 
   if (!rawAddress) {
     return NextResponse.json(
@@ -217,6 +221,14 @@ export async function POST(request: NextRequest) {
     if (!isTrxAddr) {
       return NextResponse.json(
         { success: false, error: 'Invalid Tron address format. Must start with T and be 34 characters.', code: 'INVALID_ADDRESS' },
+        { status: 400, headers: CORS_HEADERS }
+      );
+    }
+    address = rawAddress;
+  } else if (chain === 'SOL') {
+    if (!validateSolAddress(rawAddress)) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid Solana address format. Must be a 32–44 character base58 public key.', code: 'INVALID_ADDRESS' },
         { status: 400, headers: CORS_HEADERS }
       );
     }
@@ -551,6 +563,101 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { success: false, error: trxErrMsg, code: 'TRX_FETCH_ERROR' },
         { status: trxStatus, headers: CORS_HEADERS }
+      );
+    }
+  }
+
+  // ── SOL pipeline ──────────────────────────────────────────────────────────
+  if (chain === 'SOL') {
+    try {
+      const [, solTxs] = await Promise.all([
+        getSolBalance(address),
+        getSolTransactions(address),
+        getSPLTokenTransfers(address),
+      ]);
+
+      const solOfacResult = checkOfacSol(address);
+      const solPatterns   = detectSolPatterns(address, solTxs);
+      const solRiskScore  = scoreSolana(address, solTxs, solOfacResult, solPatterns);
+
+      const analysis: WalletAnalysis = {
+        address,
+        chain: 'SOL',
+        riskScore:    solRiskScore,
+        typologies:   [],
+        transactions: solTxs,
+        ofacResult:   solOfacResult,
+        analyzedAt:   new Date().toISOString(),
+      };
+
+      const { narrative, sarDraft: sarDraftRaw } = await generateAll(analysis);
+
+      // Save to Supabase
+      try {
+        const cookieStore = await cookies();
+        const supabase = createServerClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+          {
+            cookies: {
+              getAll() { return cookieStore.getAll(); },
+              setAll(s) { try { s.forEach(({ name, value, options }) => cookieStore.set(name, value, options)); } catch {} },
+            },
+          }
+        );
+        const { data: { user } } = await supabase.auth.getUser();
+        const saveUserId = user?.id ?? apiKeyUserId;
+        if (saveUserId) {
+          const { error: insertError } = await supabase.from('analyses').insert({
+            user_id:     saveUserId,
+            address,
+            chain:       'SOL',
+            risk_score:  solRiskScore.total,
+            risk_level:  solRiskScore.level,
+            signals:     solRiskScore.signals,
+            typologies:  [],
+            narrative,
+            sar_draft:   sarDraftRaw,
+            analyzed_at: analysis.analyzedAt,
+          });
+          if (insertError) console.error('[ClearChain/analyze] SOL insert failed:', insertError.message);
+          else console.info('[ClearChain/analyze] SOL analysis saved for user', saveUserId);
+        }
+      } catch (err) {
+        console.error('[ClearChain/analyze] Supabase SOL save failed:', err);
+      }
+
+      analysisCache.set(cacheKey, { data: analysis, narrative, sarDraft: sarDraftRaw, hopData: [], cachedAt: Date.now() });
+
+      if (apiKeyWebhookUrl && apiKeyId) {
+        fireWebhook(apiKeyWebhookUrl, apiKeyWebhookSecret, {
+          event: 'analysis.complete',
+          timestamp: new Date().toISOString(),
+          api_key_id: apiKeyId,
+          data: {
+            address, chain: 'SOL',
+            risk_score:  solRiskScore.total,
+            risk_level:  solRiskScore.level,
+            signals:     Object.fromEntries(Object.entries(solRiskScore.signals).map(([k, s]) => [k, s.triggered])),
+            typologies:  [],
+            narrative:   narrative   ?? '',
+            sar_draft:   sarDraftRaw ?? '',
+            analyzed_at: analysis.analyzedAt,
+          },
+        });
+      }
+
+      return NextResponse.json(
+        { success: true, data: analysis, narrative: narrative ?? '', sarDraft: sarDraftRaw ?? '', hopData: [], resolvedAddress: address },
+        { status: 200, headers: CORS_HEADERS }
+      );
+    } catch (err) {
+      console.error('[ClearChain/analyze] SOL fetch failed:', err);
+      const solErrMsg = err instanceof Error ? err.message : 'Failed to fetch Solana transaction history';
+      const solStatus = (err instanceof Error && (err as Error & { statusCode?: number }).statusCode) || 422;
+      return NextResponse.json(
+        { success: false, error: solErrMsg, code: 'SOL_FETCH_ERROR' },
+        { status: solStatus, headers: CORS_HEADERS }
       );
     }
   }

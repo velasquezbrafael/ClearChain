@@ -218,7 +218,7 @@ export default async function DocsPage() {
             Build AML compliance<br />into your product
           </h1>
           <p style={{ fontSize: 17, color: '#7ec8d8', lineHeight: 1.7, maxWidth: 620, margin: '0 0 32px' }}>
-            The ClearChain API gives you programmatic access to blockchain risk scoring, OFAC sanctions screening, and SAR-ready intelligence — for ETH, BTC, and TRX.
+            The ClearChain API gives you programmatic access to blockchain risk scoring, OFAC sanctions screening, and SAR-ready intelligence — for ETH, BTC, TRX, and SOL.
           </p>
           <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', marginBottom: 40 }}>
             <a
@@ -238,7 +238,7 @@ export default async function DocsPage() {
           </div>
           {/* Stat pills */}
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {['3 chains', '6 risk signals', '5-min cache', 'Bearer auth', 'Webhook support'].map(s => (
+            {['4 chains', '6 risk signals', '5-min cache', 'Bearer auth', 'Webhook support'].map(s => (
               <span
                 key={s}
                 style={{ ...MONO, fontSize: 10, letterSpacing: '0.1em', color: '#1e4d5c', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 3, padding: '4px 10px', textTransform: 'uppercase' }}
@@ -364,14 +364,14 @@ export default async function DocsPage() {
                   <td style={tdStyle}><code style={{ ...inlineCode, background: 'transparent', border: 'none', padding: 0 }}>address</code></td>
                   <td style={{ ...tdStyle, color: '#7ec8d8' }}>string</td>
                   <td style={{ ...tdStyle, color: '#06b6d4' }}>Yes</td>
-                  <td style={tdMuted}>Wallet address. ETH supports ENS names (resolved on-chain). BTC must be a valid mainnet address. TRX must be a valid Tron address.</td>
+                  <td style={tdMuted}>Wallet address. ETH supports ENS names (resolved on-chain). BTC must be a valid mainnet address. TRX must be a valid Tron address. SOL must be a 32–44 char base58 public key.</td>
                 </tr>
                 <tr>
                   <td style={{ ...tdStyle, borderBottom: 'none' }}><code style={{ ...inlineCode, background: 'transparent', border: 'none', padding: 0 }}>chain</code></td>
                   <td style={{ ...tdStyle, color: '#7ec8d8', borderBottom: 'none' }}>string</td>
                   <td style={{ ...tdStyle, color: '#06b6d4', borderBottom: 'none' }}>Yes</td>
                   <td style={{ ...tdMuted, borderBottom: 'none' }}>
-                    One of <code style={inlineCode}>ETH</code>, <code style={inlineCode}>BTC</code>, <code style={inlineCode}>TRX</code>. Any other value returns a <code style={inlineCode}>400 UNSUPPORTED_CHAIN</code> error.
+                    One of <code style={inlineCode}>ETH</code>, <code style={inlineCode}>BTC</code>, <code style={inlineCode}>TRX</code>, <code style={inlineCode}>SOL</code>. Any other value returns a <code style={inlineCode}>400 UNSUPPORTED_CHAIN</code> error.
                   </td>
                 </tr>
               </tbody>
@@ -390,7 +390,7 @@ export default async function DocsPage() {
                 { field: 'success', type: 'true', desc: 'Always true on a 200 response.' },
                 { field: 'data.address', type: 'string', desc: 'The input address as provided.' },
                 { field: 'data.resolvedAddress', type: 'string', desc: 'Resolved checksummed address (ENS resolved for ETH).' },
-                { field: 'data.chain', type: 'ETH | BTC | TRX', desc: 'Chain that was analyzed.' },
+                { field: 'data.chain', type: 'ETH | BTC | TRX | SOL', desc: 'Chain that was analyzed.' },
                 { field: 'data.analyzedAt', type: 'string (ISO 8601)', desc: 'Timestamp of when the analysis was generated.' },
                 { field: 'data.riskScore.total', type: 'number', desc: 'Aggregate risk score 0–100.' },
                 { field: 'data.riskScore.level', type: 'LOW | MEDIUM | HIGH | CRITICAL', desc: 'Risk tier based on score thresholds: LOW <25 / MEDIUM <50 / HIGH <75 / CRITICAL ≥75.' },
@@ -562,7 +562,7 @@ for r in data['data']['results']:
               <tbody>
                 {([
                   { field: 'address',           type: 'string',         desc: 'The address as submitted.' },
-                  { field: 'chain',             type: 'ETH|BTC|TRX',   desc: 'Chain analyzed.' },
+                  { field: 'chain',             type: 'ETH|BTC|TRX|SOL', desc: 'Chain analyzed.' },
                   { field: 'risk_score',        type: 'number|null',    desc: 'Aggregate score 0–100. null if analysis failed.' },
                   { field: 'risk_level',        type: 'string|null',    desc: 'LOW / MEDIUM / HIGH / CRITICAL. null if analysis failed.' },
                   { field: 'ofac_match',        type: 'boolean|null',   desc: 'OFAC SDN list match. null if analysis failed.' },
@@ -651,7 +651,7 @@ for r in data['data']['results']:
               <tbody>
                 {([
                   { code: 'MISSING_FIELDS', http: 400, desc: 'Request body is missing address or chain.' },
-                  { code: 'UNSUPPORTED_CHAIN', http: 400, desc: 'The chain value is not one of ETH, BTC, or TRX.' },
+                  { code: 'UNSUPPORTED_CHAIN', http: 400, desc: 'The chain value is not one of ETH, BTC, TRX, or SOL.' },
                   { code: 'INVALID_ADDRESS', http: 400, desc: 'The address format is invalid for the specified chain.' },
                   { code: 'ENS_RESOLUTION_FAILED', http: 400, desc: 'The ENS name could not be resolved to an on-chain address.' },
                   { code: 'UNAUTHORIZED', http: 401, desc: 'Missing or invalid API key. No session cookie found as fallback.' },
