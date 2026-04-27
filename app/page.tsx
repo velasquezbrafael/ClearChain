@@ -142,6 +142,46 @@ function apiErrorToState(code: string | undefined, msg: string, chain: string): 
 // Helpers
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Bitcoin base58check checksum validator (client-side, WebCrypto)
+// Only covers legacy P2PKH (1...) and P2SH (3...) addresses.
+// bc1 (bech32) addresses are skipped — their checksum is a GF(32) polynomial
+// and the regex already rejects structurally wrong bech32 strings.
+// ---------------------------------------------------------------------------
+
+const BTC_B58_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+
+async function btcBase58CheckValid(address: string): Promise<boolean> {
+  if (!address.startsWith('1') && !address.startsWith('3')) return true; // skip bech32
+  try {
+    // Decode base58 → big integer → byte array
+    let num = BigInt(0);
+    for (const ch of address) {
+      const idx = BTC_B58_ALPHABET.indexOf(ch);
+      if (idx < 0) return false;
+      num = num * BigInt(58) + BigInt(idx);
+    }
+    const byteArr: number[] = [];
+    while (num > BigInt(0)) {
+      byteArr.unshift(Number(num & BigInt(0xff)));
+      num >>= BigInt(8);
+    }
+    // Prepend a 0x00 byte for each leading '1' in the address
+    const leadingZeros = address.length - address.replace(/^1+/, '').length;
+    const full = new Uint8Array([...new Array(leadingZeros).fill(0), ...byteArr]);
+    if (full.length !== 25) return false; // standard addresses are always 25 bytes
+
+    const payload  = full.slice(0, 21);
+    const checksum = full.slice(21, 25);
+    const h1 = await crypto.subtle.digest('SHA-256', payload);
+    const h2 = new Uint8Array(await crypto.subtle.digest('SHA-256', h1));
+    return checksum[0] === h2[0] && checksum[1] === h2[1] &&
+           checksum[2] === h2[2] && checksum[3] === h2[3];
+  } catch {
+    return false;
+  }
+}
+
 function formatTimestamp(iso: string): string {
   try {
     return new Date(iso).toLocaleString('en-US', {
@@ -2097,6 +2137,8 @@ export default function HomePage() {
     if (selectedChain === 'BTC') {
       const isBtc = /^(1|3)[a-km-zA-HJ-NP-Z1-9]{25,34}$/.test(trimmed) || /^bc1[a-z0-9]{39,59}$/.test(trimmed);
       if (!isBtc) { setError(makeError('Not a valid Bitcoin address. Addresses start with 1, 3, or bc1.', 'FORMAT ERROR')); return; }
+      const checksumOk = await btcBase58CheckValid(trimmed);
+      if (!checksumOk) { setError(makeError('Bitcoin address checksum is invalid — one or more characters are wrong. Double-check the full address.', 'FORMAT ERROR')); return; }
     } else if (selectedChain === 'TRX') {
       const isTrx = /^T[a-zA-Z0-9]{33}$/.test(trimmed);
       if (!isTrx) { setError(makeError('Not a valid Tron address. Must start with T and be exactly 34 characters.', 'FORMAT ERROR')); return; }
