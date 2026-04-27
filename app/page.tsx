@@ -991,6 +991,7 @@ function HeroContent({
 
           <div
             style={{
+              position: 'relative',
               display: 'flex',
               alignItems: 'center',
               borderBottom: `1px solid ${inputFocused ? '#06b6d4' : 'rgba(255,255,255,0.15)'}`,
@@ -998,8 +999,25 @@ function HeroContent({
               gap: 16,
               transition: 'border-color 0.2s, box-shadow 0.2s',
               boxShadow: inputFocused ? '0 4px 20px rgba(6,182,212,0.08)' : 'none',
+              overflow: 'hidden',
             }}
           >
+            {/* Scan-line sweep — visible on focus */}
+            {inputFocused && (
+              <div
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  right: 0,
+                  top: 0,
+                  height: 2,
+                  background: 'linear-gradient(90deg, transparent 0%, rgba(6,182,212,0.65) 50%, transparent 100%)',
+                  animation: 'scanSweep 2s ease-in-out infinite',
+                  pointerEvents: 'none',
+                  zIndex: 2,
+                }}
+              />
+            )}
             <input
               type="text"
               value={address}
@@ -1919,6 +1937,48 @@ function ResultsAddressBar({
 }
 
 // ---------------------------------------------------------------------------
+// HexTicker — ambient scrolling hex-dump strip (shown when idle)
+// ---------------------------------------------------------------------------
+
+function genHexBytes(): string[] {
+  return Array.from({ length: 80 }, () =>
+    Math.floor(Math.random() * 256).toString(16).padStart(2, '0').toUpperCase(),
+  );
+}
+
+function HexTicker() {
+  const [bytes, setBytes] = React.useState<string[]>(genHexBytes);
+  const line = bytes.join(' ');
+  return (
+    <div
+      style={{
+        overflow: 'hidden',
+        height: 28,
+        borderTop: '1px solid rgba(6,182,212,0.06)',
+        borderBottom: '1px solid rgba(6,182,212,0.06)',
+      }}
+    >
+      <div
+        style={{
+          display: 'inline-block',
+          whiteSpace: 'nowrap',
+          animation: 'hexScroll 40s linear infinite',
+          fontFamily: 'var(--font-jetbrains-mono)',
+          fontSize: 10,
+          color: 'rgba(6,182,212,0.1)',
+          letterSpacing: '0.08em',
+          lineHeight: '28px',
+          userSelect: 'none',
+        }}
+        onAnimationIteration={() => setBytes(genHexBytes())}
+      >
+        {line}&nbsp;&nbsp;&nbsp;{line}
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Main page
 // ---------------------------------------------------------------------------
 
@@ -1954,6 +2014,60 @@ export default function HomePage() {
   const [navUser, setNavUser] = useState<{ email: string } | null>(null);
   const pendingTabRef = useRef<Tab | null>(null);
   const showResults = !!analysis && !loading;
+
+  // ── Sound design ──────────────────────────────────────────────
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const [soundEnabled, setSoundEnabled] = React.useState<boolean>(() => {
+    if (typeof window === 'undefined') return true;
+    return localStorage.getItem('cc_sound') !== 'off';
+  });
+  const soundEnabledRef = useRef(soundEnabled);
+  useEffect(() => { soundEnabledRef.current = soundEnabled; }, [soundEnabled]);
+
+  function getAudioCtx(): AudioContext | null {
+    if (typeof window === 'undefined') return null;
+    if (!audioCtxRef.current) {
+      const AC = window.AudioContext ?? (window as unknown as Record<string, unknown>).webkitAudioContext as typeof AudioContext;
+      audioCtxRef.current = new AC();
+    }
+    return audioCtxRef.current;
+  }
+
+  function playTone(freq: number, type: OscillatorType, duration: number, vol = 0.12) {
+    if (!soundEnabledRef.current) return;
+    const ctx = getAudioCtx();
+    if (!ctx) return;
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    gain.gain.setValueAtTime(0, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(vol, ctx.currentTime + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + duration + 0.01);
+  }
+
+  function playStartSound() {
+    playTone(440, 'sine', 0.10, 0.09);
+    setTimeout(() => playTone(660, 'sine', 0.10, 0.07), 80);
+  }
+  function playCompleteSound() {
+    playTone(523, 'sine', 0.15, 0.10);
+    setTimeout(() => playTone(659, 'sine', 0.15, 0.09), 100);
+    setTimeout(() => playTone(784, 'sine', 0.25, 0.09), 210);
+  }
+  function playErrorSound() {
+    playTone(440, 'triangle', 0.14, 0.09);
+    setTimeout(() => playTone(330, 'triangle', 0.18, 0.07), 110);
+  }
+  function playCriticalSound() {
+    playTone(880,  'sawtooth', 0.08, 0.06);
+    setTimeout(() => playTone(880,  'sawtooth', 0.08, 0.06), 150);
+    setTimeout(() => playTone(1100, 'sawtooth', 0.18, 0.06), 310);
+  }
 
   // Show FLOW tab only when ≥3 distinct inbound sources exist
   const hasFlowData = React.useMemo(() => {
@@ -2057,6 +2171,7 @@ export default function HomePage() {
 
   async function runAnalysis(addr: string, chain?: 'ETH' | 'BTC' | 'TRX' | 'SOL') {
     const activeChain = chain ?? selectedChain;
+    playStartSound();   // Sound A — analysis begin
     setLoading(true);
     setLoadingStep(0);
     setError(null);
@@ -2084,6 +2199,7 @@ export default function HomePage() {
       if (!json.success) {
         const e = json as ErrorAPIResponse;
         setError(apiErrorToState(e.code, e.error ?? 'An unexpected error occurred.', activeChain));
+        playErrorSound();  // Sound C — API error
         return;
       }
 
@@ -2093,6 +2209,7 @@ export default function HomePage() {
       if (!data?.riskScore || !Array.isArray(data?.transactions)) {
         console.error('[ClearChain] Unexpected response shape:', data);
         setError(makeError('Analysis returned an unexpected data format. Please try again.', 'SERVER ERROR'));
+        playErrorSound();  // Sound C — malformed response
         return;
       }
       // Ensure typologies is always an array (BTC/TRX return [])
@@ -2102,6 +2219,11 @@ export default function HomePage() {
       setNarrative(nar ?? null);
       setSarDraft(sar ?? null);
       setHopData(hops);
+      if (data.riskScore.level === 'CRITICAL') {
+        playCriticalSound();  // Sound D — CRITICAL result
+      } else {
+        playCompleteSound();  // Sound B — analysis complete
+      }
       // Save to search history
       const historyEntry: HistoryEntry = { address: data.address, level: data.riskScore.level, timestamp: Date.now() };
       saveHistory(historyEntry);
@@ -2115,6 +2237,7 @@ export default function HomePage() {
       } else {
         setError(makeError('Could not reach the ClearChain API. Check your connection and try again.', 'NETWORK ERROR'));
       }
+      playErrorSound();  // Sound C — network/timeout error
     } finally {
       setLoading(false);
     }
@@ -2346,6 +2469,31 @@ export default function HomePage() {
           )}
 
           {/* Auth nav */}
+          {/* Sound toggle */}
+          <button
+            onClick={() => {
+              const next = !soundEnabled;
+              setSoundEnabled(next);
+              localStorage.setItem('cc_sound', next ? 'on' : 'off');
+            }}
+            title={soundEnabled ? 'Mute sounds' : 'Enable sounds'}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: 0,
+              fontFamily: 'var(--font-jetbrains-mono)',
+              fontSize: 10,
+              letterSpacing: '0.1em',
+              color: soundEnabled ? 'var(--text-dim)' : 'rgba(6,182,212,0.2)',
+              transition: 'color 0.15s',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = soundEnabled ? 'var(--text-secondary)' : 'rgba(6,182,212,0.4)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = soundEnabled ? 'var(--text-dim)' : 'rgba(6,182,212,0.2)'; }}
+          >
+            {soundEnabled ? '[SFX]' : '[---]'}
+          </button>
+
           {navUser ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, paddingLeft: 12, borderLeft: '1px solid rgba(6,182,212,0.08)' }}>
               <a
@@ -2395,6 +2543,9 @@ export default function HomePage() {
           onRemoveHistory={handleRemoveHistory}
         />
       </div>
+
+      {/* HexTicker — ambient hex-dump strip, idle state only */}
+      {!loading && !analysis && <HexTicker />}
 
       {/* Loading skeleton */}
       {loading && (
@@ -2591,6 +2742,7 @@ export default function HomePage() {
           <TransactionTimeline transactions={analysis.transactions} />
 
           {/* Row 3: Tabbed panel */}
+          <TiltCard maxTilt={7}>
           <div
             id="clearchain-tabs"
             className="glass"
@@ -2721,6 +2873,7 @@ export default function HomePage() {
               )}
             </div>
           </div>
+          </TiltCard>
 
           {/* Footer note */}
           <div

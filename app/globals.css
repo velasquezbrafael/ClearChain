@@ -228,3 +228,17 @@ input, textarea {
   4%            { transform: translateX(2px);  clip-path: inset(55% 0 10% 0); color: rgba(0,255,200,0.8); }
   6%            { transform: translateX(-1px); clip-path: inset(35% 0 35% 0); color: #22d3ee; }
 }
+
+/* ── Address input scan-line sweep ──────────────────────────── */
+@keyframes scanSweep {
+  0%   { transform: translateY(0);     opacity: 0; }
+  8%   { opacity: 0.8; }
+  90%  { opacity: 0.8; }
+  100% { transform: translateY(3000%); opacity: 0; }
+}
+
+/* ── HexTicker ambient scroll ────────────────────────────────── */
+@keyframes hexScroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
