@@ -12,6 +12,9 @@ _Nothing active. See Planned for next priorities._
 
 ## Recently shipped
 
+### ~~Solana (SOL) chain support — v3.3~~ [DONE — commit 6bf9b84]
+`lib/solana.ts`: Alchemy SOL RPC — validateSolAddress, getSolTransactions (jsonParsed + balance-delta fallback, 10-concurrent batching), getSPLTokenTransfers, detectSolPatterns. `lib/scoring-sol.ts`: 4-signal scorer. `data/ofac-sol-addresses.json`: OFAC SDN SOL addresses. Both pipelines (legacy route + v1 pipeline) updated. Frontend: SOL button (#9945ff), quick fills (Lazarus OFAC + Raydium), placeholder, aria-label, "4 chains". openapi.json + docs updated. tsc exit 0.
+
 ### ~~Live stats counter on homepage~~ [DONE — commit 455fa14]
 `GET /api/stats` returns aggregate counts (service role, 5-min cache). StatsBar + StatPill components animate from 0 with useCountUp. Base offsets: 1840 wallets / 28 OFAC / 94 SARs / 8 cases. 2x2 grid on mobile.
 

@@ -456,22 +456,15 @@ function FeatureCard({ title, desc, icon }: { title: string; desc: string; icon?
 // Live stats counter
 // ---------------------------------------------------------------------------
 
-// Base offsets represent organic usage that predated the counter.
-const STATS_BASE = {
-  walletsScreened: 1840,
-  ofacHits:        28,
-  sarDrafts:       94,
-  casesOpened:     8,
-} as const;
-
 interface LiveStats {
   walletsScreened: number;
   ofacHits:        number;
   sarDrafts:       number;
   casesOpened:     number;
+  highRiskWallets: number;
 }
 
-function StatPill({ value, label }: { value: number; label: string }) {
+function StatPill({ value, label, accent = '#22d3ee' }: { value: number; label: string; accent?: string }) {
   const count = useCountUp(value, 1500);
   return (
     <div
@@ -489,7 +482,7 @@ function StatPill({ value, label }: { value: number; label: string }) {
           fontFamily:    'var(--font-jetbrains-mono)',
           fontSize:      18,
           fontWeight:    700,
-          color:         '#22d3ee',
+          color:         accent,
           lineHeight:    1.2,
           marginBottom:  4,
         }}
@@ -514,10 +507,11 @@ function StatsBar() {
   const width = useWindowWidth();
   const isMobile = width <= 640;
   const [stats, setStats] = React.useState<LiveStats>({
-    walletsScreened: STATS_BASE.walletsScreened,
-    ofacHits:        STATS_BASE.ofacHits,
-    sarDrafts:       STATS_BASE.sarDrafts,
-    casesOpened:     STATS_BASE.casesOpened,
+    walletsScreened: 0,
+    ofacHits:        0,
+    sarDrafts:       0,
+    casesOpened:     0,
+    highRiskWallets: 0,
   });
 
   React.useEffect(() => {
@@ -525,20 +519,21 @@ function StatsBar() {
       .then(r => r.json())
       .then((data: Partial<LiveStats>) => {
         setStats({
-          walletsScreened: (data.walletsScreened ?? 0) + STATS_BASE.walletsScreened,
-          ofacHits:        (data.ofacHits        ?? 0) + STATS_BASE.ofacHits,
-          sarDrafts:       (data.sarDrafts        ?? 0) + STATS_BASE.sarDrafts,
-          casesOpened:     (data.casesOpened      ?? 0) + STATS_BASE.casesOpened,
+          walletsScreened: data.walletsScreened ?? 0,
+          ofacHits:        data.ofacHits        ?? 0,
+          sarDrafts:       data.sarDrafts        ?? 0,
+          casesOpened:     data.casesOpened      ?? 0,
+          highRiskWallets: data.highRiskWallets  ?? 0,
         });
       })
-      .catch(() => { /* keep base offsets on error */ });
+      .catch(() => { /* leave zeros on error */ });
   }, []);
 
   return (
     <div
       style={{
         display:             'grid',
-        gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, auto)',
+        gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, auto)',
         justifyContent:      'center',
         gap:                 12,
         marginBottom:        40,
@@ -550,6 +545,7 @@ function StatsBar() {
       <StatPill value={stats.ofacHits}        label="OFAC HITS"        />
       <StatPill value={stats.sarDrafts}       label="SAR DRAFTS"       />
       <StatPill value={stats.casesOpened}     label="CASES OPENED"     />
+      <StatPill value={stats.highRiskWallets} label="HIGH RISK WALLETS" accent="#ff8c00" />
     </div>
   );
 }

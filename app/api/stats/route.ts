@@ -10,25 +10,30 @@ const adminSupabase = createClient(
 
 export async function GET() {
   try {
-    const [walletsRes, ofacRes, sarRes, casesRes] = await Promise.all([
+    const [walletsRes, ofacRes, sarRes, casesRes, highRiskRes] = await Promise.all([
       adminSupabase.from('analyses').select('*', { count: 'exact', head: true }),
       adminSupabase
         .from('analyses')
         .select('*', { count: 'exact', head: true })
-        .eq('signals->ofac_match', true),
+        .filter('signals->ofac_match->>triggered', 'eq', 'true'),
       adminSupabase
         .from('analyses')
         .select('*', { count: 'exact', head: true })
         .not('sar_draft', 'is', null)
         .neq('sar_draft', ''),
       adminSupabase.from('cases').select('*', { count: 'exact', head: true }),
+      adminSupabase
+        .from('analyses')
+        .select('*', { count: 'exact', head: true })
+        .in('risk_level', ['HIGH', 'CRITICAL']),
     ]);
 
     const data = {
-      walletsScreened: walletsRes.count ?? 0,
-      ofacHits:        ofacRes.count  ?? 0,
-      sarDrafts:       sarRes.count   ?? 0,
-      casesOpened:     casesRes.count ?? 0,
+      walletsScreened: walletsRes.count  ?? 0,
+      ofacHits:        ofacRes.count     ?? 0,
+      sarDrafts:       sarRes.count      ?? 0,
+      casesOpened:     casesRes.count    ?? 0,
+      highRiskWallets: highRiskRes.count ?? 0,
     };
 
     return NextResponse.json(data, {
@@ -39,7 +44,7 @@ export async function GET() {
   } catch {
     // Always return zeros on error — never 500 to the client.
     return NextResponse.json(
-      { walletsScreened: 0, ofacHits: 0, sarDrafts: 0, casesOpened: 0 },
+      { walletsScreened: 0, ofacHits: 0, sarDrafts: 0, casesOpened: 0, highRiskWallets: 0 },
       { headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' } }
     );
   }
