@@ -22,6 +22,7 @@ export default function TiltCard({
   const ref = useRef<HTMLDivElement>(null);
 
   function handleMove(e: React.MouseEvent<HTMLDivElement>) {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) return;
     const el = ref.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();

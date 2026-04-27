@@ -2012,8 +2012,26 @@ export default function HomePage() {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   useEffect(() => { setHistory(loadHistory()); }, []);
   const [navUser, setNavUser] = useState<{ email: string } | null>(null);
-  const pendingTabRef = useRef<Tab | null>(null);
+  const pendingTabRef  = useRef<Tab | null>(null);
+  const tabsPanelRef   = useRef<HTMLDivElement>(null);
   const showResults = !!analysis && !loading;
+
+  function onTabsTiltMove(e: React.MouseEvent<HTMLDivElement>) {
+    if (isMobile) return;
+    const el = tabsPanelRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width  - 0.5;
+    const y = (e.clientY - rect.top)  / rect.height - 0.5;
+    el.style.transform  = `perspective(800px) rotateX(${(-y * 14).toFixed(2)}deg) rotateY(${(x * 14).toFixed(2)}deg) scale(1.01)`;
+    el.style.transition = 'transform 0.08s ease-out';
+  }
+  function onTabsTiltLeave() {
+    const el = tabsPanelRef.current;
+    if (!el) return;
+    el.style.transform  = 'perspective(800px) rotateX(0deg) rotateY(0deg) scale(1)';
+    el.style.transition = 'transform 0.5s ease-out';
+  }
 
   // ── Sound design ──────────────────────────────────────────────
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -2677,7 +2695,7 @@ export default function HomePage() {
 
             {/* Col 3: Signal list — full width on tablet/mobile */}
             <div style={isTablet ? { gridColumn: '1 / -1' } : {}}>
-              <SignalList signals={analysis.riskScore.signals} isMobile={isMobile} riskLevel={analysis.riskScore.level} />
+              <TiltCard><SignalList signals={analysis.riskScore.signals} isMobile={isMobile} riskLevel={analysis.riskScore.level} /></TiltCard>
             </div>
           </div>
 
@@ -2741,17 +2759,22 @@ export default function HomePage() {
           {/* Timeline chart */}
           <TransactionTimeline transactions={analysis.transactions} />
 
-          {/* Row 3: Tabbed panel */}
-          <TiltCard maxTilt={7}>
+          {/* Row 3: Tabbed panel — entry animation lives on the wrapper so it
+              doesn't claim the `transform` property on #clearchain-tabs.
+              The tilt is applied inline directly to the glass surface so
+              el.style.transform is never overridden by animation fill-mode. */}
+          <div style={{ animation: 'fadeSlideUp 0.5s ease-out both', animationDelay: '0.2s' }}>
           <div
+            ref={tabsPanelRef}
             id="clearchain-tabs"
             className="glass"
             style={{
               borderRadius: 4,
               overflow: 'clip',
-              animation: 'fadeSlideUp 0.5s ease-out both',
-              animationDelay: '0.2s',
+              willChange: 'transform',
             }}
+            onMouseMove={onTabsTiltMove}
+            onMouseLeave={onTabsTiltLeave}
           >
             {/* Tab headers */}
             <div
@@ -2873,7 +2896,7 @@ export default function HomePage() {
               )}
             </div>
           </div>
-          </TiltCard>
+          </div>{/* /animation wrapper */}
 
           {/* Footer note */}
           <div
