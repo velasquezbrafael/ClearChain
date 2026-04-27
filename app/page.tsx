@@ -2262,6 +2262,8 @@ export default function HomePage() {
                 fontWeight: 400,
                 letterSpacing: '0.15em',
                 color: '#22d3ee',
+                animation: 'glitch 6s steps(1) infinite',
+                display: 'inline-block',
               }}
             >
               CLEARCHAIN

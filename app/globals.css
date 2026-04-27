@@ -220,3 +220,11 @@ input, textarea {
   background-size: 200% 100%;
   animation: shimmer 1.8s ease-in-out infinite;
 }
+
+/* CLEARCHAIN logo — periodic glitch flicker (fires every 6s, ~0.3s active) */
+@keyframes glitch {
+  0%, 8%, 100% { transform: none;             clip-path: none;              color: #22d3ee; }
+  2%            { transform: translateX(-2px); clip-path: inset(25% 0 50% 0); color: rgba(255,0,60,0.8); }
+  4%            { transform: translateX(2px);  clip-path: inset(55% 0 10% 0); color: rgba(0,255,200,0.8); }
+  6%            { transform: translateX(-1px); clip-path: inset(35% 0 35% 0); color: #22d3ee; }
+}

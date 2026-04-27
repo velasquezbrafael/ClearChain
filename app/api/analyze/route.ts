@@ -582,9 +582,9 @@ export async function POST(request: NextRequest) {
   if (chain === 'SOL') {
     try {
       const [, solTxs] = await Promise.all([
-        getSolBalance(address),
+        getSolBalance(address).catch(() => 0),
         getSolTransactions(address),
-        getSPLTokenTransfers(address),
+        getSPLTokenTransfers(address).catch(() => []),
       ]);
 
       const solOfacResult = checkOfacSol(address);

@@ -159,7 +159,13 @@ export default function RiskScoreCard({ riskScore }: RiskScoreCardProps) {
               <RiskRing score={displayCount} color={color} size={160} />
             </div>
 
-            {/* Score number centered inside ring */}
+            {/* Score number centered inside ring — pulsing glow keyed to risk level */}
+            <style>{`
+              @keyframes scorePulse {
+                0%, 100% { text-shadow: 0 0 8px ${color}, 0 0 20px ${color}40; }
+                50%       { text-shadow: 0 0 16px ${color}, 0 0 40px ${color}60, 0 0 60px ${color}20; }
+              }
+            `}</style>
             <span
               style={{
                 fontSize: 62,
@@ -167,10 +173,10 @@ export default function RiskScoreCard({ riskScore }: RiskScoreCardProps) {
                 fontWeight: 700,
                 lineHeight: 1,
                 color,
-                textShadow: riskGlow(level),
                 letterSpacing: '-0.03em',
                 position: 'relative',
                 zIndex: 1,
+                animation: 'scorePulse 2.5s ease-in-out infinite',
               } as React.CSSProperties}
             >
               {displayCount}

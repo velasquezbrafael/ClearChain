@@ -147,8 +147,12 @@ export function validateSolAddress(address: string): boolean {
 // ---------------------------------------------------------------------------
 
 export async function getSolBalance(address: string): Promise<number> {
-  const result = await solRpc<{ value: number }>('getBalance', [address]);
-  return (result?.value ?? 0) / 1e9;
+  try {
+    const result = await solRpc<{ value: number }>('getBalance', [address]);
+    return (result?.value ?? 0) / 1e9;
+  } catch {
+    return 0;
+  }
 }
 
 // ---------------------------------------------------------------------------
