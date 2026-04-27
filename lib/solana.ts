@@ -159,21 +159,53 @@ export async function getSolTransactions(
   address: string,
   limit = 50,
 ): Promise<WalletTransaction[]> {
+  // Step 0 — detect program accounts (e.g. DEX contracts like Raydium AMM).
+  // Program accounts have executable: true and don't behave like wallets —
+  // getSignaturesForAddress may error or return nothing useful for them.
+  try {
+    type AccountInfoResult = { value: { executable: boolean } | null };
+    const info = await solRpc<AccountInfoResult>('getAccountInfo', [
+      address,
+      { encoding: 'base58' },
+    ]);
+    if (info?.value?.executable === true) {
+      console.warn(`[solana] ${address} is a program account (executable) — returning 0 txns`);
+      return [];
+    }
+  } catch {
+    // If getAccountInfo fails, proceed anyway — better to attempt than to bail early
+  }
+
   // Step 1 — get recent signatures
-  const sigs = await solRpc<SignatureInfo[]>('getSignaturesForAddress', [
-    address,
-    { limit },
-  ]);
+  // Program accounts (e.g. DEX contracts) may not support getSignaturesForAddress
+  // on Alchemy — fail open with empty result rather than propagating the error.
+  let sigs: SignatureInfo[];
+  try {
+    sigs = await solRpc<SignatureInfo[]>('getSignaturesForAddress', [
+      address,
+      { limit },
+    ]);
+  } catch {
+    console.warn(`[solana] getSignaturesForAddress failed for ${address} — likely a program account`);
+    return [];
+  }
 
   if (!sigs || sigs.length === 0) return [];
 
   // Step 2 — fetch full transactions in batches of 10
   const txParams = { encoding: 'jsonParsed', maxSupportedTransactionVersion: 0 };
-  const settled = await batchSettled(
-    sigs,
-    (sig) => solRpc<ParsedTransaction>('getTransaction', [sig.signature, txParams]),
-    10,
-  );
+  let settled: PromiseSettledResult<ParsedTransaction>[];
+  try {
+    settled = await batchSettled(
+      sigs,
+      (sig) => solRpc<ParsedTransaction>('getTransaction', [sig.signature, txParams]),
+      10,
+    );
+  } catch {
+    // batchSettled itself shouldn't throw (settled results handle per-item rejection),
+    // but if it does, return whatever was collected before the failure
+    return [];
+  }
 
   const result: WalletTransaction[] = [];
 

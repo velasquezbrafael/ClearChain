@@ -2046,14 +2046,12 @@ export default function HomePage() {
   }, [loading]);
 
   // Deferred tab activation (e.g. after "Try the Simulator" quick-fill)
+  // scrollIntoView intentionally removed — page scroll is always user-controlled
   useEffect(() => {
     if (!showResults || !pendingTabRef.current) return;
     const tab = pendingTabRef.current;
     pendingTabRef.current = null;
     setActiveTab(tab);
-    setTimeout(() => {
-      document.getElementById('clearchain-tabs')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 100);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showResults]);
 

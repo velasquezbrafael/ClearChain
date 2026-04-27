@@ -130,11 +130,12 @@ export default function TerminalLoader({
   const [lines, setLines] = useState<string[]>([]);
   const [currentLineIdx, setCurrentLineIdx] = useState(0); // within the current step's lines
   const [currentStep, setCurrentStep] = useState(-1);
-  const endRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom
+  // Auto-scroll to bottom — scrolls ONLY within the terminal box, not the page
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const el = scrollContainerRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
   }, [lines]);
 
   // When step advances, enqueue the new step's lines
@@ -228,8 +229,8 @@ export default function TerminalLoader({
         </div>
       </div>
 
-      {/* Terminal body */}
-      <div style={{
+      {/* Terminal body — ref used for internal scroll only (never scrollIntoView) */}
+      <div ref={scrollContainerRef} style={{
         background: '#000d18',
         border: '1px solid rgba(6,182,212,0.12)',
         borderTop: '1px solid rgba(6,182,212,0.06)',
@@ -263,7 +264,6 @@ export default function TerminalLoader({
             />
           );
         })}
-        <div ref={endRef} />
       </div>
 
       {/* Progress bar */}
