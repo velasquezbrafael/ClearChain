@@ -912,8 +912,8 @@ function HeroContent({
               color: 'var(--text-primary)',
               letterSpacing: '0.02em',
               margin: '0 0 10px',
-              height: 'clamp(3rem, 8vw, 6rem)',
-              overflow: 'hidden',
+              minHeight: 'clamp(3rem, 8vw, 6rem)',
+              paddingBottom: 6,
             }}
           >
             {displayText}
@@ -1126,11 +1126,25 @@ function HeroContent({
         {/* Quick fills */}
         <div
           style={{
+            fontFamily: 'var(--font-jetbrains-mono)',
+            fontSize: 10,
+            letterSpacing: '0.12em',
+            color: '#1e4d5c',
+            textTransform: 'uppercase',
+            marginTop: 20,
+            animation: 'fadeSlideUp 0.5s ease-out both',
+            animationDelay: '0.6s',
+          }}
+        >
+          Try an example →
+        </div>
+        <div
+          style={{
             display: 'flex',
             gap: 8,
             flexWrap: 'wrap',
             justifyContent: 'center',
-            marginTop: 16,
+            marginTop: 8,
             animation: 'fadeSlideUp 0.5s ease-out both',
             animationDelay: '0.65s',
           }}
@@ -2016,25 +2030,7 @@ export default function HomePage() {
   useEffect(() => { setHistory(loadHistory()); }, []);
   const [navUser, setNavUser] = useState<{ email: string } | null>(null);
   const pendingTabRef  = useRef<Tab | null>(null);
-  const tabsPanelRef   = useRef<HTMLDivElement>(null);
   const showResults = !!analysis && !loading;
-
-  function onTabsTiltMove(e: React.MouseEvent<HTMLDivElement>) {
-    if (isMobile) return;
-    const el = tabsPanelRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width  - 0.5;
-    const y = (e.clientY - rect.top)  / rect.height - 0.5;
-    el.style.transform  = `perspective(800px) rotateX(${(-y * 14).toFixed(2)}deg) rotateY(${(x * 14).toFixed(2)}deg) scale(1.01)`;
-    el.style.transition = 'transform 0.08s ease-out';
-  }
-  function onTabsTiltLeave() {
-    const el = tabsPanelRef.current;
-    if (!el) return;
-    el.style.transform  = 'perspective(800px) rotateX(0deg) rotateY(0deg) scale(1)';
-    el.style.transition = 'transform 0.5s ease-out';
-  }
 
   // ── Sound design ──────────────────────────────────────────────
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -2766,22 +2762,15 @@ export default function HomePage() {
               doesn't claim the `transform` property on #clearchain-tabs.
               The tilt is applied inline directly to the glass surface so
               el.style.transform is never overridden by animation fill-mode. */}
-          {/* Mouse events on the wrapper so they fire before any child can consume them.
-              tabsPanelRef stays on the glass surface for accurate getBoundingClientRect. */}
+          {/* Row 3: Tabbed panel */}
           <div
-            style={{ animation: 'fadeSlideUp 0.5s ease-out both', animationDelay: '0.2s' }}
-            onMouseMove={onTabsTiltMove}
-            onMouseLeave={onTabsTiltLeave}
-          >
-          <div
-            ref={tabsPanelRef}
             id="clearchain-tabs"
             className="glass"
             style={{
               borderRadius: 4,
               overflow: 'clip',
-              willChange: 'transform',
-              transition: 'transform 0.08s ease-out',
+              animation: 'fadeSlideUp 0.5s ease-out both',
+              animationDelay: '0.2s',
             }}
           >
             {/* Tab headers */}
@@ -2904,7 +2893,6 @@ export default function HomePage() {
               )}
             </div>
           </div>
-          </div>{/* /animation wrapper */}
 
           {/* Footer note */}
           <div
