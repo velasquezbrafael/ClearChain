@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import dynamic from 'next/dynamic';
 import { createPortal } from 'react-dom';
 import type { WalletAnalysis, ScoringSignal, RiskLevel } from '@/types';
 import RiskScoreCard from '@/components/RiskScoreCard';
@@ -19,6 +20,10 @@ import ExportButton from '@/components/ExportButton';
 import AddToWatchlistButton from '@/components/AddToWatchlistButton';
 import InfoTooltip from '@/components/InfoTooltip';
 import WaitlistBar from '@/components/WaitlistBar';
+
+// HexTicker uses Math.random() during initial useState — must be ssr: false to
+// avoid React #418 hydration mismatch (server bytes !== client bytes).
+const HexTicker = dynamic(() => import('@/components/HexTicker'), { ssr: false });
 import { getLabel } from '@/lib/labels';
 import { createClient } from '@/lib/supabase/client';
 import { useCountUp } from '@/lib/useCountUp';
@@ -2001,48 +2006,6 @@ function ResultsAddressBar({
       >
         ← NEW ANALYSIS
       </button>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// HexTicker — ambient scrolling hex-dump strip (shown when idle)
-// ---------------------------------------------------------------------------
-
-function genHexBytes(): string[] {
-  return Array.from({ length: 80 }, () =>
-    Math.floor(Math.random() * 256).toString(16).padStart(2, '0').toUpperCase(),
-  );
-}
-
-function HexTicker() {
-  const [bytes, setBytes] = React.useState<string[]>(genHexBytes);
-  const line = bytes.join(' ');
-  return (
-    <div
-      style={{
-        overflow: 'hidden',
-        height: 28,
-        borderTop: '1px solid rgba(6,182,212,0.06)',
-        borderBottom: '1px solid rgba(6,182,212,0.06)',
-      }}
-    >
-      <div
-        style={{
-          display: 'inline-block',
-          whiteSpace: 'nowrap',
-          animation: 'hexScroll 40s linear infinite',
-          fontFamily: 'var(--font-jetbrains-mono)',
-          fontSize: 10,
-          color: 'rgba(6,182,212,0.18)',
-          letterSpacing: '0.08em',
-          lineHeight: '28px',
-          userSelect: 'none',
-        }}
-        onAnimationIteration={() => setBytes(genHexBytes())}
-      >
-        {line}&nbsp;&nbsp;&nbsp;{line}
-      </div>
     </div>
   );
 }
