@@ -13,6 +13,8 @@ import { getTransactions } from '@/lib/etherscan';
 import { checkAddress } from '@/lib/ofac';
 import { KNOWN_LABELS } from '@/lib/labels';
 
+export const dynamic = 'force-dynamic';
+
 // Mirror of scoring.ts KNOWN_MIXER_ADDRESSES (not exported from that module)
 const KNOWN_MIXER_ADDRESSES = new Set([
   '0x722122df12d4e14e13ac3b6895a86e84145b6967',

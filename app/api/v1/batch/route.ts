@@ -37,6 +37,8 @@ import { runAnalysis, PipelineError } from '@/lib/analyze-pipeline'
 import type { BatchResult, BatchSummary, SupportedChain } from '@/lib/types'
 import type { WalletAnalysis, ScoringSignal } from '@/types'
 
+export const dynamic = 'force-dynamic';
+
 // ---------------------------------------------------------------------------
 // CORS
 // ---------------------------------------------------------------------------

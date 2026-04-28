@@ -27,6 +27,8 @@ import { validateTronAddress } from '@/lib/tron'
 import { validateSolAddress } from '@/lib/solana'
 import { runAnalysis, PipelineError } from '@/lib/analyze-pipeline'
 
+export const dynamic = 'force-dynamic';
+
 // ---------------------------------------------------------------------------
 // CORS
 // ---------------------------------------------------------------------------

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 
+export const dynamic = 'force-dynamic';
+
 const SIGNAL_LABELS: Record<string, string> = {
   ofac_match:             'OFAC/SDN list match',
   mixer_interaction:      'direct interaction with a Tornado Cash mixer contract',

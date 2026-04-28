@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   // Admin client initialized inside handler so env vars are available at runtime, not build time.
   const adminSupabase = createClient(

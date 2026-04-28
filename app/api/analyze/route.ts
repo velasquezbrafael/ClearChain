@@ -26,6 +26,8 @@ import { cookies } from 'next/headers';
 
 import type { WalletTransaction, WalletAnalysis, RiskScore, ScoringSignal } from '@/types';
 
+export const dynamic = 'force-dynamic';
+
 // ---------------------------------------------------------------------------
 // CORS headers
 // ---------------------------------------------------------------------------

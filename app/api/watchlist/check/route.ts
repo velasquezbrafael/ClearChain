@@ -28,6 +28,8 @@ import { computeRiskScore } from '@/lib/scoring';
 import OFAC_TRX from '@/data/ofac-trx-addresses.json';
 import type { WalletTransaction } from '@/types';
 
+export const dynamic = 'force-dynamic';
+
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://clear-chain-peach.vercel.app';
 
 // ---------------------------------------------------------------------------
