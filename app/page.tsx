@@ -945,7 +945,7 @@ function HeroContent({
             animationDelay: '0.25s',
           }}
         >
-          Real-time OFAC screening, typology detection, and AI SAR drafts — across Ethereum, Bitcoin, Tron, and Solana. Seconds, not days.
+          SAR-ready AML compliance for crypto teams. OFAC screening, typology detection, and AI-generated SAR drafts — in 30 seconds, not 3 hours.
         </p>
 
         {/* Live stats */}
@@ -1277,6 +1277,119 @@ function HeroContent({
         )}
       </div>
 
+      {/* How it works */}
+      <div
+        style={{
+          borderTop: '1px solid rgba(6,182,212,0.05)',
+          padding: '64px 24px 0',
+          maxWidth: 1200,
+          margin: '0 auto',
+          width: '100%',
+        }}
+      >
+        {/* Section label */}
+        <div
+          style={{
+            fontFamily: 'var(--font-jetbrains-mono)',
+            fontSize: 10,
+            letterSpacing: '0.2em',
+            color: '#1e4d5c',
+            textTransform: 'uppercase' as const,
+            marginBottom: 32,
+            textAlign: 'center',
+          }}
+        >
+          HOW IT WORKS
+        </div>
+
+        {/* Three steps */}
+        <div
+          className="how-it-works-grid"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: 16,
+            marginBottom: 32,
+          }}
+        >
+          {([
+            {
+              n: '01',
+              title: 'SCREEN',
+              body: "Paste any ETH, BTC, TRX, or SOL address. ClearChain pulls on-chain history, cross-references OFAC’s SDN list, and scores risk across 6 signals in seconds.",
+            },
+            {
+              n: '02',
+              title: 'INVESTIGATE',
+              body: 'Click any node in the fund flow graph to trace money across hops. Identify mixers, layering patterns, and sanctioned counterparties up to 4 hops deep.',
+            },
+            {
+              n: '03',
+              title: 'FILE',
+              body: 'Export a FinCEN-formatted SAR narrative, pre-written by AI and ready for compliance review. No blank page. No 3-hour write-up.',
+            },
+          ] as const).map(({ n, title, body }) => (
+            <div
+              key={n}
+              style={{
+                border: '1px solid rgba(6,182,212,0.08)',
+                borderRadius: 4,
+                padding: 24,
+                background: '#001824',
+              }}
+            >
+              <div
+                style={{
+                  fontFamily: 'var(--font-jetbrains-mono)',
+                  fontSize: 11,
+                  color: '#06b6d4',
+                  marginBottom: 8,
+                }}
+              >
+                {n}
+              </div>
+              <div
+                style={{
+                  fontFamily: 'var(--font-space-grotesk)',
+                  fontSize: 16,
+                  fontWeight: 700,
+                  color: '#ecfeff',
+                  marginBottom: 8,
+                }}
+              >
+                {title}
+              </div>
+              <p
+                style={{
+                  fontFamily: 'var(--font-inter)',
+                  fontSize: 13,
+                  color: '#7ec8d8',
+                  lineHeight: 1.7,
+                  margin: 0,
+                }}
+              >
+                {body}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        {/* Built for */}
+        <div
+          style={{
+            textAlign: 'center',
+            fontFamily: 'var(--font-jetbrains-mono)',
+            fontSize: 10,
+            letterSpacing: '0.12em',
+            color: '#1e4d5c',
+            marginBottom: 64,
+          }}
+        >
+          <span style={{ color: '#7ec8d8' }}>BUILT FOR:</span>
+          {' '}Crypto exchanges · Fintech compliance teams · Financial investigators · AML developers
+        </div>
+      </div>
+
       {/* Feature grid */}
       <div
         style={{
@@ -1307,70 +1420,6 @@ function HeroContent({
         </div>
       </div>
 
-      {/* How it works */}
-      <div
-        style={{
-          borderTop: '1px solid rgba(6,182,212,0.05)',
-          padding: '32px 24px 64px',
-          maxWidth: 1200,
-          margin: '0 auto',
-          width: '100%',
-        }}
-      >
-        <div
-          className="how-it-works-grid"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: 40,
-          }}
-        >
-          {[
-            { n: '01', title: 'PASTE ANY ADDRESS', body: 'Ethereum, Bitcoin, Tron, or Solana address — or an ENS name. No wallet connection. No account required.' },
-            { n: '02', title: 'INTELLIGENCE IN SECONDS', body: 'Real-time OFAC screening, on-chain transaction analysis, AML typology matching — across ETH, BTC, TRX, and SOL.' },
-            { n: '03', title: 'INVESTIGATION + COMPLIANCE', body: 'Click nodes to trace fund flows. Download the SAR draft. Save to a case. From raw address to filed-ready report.' },
-          ].map(({ n, title, body }) => (
-            <div key={n}>
-              <div
-                style={{
-                  fontFamily: 'var(--font-space-grotesk)',
-                  fontSize: 56,
-                  fontWeight: 700,
-                  color: 'rgba(6,182,212,0.08)',
-                  lineHeight: 1,
-                  marginBottom: 16,
-                  letterSpacing: '-0.02em',
-                }}
-              >
-                {n}
-              </div>
-              <div
-                style={{
-                  fontFamily: 'var(--font-jetbrains-mono)',
-                  fontSize: 10,
-                  letterSpacing: '0.15em',
-                  color: 'var(--text-dim)',
-                  marginBottom: 10,
-                }}
-              >
-                {title}
-              </div>
-              <p
-                style={{
-                  fontFamily: 'var(--font-inter)',
-                  fontSize: 13,
-                  color: 'var(--text-secondary)',
-                  lineHeight: 1.6,
-                  margin: 0,
-                  opacity: 0.7,
-                }}
-              >
-                {body}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
 
       {/* Why ClearChain */}
       <div style={{ borderTop: '1px solid rgba(6,182,212,0.08)', width: '100%' }}>
@@ -2949,6 +2998,22 @@ export default function HomePage() {
           </div>
         </div>
       )}
+
+      {/* Comparison line */}
+      <div
+        style={{
+          textAlign: 'center',
+          padding: '24px 32px 32px',
+          fontFamily: 'var(--font-jetbrains-mono)',
+          fontSize: 11,
+          color: '#1e4d5c',
+          letterSpacing: '0.05em',
+        }}
+      >
+        Chainalysis starts at $50,000/year.{' '}
+        ClearChain is{' '}
+        <span style={{ color: '#00ff88' }}>free to start</span>.
+      </div>
     </div>
   );
 }
