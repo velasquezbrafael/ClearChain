@@ -1,14 +1,13 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-// Admin client — bypasses RLS for the global_stats single-row lookup.
-// Never exposed to the browser; this file runs server-side only.
-const adminSupabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
 export async function GET() {
+  // Admin client initialized inside handler so env vars are available at runtime, not build time.
+  const adminSupabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
   try {
     const { data } = await adminSupabase
       .from('global_stats')
