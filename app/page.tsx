@@ -346,6 +346,7 @@ function SignalList({ signals, isMobile, riskLevel }: { signals: Record<string, 
       style={{
         borderRadius: 4,
         padding: 24,
+        overflow: 'clip',
       }}
     >
       <div
@@ -2010,6 +2011,8 @@ export default function HomePage() {
   const [activeTab, setActiveTab]   = useState<Tab>('TYPOLOGIES');
   const [inputFocused, setInputFocused] = useState(false);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
+  // Scroll to top on mount — belt-and-suspenders with the layout script
+  useEffect(() => { window.scrollTo(0, 0); }, []);
   useEffect(() => { setHistory(loadHistory()); }, []);
   const [navUser, setNavUser] = useState<{ email: string } | null>(null);
   const pendingTabRef  = useRef<Tab | null>(null);
@@ -2763,7 +2766,13 @@ export default function HomePage() {
               doesn't claim the `transform` property on #clearchain-tabs.
               The tilt is applied inline directly to the glass surface so
               el.style.transform is never overridden by animation fill-mode. */}
-          <div style={{ animation: 'fadeSlideUp 0.5s ease-out both', animationDelay: '0.2s' }}>
+          {/* Mouse events on the wrapper so they fire before any child can consume them.
+              tabsPanelRef stays on the glass surface for accurate getBoundingClientRect. */}
+          <div
+            style={{ animation: 'fadeSlideUp 0.5s ease-out both', animationDelay: '0.2s' }}
+            onMouseMove={onTabsTiltMove}
+            onMouseLeave={onTabsTiltLeave}
+          >
           <div
             ref={tabsPanelRef}
             id="clearchain-tabs"
@@ -2772,9 +2781,8 @@ export default function HomePage() {
               borderRadius: 4,
               overflow: 'clip',
               willChange: 'transform',
+              transition: 'transform 0.08s ease-out',
             }}
-            onMouseMove={onTabsTiltMove}
-            onMouseLeave={onTabsTiltLeave}
           >
             {/* Tab headers */}
             <div

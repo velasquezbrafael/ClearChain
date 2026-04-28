@@ -26,24 +26,26 @@ export default function TiltCard({
     const el = ref.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width  - 0.5;   // -0.5 → 0.5
-    const y = (e.clientY - rect.top)  / rect.height - 0.5;   // -0.5 → 0.5
+    const x = (e.clientX - rect.left) / rect.width  - 0.5;
+    const y = (e.clientY - rect.top)  / rect.height - 0.5;
     const rotX = -y * maxTilt * 2;
     const rotY =  x * maxTilt * 2;
-    el.style.transform = `perspective(800px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1.01)`;
+    el.style.transition = 'transform 0.08s ease-out';
+    el.style.transform  = `perspective(800px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1.01)`;
   }
 
   function handleLeave() {
     const el = ref.current;
     if (!el) return;
-    el.style.transform = 'perspective(800px) rotateX(0deg) rotateY(0deg) scale(1)';
+    el.style.transition = 'transform 0.5s ease-out';
+    el.style.transform  = 'perspective(800px) rotateX(0deg) rotateY(0deg) scale(1)';
   }
 
   return (
     <div
       ref={ref}
       className={className}
-      style={{ ...style, transition: 'transform 0.18s ease-out', willChange: 'transform' }}
+      style={{ ...style, transition: 'transform 0.08s ease-out', willChange: 'transform' }}
       onMouseMove={handleMove}
       onMouseLeave={handleLeave}
     >

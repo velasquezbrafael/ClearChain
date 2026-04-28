@@ -73,6 +73,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} ${inter.variable} ${nunito.variable} ${rubikGlitch.variable}`}
     >
       <body className="min-h-screen antialiased">
+        {/* Disable browser scroll restoration so the page always starts at top */}
+        <script dangerouslySetInnerHTML={{ __html: "if(window.history.scrollRestoration)window.history.scrollRestoration='manual';" }} />
         {/* Bypass build CSS stripping — inject backdrop-filter directly */}
         <style dangerouslySetInnerHTML={{ __html: `.glass { backdrop-filter: blur(28px) !important; -webkit-backdrop-filter: blur(28px) !important; }` }} />
         {/* Aurora — fixed decorative blobs, z-index 0, no interaction */}
