@@ -7,7 +7,19 @@
   "files": ["dist"],
   "scripts": {
     "build": "tsc --outDir dist",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/velasquezbrafael/ClearChain.git"
+  },
+  "homepage": "https://clear-chain-peach.vercel.app",
+  "bugs": {
+    "url": "https://github.com/velasquezbrafael/ClearChain/issues"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "keywords": ["clearchain", "aml", "crypto", "compliance", "blockchain", "ofac", "risk"],
   "license": "MIT",

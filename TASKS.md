@@ -12,6 +12,12 @@ _Nothing active. See Planned for next priorities._
 
 ## Recently shipped
 
+### ~~SDK publish prep + waitlist copy~~ [DONE — chore: sdk publish prep + waitlist copy update]
+- `sdks/js/package.json`: added `repository`, `homepage`, `bugs`, `publishConfig`, `prepublishOnly` script
+- `sdks/python/pyproject.toml`: fixed Homepage URL to GitHub, added `authors`, added 5 PyPI classifiers
+- `components/WaitlistBar.tsx`: label → "Stay in the loop — new chains, features, and release notes.", button → "→ SUBSCRIBE", success → "✓ You're subscribed."
+- `tsc --noEmit` exit 0
+
 ### ~~Solana (SOL) chain support — v3.3~~ [DONE — commit 6bf9b84]
 `lib/solana.ts`: Alchemy SOL RPC — validateSolAddress, getSolTransactions (jsonParsed + balance-delta fallback, 10-concurrent batching), getSPLTokenTransfers, detectSolPatterns. `lib/scoring-sol.ts`: 4-signal scorer. `data/ofac-sol-addresses.json`: OFAC SDN SOL addresses. Both pipelines (legacy route + v1 pipeline) updated. Frontend: SOL button (#9945ff), quick fills (Lazarus OFAC + Raydium), placeholder, aria-label, "4 chains". openapi.json + docs updated. tsc exit 0.
 

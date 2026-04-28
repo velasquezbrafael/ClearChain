@@ -43,7 +43,7 @@ export default function WaitlistBar() {
             letterSpacing: '0.08em',
           }}
         >
-          ✓ You&apos;re on the list.
+          ✓ You&apos;re subscribed.
         </span>
       </div>
     );
@@ -72,7 +72,7 @@ export default function WaitlistBar() {
           color:         '#8892a4',
         }}
       >
-        Get early access to the API →
+        Stay in the loop — new chains, features, and release notes.
       </div>
 
       {/* Form */}
@@ -122,7 +122,7 @@ export default function WaitlistBar() {
             transition:    'background 0.15s',
           }}
         >
-          {status === 'loading' ? '...' : '→ JOIN WAITLIST'}
+          {status === 'loading' ? '...' : '→ SUBSCRIBE'}
         </button>
       </form>
 
