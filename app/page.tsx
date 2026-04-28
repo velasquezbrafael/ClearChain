@@ -945,7 +945,7 @@ function HeroContent({
             animationDelay: '0.25s',
           }}
         >
-          Real-time OFAC screening, typology detection, and AI SAR drafts — across Ethereum, Bitcoin, and Tron. Seconds, not days.
+          Real-time OFAC screening, typology detection, and AI SAR drafts — across Ethereum, Bitcoin, Tron, and Solana. Seconds, not days.
         </p>
 
         {/* Live stats */}
@@ -1980,7 +1980,7 @@ function HexTicker() {
           animation: 'hexScroll 40s linear infinite',
           fontFamily: 'var(--font-jetbrains-mono)',
           fontSize: 10,
-          color: 'rgba(6,182,212,0.1)',
+          color: 'rgba(6,182,212,0.18)',
           letterSpacing: '0.08em',
           lineHeight: '28px',
           userSelect: 'none',
