@@ -19,7 +19,7 @@ import TerminalLoader from '@/components/TerminalLoader';
 import ExportButton from '@/components/ExportButton';
 import AddToWatchlistButton from '@/components/AddToWatchlistButton';
 import InfoTooltip from '@/components/InfoTooltip';
-import WaitlistBar from '@/components/WaitlistBar';
+const WaitlistBar = dynamic(() => import('@/components/WaitlistBar'), { ssr: false });
 
 // HexTicker uses Math.random() during initial useState — must be ssr: false to
 // avoid React #418 hydration mismatch (server bytes !== client bytes).
