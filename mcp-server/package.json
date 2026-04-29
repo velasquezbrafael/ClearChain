@@ -1,0 +1,26 @@
+{
+  "name": "clearchain-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server for ClearChain — exposes wallet AML analysis as an MCP tool",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc --outDir dist",
+    "start": "node dist/index.js",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/velasquezbrafael/ClearChain.git"
+  }
+}

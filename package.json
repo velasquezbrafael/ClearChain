@@ -6,7 +6,8 @@
     "dev": "sh -c 'set -a && . ./.env.local && set +a && exec next dev'",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "mcp": "node mcp-server/dist/index.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.90.0",
