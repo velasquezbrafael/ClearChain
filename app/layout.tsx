@@ -41,6 +41,10 @@ export const metadata: Metadata = {
   title: 'ClearChain — Crypto AML Intelligence',
   description:
     'Know in 10 seconds whether a wallet is clean, connected to a mixer, or on a government sanctions list — with the SAR draft written automatically. Free, open source.',
+  icons: {
+    icon: '/clearchainlogo.jpg',
+    apple: '/clearchainlogo.jpg',
+  },
   openGraph: {
     title: 'ClearChain — Crypto AML Intelligence',
     description:
@@ -48,21 +52,14 @@ export const metadata: Metadata = {
     url: 'https://clearchain.vercel.app',
     siteName: 'ClearChain',
     type: 'website',
-    images: [
-      {
-        url: 'https://clearchain.vercel.app/og-image.png',
-        width: 1200,
-        height: 630,
-        alt: 'ClearChain — Crypto AML Intelligence Platform',
-      },
-    ],
+    images: ['/clearchainlogo.jpg'],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'ClearChain — Crypto AML Intelligence',
     description:
       'Free OFAC screening, AML typologies, transaction graph, and AI SAR drafts for any Ethereum wallet.',
-    images: ['https://clearchain.vercel.app/og-image.png'],
+    images: ['/clearchainlogo.jpg'],
   },
 };
 
