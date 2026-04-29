@@ -42,8 +42,9 @@ export const metadata: Metadata = {
   description:
     'Know in 10 seconds whether a wallet is clean, connected to a mixer, or on a government sanctions list — with the SAR draft written automatically. Free, open source.',
   icons: {
-    icon: '/clearchainlogo.jpg',
-    apple: '/clearchainlogo.jpg',
+    icon: '/favicon.jpg',
+    shortcut: '/favicon.jpg',
+    apple: '/favicon.jpg',
   },
   openGraph: {
     title: 'ClearChain — Crypto AML Intelligence',
