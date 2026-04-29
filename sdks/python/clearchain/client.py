@@ -26,7 +26,7 @@ from .models import (
 # Constants
 # ---------------------------------------------------------------------------
 
-DEFAULT_BASE_URL = "https://clear-chain-peach.vercel.app"
+DEFAULT_BASE_URL = "https://clearchain.vercel.app"
 MAX_RETRIES      = 3
 BACKOFF_SECONDS  = [1, 2, 4]
 

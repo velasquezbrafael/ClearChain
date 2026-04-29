@@ -3,10 +3,10 @@
   "info": {
     "title": "ClearChain API",
     "version": "1.0.0",
-    "description": "Crypto AML intelligence API. Analyze wallet addresses for sanctions exposure, risk scoring, typology detection, and AI-generated compliance narratives.\n\nLive base URL: https://clear-chain-peach.vercel.app\n\nAll v1 endpoints require an API key passed as a Bearer token:\n```\nAuthorization: Bearer ck_live_<your_key>\n```\n\nGet your key at https://clear-chain-peach.vercel.app/dashboard/settings",
+    "description": "Crypto AML intelligence API. Analyze wallet addresses for sanctions exposure, risk scoring, typology detection, and AI-generated compliance narratives.\n\nLive base URL: https://clearchain.vercel.app\n\nAll v1 endpoints require an API key passed as a Bearer token:\n```\nAuthorization: Bearer ck_live_<your_key>\n```\n\nGet your key at https://clearchain.vercel.app/dashboard/settings",
     "contact": {
       "name": "ClearChain Support",
-      "url": "https://clear-chain-peach.vercel.app"
+      "url": "https://clearchain.vercel.app"
     },
     "license": {
       "name": "MIT",
@@ -15,7 +15,7 @@
   },
   "servers": [
     {
-      "url": "https://clear-chain-peach.vercel.app",
+      "url": "https://clearchain.vercel.app",
       "description": "Production"
     }
   ],

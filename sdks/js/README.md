@@ -1,6 +1,6 @@
 # clearchain-sdk
 
-Official JavaScript/TypeScript SDK for the [ClearChain](https://clear-chain-peach.vercel.app) AML intelligence API.
+Official JavaScript/TypeScript SDK for the [ClearChain](https://clearchain.vercel.app) AML intelligence API.
 
 Zero dependencies. Node 18+ (native `fetch`) or any modern browser.
 
@@ -148,4 +148,4 @@ const client = new ClearChainClient({
 | `analyst` | 2,000 requests |
 | `team` | Unlimited |
 
-Batch requests count as N calls (one per address). Get your API key at [/dashboard/settings](https://clear-chain-peach.vercel.app/dashboard/settings).
+Batch requests count as N calls (one per address). Get your API key at [/dashboard/settings](https://clearchain.vercel.app/dashboard/settings).

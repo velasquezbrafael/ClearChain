@@ -51,7 +51,7 @@ async function sendStatusEmail(to: string, caseTitle: string, newStatus: string,
   const statusLabel = STATUS_LABELS[newStatus] ?? newStatus;
   const isSAR = newStatus === 'sar_filed';
   const accentColor = isSAR ? '#ff3b3b' : '#ff8c00';
-  const caseUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://clear-chain-peach.vercel.app'}/dashboard/cases/${caseId}`;
+  const caseUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://clearchain.vercel.app'}/dashboard/cases/${caseId}`;
 
   const html = `
 <!DOCTYPE html>

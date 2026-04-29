@@ -45,12 +45,12 @@ export const metadata: Metadata = {
     title: 'ClearChain — Crypto AML Intelligence',
     description:
       'Free OFAC screening, AML typology matching, transaction graph, and AI-generated SAR drafts for any Ethereum, Bitcoin, or Tron wallet.',
-    url: 'https://clear-chain-peach.vercel.app',
+    url: 'https://clearchain.vercel.app',
     siteName: 'ClearChain',
     type: 'website',
     images: [
       {
-        url: 'https://clear-chain-peach.vercel.app/og-image.png',
+        url: 'https://clearchain.vercel.app/og-image.png',
         width: 1200,
         height: 630,
         alt: 'ClearChain — Crypto AML Intelligence Platform',
@@ -62,7 +62,7 @@ export const metadata: Metadata = {
     title: 'ClearChain — Crypto AML Intelligence',
     description:
       'Free OFAC screening, AML typologies, transaction graph, and AI SAR drafts for any Ethereum wallet.',
-    images: ['https://clear-chain-peach.vercel.app/og-image.png'],
+    images: ['https://clearchain.vercel.app/og-image.png'],
   },
 };
 

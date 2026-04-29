@@ -30,7 +30,7 @@ import type { WalletTransaction } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://clear-chain-peach.vercel.app';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://clearchain.vercel.app';
 
 // ---------------------------------------------------------------------------
 // Helpers

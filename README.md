@@ -11,7 +11,7 @@ Know in 10 seconds whether a wallet is clean, connected to a mixer, or on a gove
 
 <!-- demo.gif -->
 
-**Live:** [clear-chain-peach.vercel.app](https://clear-chain-peach.vercel.app)
+**Live:** [clearchain.vercel.app](https://clearchain.vercel.app)
 
 ---
 
@@ -83,7 +83,7 @@ Copy `.env.local.example` to `.env.local` and fill in the values.
 
 | Variable | Description |
 |---|---|
-| `NEXT_PUBLIC_SITE_URL` | Full URL of your deployment (e.g. `https://clear-chain-peach.vercel.app`) — used for auth redirects |
+| `NEXT_PUBLIC_SITE_URL` | Full URL of your deployment (e.g. `https://clearchain.vercel.app`) — used for auth redirects |
 | `NEXT_PUBLIC_BASE_URL` | API base URL override — defaults to the deployment URL |
 | `RESEND_API_KEY` | [Resend](https://resend.com) API key — enables email notifications for case updates and watchlist alerts |
 | `RESEND_FROM_EMAIL` | From address for transactional emails (e.g. `alerts@yourdomain.com`) |
@@ -99,17 +99,17 @@ Analyze any wallet with a single POST:
 
 ```bash
 # Ethereum
-curl -X POST https://clear-chain-peach.vercel.app/api/analyze \
+curl -X POST https://clearchain.vercel.app/api/analyze \
   -H "Content-Type: application/json" \
   -d '{"address": "0x722122dF12D4e14e13Ac3b6895a86e84145b6967", "chain": "ETH"}'
 
 # Bitcoin
-curl -X POST https://clear-chain-peach.vercel.app/api/analyze \
+curl -X POST https://clearchain.vercel.app/api/analyze \
   -H "Content-Type: application/json" \
   -d '{"address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7Divf", "chain": "BTC"}'
 
 # Solana
-curl -X POST https://clear-chain-peach.vercel.app/api/analyze \
+curl -X POST https://clearchain.vercel.app/api/analyze \
   -H "Content-Type: application/json" \
   -d '{"address": "5Q544fKrFoe6tsEbD7S8EmxGTJYAKtTVhAW5Q5pge4j1", "chain": "SOL"}'
 ```

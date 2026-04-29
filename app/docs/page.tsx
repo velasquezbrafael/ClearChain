@@ -10,7 +10,7 @@ import { createClient } from '@/lib/supabase/server'
 import CodeTabs from '@/components/CodeTabs'
 import CopyButton from '@/components/CopyButton'
 
-const BASE = 'https://clear-chain-peach.vercel.app'
+const BASE = 'https://clearchain.vercel.app'
 
 // ---------------------------------------------------------------------------
 // Code snippets

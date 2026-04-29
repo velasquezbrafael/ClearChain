@@ -40,7 +40,7 @@ import type { AnalysisResult, BatchAddressInput, BatchResponse } from './types'
 // Constants
 // ---------------------------------------------------------------------------
 
-const DEFAULT_BASE_URL = 'https://clear-chain-peach.vercel.app'
+const DEFAULT_BASE_URL = 'https://clearchain.vercel.app'
 const MAX_RETRIES      = 3
 const BACKOFF_MS       = [1000, 2000, 4000] as const
 
@@ -70,7 +70,7 @@ export interface ClearChainClientOptions {
   apiKey: string
   /**
    * Override the base URL for self-hosted or staging environments.
-   * @default 'https://clear-chain-peach.vercel.app'
+   * @default 'https://clearchain.vercel.app'
    */
   baseUrl?: string
 }

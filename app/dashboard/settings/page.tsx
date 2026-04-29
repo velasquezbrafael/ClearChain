@@ -622,7 +622,7 @@ export default function SettingsPage() {
         <div className="glass" style={{ marginTop: 48, padding: '24px', borderRadius: 4 }}>
           <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: '#7ec8d8', marginBottom: 14 }}>USAGE EXAMPLE</div>
           <pre style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: '#7ec8d8', margin: 0, lineHeight: 1.7, overflowX: 'auto' }}>
-            <span style={{ color: '#1e4d5c' }}>curl</span>{` -X POST https://clear-chain-peach.vercel.app/api/v1/analyze \\
+            <span style={{ color: '#1e4d5c' }}>curl</span>{` -X POST https://clearchain.vercel.app/api/v1/analyze \\
   `}<span style={{ color: '#ffd60a' }}>-H</span>{` "Authorization: Bearer ck_live_your_key_here" \\
   `}<span style={{ color: '#ffd60a' }}>-H</span>{` "Content-Type: application/json" \\
   `}<span style={{ color: '#ffd60a' }}>-d</span>{` '{"address":"vitalik.eth","chain":"ETH"}'`}

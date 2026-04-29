@@ -22,7 +22,7 @@ dependencies = []
 
 [project.urls]
 Homepage = "https://github.com/velasquezbrafael/ClearChain"
-Documentation = "https://clear-chain-peach.vercel.app/docs"
+Documentation = "https://clearchain.vercel.app/docs"
 Repository = "https://github.com/velasquezbrafael/ClearChain"
 
 [tool.setuptools.packages.find]

@@ -1,3 +1,21 @@
+Metadata-Version: 2.4
+Name: clearchain
+Version: 1.0.0
+Summary: Official Python SDK for the ClearChain AML intelligence API
+Author-email: Rafael Velasquez <velasquez.b.rafael@gmail.com>
+License: MIT
+Project-URL: Homepage, https://github.com/velasquezbrafael/ClearChain
+Project-URL: Documentation, https://clearchain.vercel.app/docs
+Project-URL: Repository, https://github.com/velasquezbrafael/ClearChain
+Keywords: clearchain,aml,crypto,compliance,blockchain,ofac,risk
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Security
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+
 # clearchain
 
 Official Python SDK for the [ClearChain](https://clearchain.vercel.app) AML intelligence API.

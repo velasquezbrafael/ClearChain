@@ -5,7 +5,7 @@
 ## What this is
 ClearChain is a crypto AML (anti-money laundering) intelligence and compliance workflow platform. It combines on-chain data from Alchemy, OFAC sanctions screening, AI-generated compliance narratives (Claude Haiku), and FinCEN-style SAR draft generation — free and open source.
 
-**Live:** https://clear-chain-peach.vercel.app | **Repo:** https://github.com/velasquezbrafael-source/ClearChain  
+**Live:** https://clearchain.vercel.app | **Repo:** https://github.com/velasquezbrafael-source/ClearChain  
 **Stack:** Next.js 16 (App Router, Turbopack), TypeScript strict, Tailwind CSS, Supabase, Alchemy API, Anthropic SDK  
 **Dev command:** `npm run dev` — MUST use this exact command (custom script that injects non-NEXT_PUBLIC env vars via `set -a`)
 
