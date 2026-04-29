@@ -1284,6 +1284,9 @@ function HeroContent({
         )}
       </div>
 
+      {/* Email capture — above the fold, right after quick fills */}
+      <WaitlistBar />
+
       {/* How it works */}
       <div
         style={{
@@ -1472,9 +1475,6 @@ function HeroContent({
               </>
             ))}
           </div>
-
-          {/* Email capture */}
-          <WaitlistBar />
 
           {/* Stat row */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0, marginTop: 40 }}>
