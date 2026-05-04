@@ -1,3 +1,36 @@
+import { exchange, phishHack, tokenContract, genesis } from 'evm-labels';
+
+// ---------------------------------------------------------------------------
+// evm-labels dataset — O(1) lookup map built at module init.
+// Hardcoded KNOWN_LABELS below always take priority.
+// Build order: tokenContract → exchange → genesis → phishHack so that
+// risk-flagged entries overwrite benign labels on address collision.
+// ---------------------------------------------------------------------------
+
+type LabelEntry = { label: string; category: 'sanctioned' | 'exchange' | 'defi' | 'notable' };
+
+const EVM_LABEL_MAP = new Map<string, LabelEntry>();
+
+for (const { address, nameTag } of tokenContract.all) {
+  if (address) EVM_LABEL_MAP.set(address.toLowerCase(), { label: nameTag || 'Token Contract', category: 'defi' });
+}
+for (const { address, nameTag } of exchange.all) {
+  if (address) EVM_LABEL_MAP.set(address.toLowerCase(), { label: nameTag || 'Exchange', category: 'exchange' });
+}
+for (const { address, nameTag } of genesis.all) {
+  if (address) EVM_LABEL_MAP.set(address.toLowerCase(), { label: nameTag || 'Genesis Address', category: 'notable' });
+}
+for (const { address, nameTag } of phishHack.all) {
+  if (address) EVM_LABEL_MAP.set(address.toLowerCase(), {
+    label: nameTag ? `Flagged: ${nameTag}` : 'Flagged: Phishing/Hack',
+    category: 'sanctioned',
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Hardcoded curated labels — take priority over evm-labels dataset
+// ---------------------------------------------------------------------------
+
 export const KNOWN_LABELS: Record<string, { label: string; category: 'sanctioned' | 'exchange' | 'defi' | 'notable' }> = {
   '0x722122df12d4e14e13ac3b6895a86e84145b6967': { label: 'Tornado Cash Router', category: 'sanctioned' },
   '0xd90e2f925da726b50c4ed8d0fb90ad053324f31b': { label: 'Tornado Cash 10 ETH Pool', category: 'sanctioned' },
@@ -34,8 +67,11 @@ export const KNOWN_LABELS: Record<string, { label: string; category: 'sanctioned
   'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA':  { label: 'SPL Token Program', category: 'defi' },
 };
 
-export function getLabel(address: string): { label: string; category: 'sanctioned' | 'exchange' | 'defi' | 'notable' } | null {
-  // ETH addresses are lowercase; SOL addresses are case-sensitive base58.
-  // Try exact match first (SOL), then lowercase fallback (ETH/TRX).
-  return KNOWN_LABELS[address] ?? KNOWN_LABELS[address.toLowerCase()] ?? null;
+export function getLabel(address: string): LabelEntry | null {
+  // 1. Hardcoded labels — highest priority.
+  //    Exact match first (SOL base58 is case-sensitive), then lowercase (ETH/TRX).
+  const hardcoded = KNOWN_LABELS[address] ?? KNOWN_LABELS[address.toLowerCase()];
+  if (hardcoded) return hardcoded;
+  // 2. evm-labels dataset — O(1) Map lookup (ETH/EVM, always lowercase).
+  return EVM_LABEL_MAP.get(address.toLowerCase()) ?? null;
 }
