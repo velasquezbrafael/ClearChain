@@ -185,7 +185,6 @@ body {
 /* ── Two-column hero ─────────────────────────────────────────── */
 .hero-section {
   position: relative;
-  min-height: 100vh;
   display: block;
 }
 
