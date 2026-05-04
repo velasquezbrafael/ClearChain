@@ -1,15 +1,13 @@
 /**
  * ClearChain — Claude AI Integration Layer
  *
- * Provides two compliance-grade AI functions built on Anthropic's Claude:
+ * Provides two consumer-oriented AI functions built on Anthropic's Claude:
  *
- *   generateNarrative()  — Streaming plain-English chain-of-custody narrative
- *                          for compliance officer review.
- *   generateSARDraft()   — Non-streaming FinCEN-style Suspicious Activity Report
- *                          draft narrative, ready for officer sign-off and filing.
+ *   generateNarrative()  — Plain-English summary of wallet activity.
+ *   generateSARDraft()   — Downloadable safety report for the user's records.
  *
- * Both functions are deliberately designed so the prompts stay close to
- * FATF/FinCEN guidance language — the output should be citable in a real SAR.
+ * Prompts are conditioned on risk level: clean wallets get a reassuring
+ * summary; flagged wallets get a detailed risk breakdown.
  *
  * Environment variable required: ANTHROPIC_API_KEY
  */
@@ -63,45 +61,83 @@ export async function generateAll(analysis: WalletAnalysis): Promise<{ narrative
   try {
     const client = getClient();
 
-    const sarTemplate = `SUSPICIOUS ACTIVITY REPORT — DRAFT NARRATIVE
-[For compliance officer review — not a filed SAR]
+    const riskLevel = analysis.riskScore.level; // 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
+    const isClean = riskLevel === 'LOW' || analysis.riskScore.total === 0;
+    const triggeredSignals = Object.values(analysis.riskScore.signals)
+      .filter((s: {triggered: boolean}) => s.triggered)
+      .map((s: {name: string}) => s.name)
+      .join(', ') || 'none';
+    const topTypology = analysis.typologies
+      .filter(t => t.triggered)
+      .sort((a, b) => b.confidence - a.confidence)[0]?.name ?? 'none';
+    const keyTxs = analysis.transactions
+      .slice(0, 5)
+      .map(tx => `${new Date(tx.timestamp * 1000).toISOString().split('T')[0]} ${tx.value.toFixed(4)} ETH ${tx.from.slice(0,8)}→${tx.to.slice(0,8)}`)
+      .join(' | ');
 
-SUBJECT INFORMATION:
-Wallet Address: ${analysis.address}
-Blockchain: Ethereum (ETH)
+    const reportTemplate = isClean
+      ? `WALLET SAFETY REPORT
+
+WALLET INFORMATION:
+Address: ${analysis.address}
+Chain: Ethereum (ETH)
 Analysis Date: ${analysis.analyzedAt}
-Risk Score: ${analysis.riskScore.total}/100 (${analysis.riskScore.level})
-OFAC Match: ${analysis.ofacResult.matched ? `YES — ${analysis.ofacResult.matchedEntity}` : 'No'}
+Safety Score: ${analysis.riskScore.total}/100 — ${riskLevel}
+Sanctions Match: ${analysis.ofacResult.matched ? `YES — ${analysis.ofacResult.matchedEntity}` : 'None'}
 
-SUSPICIOUS ACTIVITY DESCRIPTION:
-[Write 3-5 sentences here in past tense, third person, with specific dates and amounts]
+SUMMARY:
+[2-3 sentences: describe what this wallet does, how old it is, what types of transactions it makes. Use plain language. Do NOT use words like "suspicious", "layering", "money laundering", or "SAR".]
 
-TYPOLOGY:
-[Primary typology and FATF/FinCEN reference]
+TRANSACTION ACTIVITY:
+[List 3-5 notable transactions with date, amount, and abbreviated addresses]
 
-SUPPORTING TRANSACTION DETAILS:
-[List 3-5 key transactions with date, amount, abbreviated addresses]
-
-RECOMMENDED DISPOSITION:
-[File SAR / Hold pending investigation / Escalate]
+VERDICT:
+[1 sentence: is this safe to transact with? Plain language.]
 
 ---
-Note: AI-generated draft. Verify all details before filing with FinCEN.`;
+Note: AI-generated summary. Always verify before sending.`
+      : `WALLET SAFETY REPORT — RISK DETECTED
 
-    const combinedPrompt = `You are a senior BSA/AML compliance analyst. Return a single JSON object with exactly two string fields: "narrative" and "sarDraft". Both values must be plain text strings — not objects, not arrays.
+WALLET INFORMATION:
+Address: ${analysis.address}
+Chain: Ethereum (ETH)
+Analysis Date: ${analysis.analyzedAt}
+Risk Score: ${analysis.riskScore.total}/100 — ${riskLevel}
+Sanctions Match: ${analysis.ofacResult.matched ? `YES — ${analysis.ofacResult.matchedEntity}` : 'None'}
 
-"narrative": Write 2-4 sentences tracing fund flow for this wallet. Name mixer/high-risk interactions. End with the AML stage (placement/layering/integration). Factual only.
+RISK SUMMARY:
+[3-5 sentences: describe the specific risk signals detected, what transactions triggered them, and why this wallet is flagged. Factual, plain language. Include specific dates and amounts.]
+
+DETECTED PATTERNS:
+[List the triggered risk signals and what each one means in plain terms]
+
+TRANSACTION DETAILS:
+[List 3-5 key transactions with date, amount, and abbreviated addresses]
+
+RECOMMENDATION:
+[1 sentence: what should the user do? e.g. "We recommend not sending funds to this address."]
+
+---
+Note: AI-generated report. Use your own judgment before sending.`;
+
+    const narrativeInstruction = isClean
+      ? `"narrative": Write 2-3 sentences summarizing what this wallet does. Describe transaction volume, time range, and typical activity. Use plain language — do NOT imply anything suspicious, do NOT mention money laundering, layering, or placement. This wallet scored ${analysis.riskScore.total}/100 (${riskLevel}) — reflect that honestly.`
+      : `"narrative": Write 2-4 sentences explaining the risk signals detected. Be specific about which transactions triggered flags. Plain language — avoid jargon but be clear about why this wallet is flagged.`;
+
+    const combinedPrompt = `You are a wallet safety assistant helping everyday crypto users understand a wallet before sending funds. Return a single JSON object with exactly two string fields: "narrative" and "sarDraft". Both values must be plain text strings — not objects, not arrays.
+
+${narrativeInstruction}
 
 "sarDraft": Fill in the bracketed sections of this template and return the completed text as a single plain string (preserve line breaks with \\n):
-${sarTemplate}
+${reportTemplate}
 
 WALLET DATA:
-- Risk Score: ${analysis.riskScore.total}/100 (${analysis.riskScore.level})
-- OFAC Match: ${analysis.ofacResult.matched ? `YES — ${analysis.ofacResult.matchedEntity}` : 'No'}
-- Signals: ${Object.values(analysis.riskScore.signals).filter((s: {triggered: boolean}) => s.triggered).map((s: {name: string}) => s.name).join(', ') || 'none'}
-- Top Typology: ${analysis.typologies.filter(t => t.triggered).sort((a, b) => b.confidence - a.confidence)[0]?.name ?? 'none'}
-- Transactions: ${analysis.transactions.length} total
-- Key txs: ${analysis.transactions.slice(0, 5).map(tx => `${new Date(tx.timestamp * 1000).toISOString().split('T')[0]} ${tx.value.toFixed(4)} ETH ${tx.from.slice(0,8)}→${tx.to.slice(0,8)}`).join(' | ')}
+- Risk Score: ${analysis.riskScore.total}/100 (${riskLevel})
+- Sanctions Match: ${analysis.ofacResult.matched ? `YES — ${analysis.ofacResult.matchedEntity}` : 'None'}
+- Risk Signals Triggered: ${triggeredSignals}
+- Top Pattern: ${topTypology}
+- Total Transactions: ${analysis.transactions.length}
+- Key Transactions: ${keyTxs}
 
 Return ONLY the JSON object. No markdown fences. Both values must be strings.`.trim();
 

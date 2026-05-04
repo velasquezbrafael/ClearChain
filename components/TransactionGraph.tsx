@@ -561,7 +561,8 @@ export default function TransactionGraph({
   const [expandedTrail, setExpandedTrail] = useState<string[]>([]);
   const [invSelectedAddr, setInvSelectedAddr] = useState<string | null>(null);
   const [resetCount, setResetCount] = useState(0);
-  const [filterLowRisk, setFilterLowRisk] = useState(false);
+  type GraphFilter = 'all' | 'threats' | 'clean' | 'overlap' | 'unexpanded';
+  const [graphFilter, setGraphFilter] = useState<GraphFilter>('all');
   const invCardUpdateRef = useRef<InvD3Update | null>(null);
   const invCardStopRef = useRef<(() => void) | null>(null);
   const invFullUpdateRef = useRef<InvD3Update | null>(null);
@@ -725,30 +726,34 @@ export default function TransactionGraph({
     return () => { cancelAnimationFrame(raf); if (invFullStopRef.current) { invFullStopRef.current(); invFullStopRef.current = null; invFullUpdateRef.current = null; } };
   }, [isFullscreen, investigationMode, queriedAddress]); // intentionally omit invNodeMap — snapshot at open, then hot-update handles changes
 
-  // HIDE LOW RISK filter — display:none removes nodes/edges cleanly, no ghost space
+  // Graph filter — display:none removes nodes/edges cleanly, no ghost space
   useEffect(() => {
     if (!investigationMode) return;
     const hiddenIds = new Set<string>();
-    if (filterLowRisk) {
-      for (const n of Object.values(invNodeMap)) {
-        // Root always stays visible as the anchor; hide everything that is not a threat
-        if (n.state !== 'root' && !n.isMixer && !n.isHighRisk && !n.isOfac) {
-          hiddenIds.add(n.id);
-        }
-      }
+    for (const n of Object.values(invNodeMap)) {
+      if (n.state === 'root') continue; // root always visible
+      const isThreat = n.isMixer || n.isHighRisk || n.isOfac;
+      const isCleanNode = !isThreat;
+      const isOverlapNode = !!n.isOverlap;
+      const isUnexpandedNode = n.state === 'unexpanded' || n.state === 'at-limit';
+      let hide = false;
+      if (graphFilter === 'threats')    hide = !isThreat;
+      if (graphFilter === 'clean')      hide = !isCleanNode;
+      if (graphFilter === 'overlap')    hide = !isOverlapNode;
+      if (graphFilter === 'unexpanded') hide = !isUnexpandedNode;
+      if (hide) hiddenIds.add(n.id);
     }
     function applyFilter(svgEl: SVGSVGElement | null) {
       if (!svgEl) return;
       const svg = d3.select(svgEl);
       svg.selectAll<SVGGElement, InvNode>('g.inv-node')
         .style('display', (d) => hiddenIds.has(d.id) ? 'none' : null);
-      // Hide any edge where either endpoint is hidden (not just both)
       svg.selectAll<SVGLineElement, { source: string; target: string }>('g.inv-links line')
         .style('display', (d) => (hiddenIds.has(d.source) || hiddenIds.has(d.target)) ? 'none' : null);
     }
     applyFilter(svgRef.current);
     if (isFullscreen) applyFilter(fullSvgRef.current);
-  }, [filterLowRisk, invNodeMap, investigationMode, isFullscreen]);
+  }, [graphFilter, invNodeMap, investigationMode, isFullscreen]);
 
   // Esc closes fullscreen
   useEffect(() => {
@@ -908,9 +913,15 @@ export default function TransactionGraph({
   const invEdgeCount = invEdges.length;
   const invMaxDepth = Object.values(invNodeMap).reduce((m, n) => Math.max(m, n.depth), 0);
   const invRiskCount = Object.values(invNodeMap).filter(n => n.isMixer || n.isHighRisk || n.isOfac).length;
-  const hiddenCount = filterLowRisk
-    ? Object.values(invNodeMap).filter(n => n.state !== 'root' && !n.isMixer && !n.isHighRisk && !n.isOfac).length
-    : 0;
+  const hiddenCount = graphFilter === 'all' ? 0 : Object.values(invNodeMap).filter(n => {
+    if (n.state === 'root') return false;
+    const isThreat = n.isMixer || n.isHighRisk || n.isOfac;
+    if (graphFilter === 'threats')    return !isThreat;
+    if (graphFilter === 'clean')      return isThreat;
+    if (graphFilter === 'overlap')    return !n.isOverlap;
+    if (graphFilter === 'unexpanded') return n.state !== 'unexpanded' && n.state !== 'at-limit';
+    return false;
+  }).length;
 
   // Breadcrumb
   const breadcrumb = expandedTrail.length > 0 ? (
@@ -955,33 +966,31 @@ export default function TransactionGraph({
               {!investigationMode && hasHopData && hopToggle}
               {investigationMode && (
                 <>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, opacity: expandedTrail.length > 0 ? 1 : 0.4, transition: 'opacity 0.2s' }}>
-                    <button
-                      onClick={() => setFilterLowRisk(f => !f)}
-                      style={{
-                        display: 'flex', alignItems: 'center', gap: 5,
-                        background: filterLowRisk ? 'rgba(255,59,59,0.15)' : 'none',
-                        border: filterLowRisk ? '1px solid rgba(255,59,59,0.4)' : '1px solid rgba(255,255,255,0.08)',
-                        borderRadius: 20,
-                        color: filterLowRisk ? '#ff3b3b' : 'var(--text-dim)',
-                        cursor: 'pointer',
-                        padding: '4px 10px 4px 8px',
-                        fontFamily: 'var(--font-jetbrains-mono)',
-                        fontSize: 9,
-                        letterSpacing: '0.08em',
-                        transition: 'background 0.15s, border-color 0.15s, color 0.15s',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" style={{ flexShrink: 0 }}>
-                        <path d="M1 1.5h8L6.25 4.75V8.25L3.75 7V4.75L1 1.5z" />
-                      </svg>
-                      {filterLowRisk ? 'High Risk Only' : 'Show All'}
-                      {filterLowRisk && (
-                        <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#ff3b3b', boxShadow: '0 0 6px rgba(255,59,59,0.7)', display: 'inline-block', flexShrink: 0 }} />
-                      )}
-                    </button>
-                    <InfoTooltip text="Hide LOW and MEDIUM risk nodes to focus on threats" />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, opacity: expandedTrail.length > 0 ? 1 : 0.4, transition: 'opacity 0.2s' }}>
+                    {(['all', 'threats', 'clean', 'overlap', 'unexpanded'] as GraphFilter[]).map(mode => {
+                      const isActive = graphFilter === mode;
+                      const colorMap: Record<GraphFilter, string> = { all: '#06b6d4', threats: '#ff3b3b', clean: '#00ff88', overlap: '#ffd60a', unexpanded: '#a78bfa' };
+                      const labelMap: Record<GraphFilter, string> = { all: 'ALL', threats: 'THREATS', clean: 'CLEAN', overlap: 'OVERLAPS', unexpanded: 'UNEXPANDED' };
+                      const c = colorMap[mode];
+                      return (
+                        <button key={mode} onClick={() => setGraphFilter(mode)} style={{
+                          background: isActive ? `${c}22` : 'none',
+                          border: `1px solid ${isActive ? c + '66' : 'rgba(255,255,255,0.08)'}`,
+                          borderRadius: 3,
+                          color: isActive ? c : 'var(--text-dim)',
+                          cursor: 'pointer',
+                          padding: '3px 8px',
+                          fontFamily: 'var(--font-jetbrains-mono)',
+                          fontSize: 8,
+                          letterSpacing: '0.08em',
+                          transition: 'all 0.15s',
+                          whiteSpace: 'nowrap',
+                        }}>
+                          {labelMap[mode]}
+                        </button>
+                      );
+                    })}
+                    <InfoTooltip text="Filter graph nodes: THREATS = OFAC/mixer/high-risk · CLEAN = no flags · OVERLAPS = appear in multiple hops · UNEXPANDED = not yet traced" />
                   </div>
                   <button onClick={resetGraph} style={{ background: 'none', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 3, color: 'var(--text-dim)', cursor: 'pointer', padding: '5px 12px', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.1em' }}>
                     RESET GRAPH
@@ -999,23 +1008,28 @@ export default function TransactionGraph({
             {/* Graph */}
             <div ref={fullContainerRef} style={{ position: 'relative', flex: '0 0 75%', borderRight: '1px solid rgba(6,182,212,0.08)' }}>
               <svg ref={fullSvgRef} style={{ width: '100%', height: '100%', display: 'block' }} />
-              {filterLowRisk && hiddenCount > 0 && (
-                <div style={{
-                  position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)',
-                  zIndex: 10, pointerEvents: 'none',
-                  background: 'rgba(255,59,59,0.12)',
-                  border: '1px solid rgba(255,59,59,0.35)',
-                  borderRadius: 3,
-                  padding: '4px 14px',
-                  fontFamily: 'var(--font-jetbrains-mono)',
-                  fontSize: 9,
-                  letterSpacing: '0.1em',
-                  color: '#ff3b3b',
-                  whiteSpace: 'nowrap',
-                }}>
-                  FILTERING: HIGH RISK ONLY — {hiddenCount} nodes hidden
-                </div>
-              )}
+              {graphFilter !== 'all' && hiddenCount > 0 && (() => {
+                const bannerColor: Record<GraphFilter, string> = { all: '', threats: '#ff3b3b', clean: '#00ff88', overlap: '#ffd60a', unexpanded: '#a78bfa' };
+                const bannerLabel: Record<GraphFilter, string> = { all: '', threats: 'THREATS ONLY', clean: 'CLEAN ONLY', overlap: 'OVERLAPS ONLY', unexpanded: 'UNEXPANDED ONLY' };
+                const c = bannerColor[graphFilter];
+                return (
+                  <div style={{
+                    position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)',
+                    zIndex: 10, pointerEvents: 'none',
+                    background: `${c}1a`,
+                    border: `1px solid ${c}59`,
+                    borderRadius: 3,
+                    padding: '4px 14px',
+                    fontFamily: 'var(--font-jetbrains-mono)',
+                    fontSize: 9,
+                    letterSpacing: '0.1em',
+                    color: c,
+                    whiteSpace: 'nowrap',
+                  }}>
+                    FILTER: {bannerLabel[graphFilter]} — {hiddenCount} HIDDEN
+                  </div>
+                );
+              })()}
               {renderTooltipContent(fullTooltip, fullContainerWidth)}
             </div>
 
@@ -1124,33 +1138,31 @@ export default function TransactionGraph({
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
               {/* Filter pill — visible as soon as Investigation Mode is active */}
               {investigationMode && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 5, opacity: expandedTrail.length > 0 ? 1 : 0.4, transition: 'opacity 0.2s' }}>
-                  <button
-                    onClick={() => setFilterLowRisk(f => !f)}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 5,
-                      background: filterLowRisk ? 'rgba(255,59,59,0.15)' : 'none',
-                      border: filterLowRisk ? '1px solid rgba(255,59,59,0.4)' : '1px solid rgba(255,255,255,0.08)',
-                      borderRadius: 20,
-                      color: filterLowRisk ? '#ff3b3b' : 'var(--text-dim)',
-                      cursor: 'pointer',
-                      padding: '4px 10px 4px 8px',
-                      fontFamily: 'var(--font-jetbrains-mono)',
-                      fontSize: 9,
-                      letterSpacing: '0.08em',
-                      transition: 'background 0.15s, border-color 0.15s, color 0.15s',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" style={{ flexShrink: 0 }}>
-                      <path d="M1 1.5h8L6.25 4.75V8.25L3.75 7V4.75L1 1.5z" />
-                    </svg>
-                    {filterLowRisk ? 'High Risk Only' : 'Show All'}
-                    {filterLowRisk && (
-                      <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#ff3b3b', boxShadow: '0 0 6px rgba(255,59,59,0.7)', display: 'inline-block', flexShrink: 0 }} />
-                    )}
-                  </button>
-                  <InfoTooltip text="Hide LOW and MEDIUM risk nodes to focus on threats" />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 3, opacity: expandedTrail.length > 0 ? 1 : 0.4, transition: 'opacity 0.2s' }}>
+                  {(['all', 'threats', 'clean', 'overlap', 'unexpanded'] as GraphFilter[]).map(mode => {
+                    const isActive = graphFilter === mode;
+                    const colorMap: Record<GraphFilter, string> = { all: '#06b6d4', threats: '#ff3b3b', clean: '#00ff88', overlap: '#ffd60a', unexpanded: '#a78bfa' };
+                    const labelMap: Record<GraphFilter, string> = { all: 'ALL', threats: 'THREATS', clean: 'CLEAN', overlap: 'OVERLAPS', unexpanded: 'UNEXPANDED' };
+                    const c = colorMap[mode];
+                    return (
+                      <button key={mode} onClick={() => setGraphFilter(mode)} style={{
+                        background: isActive ? `${c}22` : 'none',
+                        border: `1px solid ${isActive ? c + '66' : 'rgba(255,255,255,0.08)'}`,
+                        borderRadius: 3,
+                        color: isActive ? c : 'var(--text-dim)',
+                        cursor: 'pointer',
+                        padding: '2px 6px',
+                        fontFamily: 'var(--font-jetbrains-mono)',
+                        fontSize: 7,
+                        letterSpacing: '0.07em',
+                        transition: 'all 0.15s',
+                        whiteSpace: 'nowrap',
+                      }}>
+                        {labelMap[mode]}
+                      </button>
+                    );
+                  })}
+                  <InfoTooltip text="Filter graph nodes: THREATS = OFAC/mixer/high-risk · CLEAN = no flags · OVERLAPS = appear in multiple hops · UNEXPANDED = not yet traced" />
                 </div>
               )}
               <button onClick={() => { setIsFullscreen(true); setSelectedNode(null); }} title="Fullscreen graph"
@@ -1191,23 +1203,28 @@ export default function TransactionGraph({
             <svg ref={svgRef} style={{ width: '100%', height: '100%', display: 'block' }} />
           )}
           {/* Active filter banner */}
-          {filterLowRisk && hiddenCount > 0 && (
-            <div style={{
-              position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)',
-              zIndex: 10, pointerEvents: 'none',
-              background: 'rgba(255,59,59,0.12)',
-              border: '1px solid rgba(255,59,59,0.35)',
-              borderRadius: 3,
-              padding: '4px 14px',
-              fontFamily: 'var(--font-jetbrains-mono)',
-              fontSize: 9,
-              letterSpacing: '0.1em',
-              color: '#ff3b3b',
-              whiteSpace: 'nowrap',
-            }}>
-              FILTERING: HIGH RISK ONLY — {hiddenCount} nodes hidden
-            </div>
-          )}
+          {graphFilter !== 'all' && hiddenCount > 0 && (() => {
+            const bannerColor: Record<GraphFilter, string> = { all: '', threats: '#ff3b3b', clean: '#00ff88', overlap: '#ffd60a', unexpanded: '#a78bfa' };
+            const bannerLabel: Record<GraphFilter, string> = { all: '', threats: 'THREATS ONLY', clean: 'CLEAN ONLY', overlap: 'OVERLAPS ONLY', unexpanded: 'UNEXPANDED ONLY' };
+            const c = bannerColor[graphFilter];
+            return (
+              <div style={{
+                position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)',
+                zIndex: 10, pointerEvents: 'none',
+                background: `${c}1a`,
+                border: `1px solid ${c}59`,
+                borderRadius: 3,
+                padding: '4px 14px',
+                fontFamily: 'var(--font-jetbrains-mono)',
+                fontSize: 9,
+                letterSpacing: '0.1em',
+                color: c,
+                whiteSpace: 'nowrap',
+              }}>
+                FILTER: {bannerLabel[graphFilter]} — {hiddenCount} HIDDEN
+              </div>
+            );
+          })()}
           {renderTooltipContent(tooltip, containerWidth)}
         </div>
 

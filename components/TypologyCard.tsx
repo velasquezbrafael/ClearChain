@@ -90,18 +90,7 @@ function TypologyRow({ typology }: { typology: AMLTypology }) {
             {pct}%
           </span>
 
-          <span
-            style={{
-              fontFamily: 'var(--font-jetbrains-mono)',
-              fontSize: 10,
-              color: 'var(--text-dim)',
-              letterSpacing: '0.08em',
-              marginLeft: 'auto',
-              flexShrink: 0,
-            }}
-          >
-            {typology.fatfReference}
-          </span>
+          {/* fatfReference intentionally hidden — compliance-only field */}
         </div>
 
         {/* Rationale */}
@@ -122,8 +111,9 @@ function TypologyRow({ typology }: { typology: AMLTypology }) {
   );
 }
 
-export default function TypologyCard({ typologies }: { typologies: AMLTypology[] }) {
+export default function TypologyCard({ typologies, riskTotal = 0 }: { typologies: AMLTypology[]; riskTotal?: number }) {
   const triggered = typologies.filter(t => t.triggered).sort((a, b) => b.confidence - a.confidence);
+  const isClean = riskTotal <= 24; // LOW tier
 
   if (triggered.length === 0) {
     return (
@@ -164,7 +154,7 @@ export default function TypologyCard({ typologies }: { typologies: AMLTypology[]
             NO PATTERNS DETECTED
           </p>
           <p style={{ fontFamily: 'var(--font-inter)', fontSize: 13, color: 'var(--text-dim)' }}>
-            No FATF typologies matched against this address.
+            No suspicious behavioral patterns detected.
           </p>
         </div>
       </div>
@@ -192,7 +182,7 @@ export default function TypologyCard({ typologies }: { typologies: AMLTypology[]
             color: 'var(--text-dim)',
           }}
         >
-          FATF / FINCEN PATTERN MATCHING
+          BEHAVIORAL PATTERNS
         </span>
         <span
           style={{
@@ -200,17 +190,32 @@ export default function TypologyCard({ typologies }: { typologies: AMLTypology[]
             fontSize: 10,
             letterSpacing: '0.1em',
             padding: '3px 10px',
-            border: '1px solid rgba(255,59,59,0.25)',
-            background: 'rgba(255,59,59,0.08)',
-            color: '#ff3b3b',
+            border: `1px solid ${isClean ? 'rgba(255,214,10,0.25)' : 'rgba(255,59,59,0.25)'}`,
+            background: `${isClean ? 'rgba(255,214,10,0.06)' : 'rgba(255,59,59,0.08)'}`,
+            color: isClean ? '#ffd60a' : '#ff3b3b',
             borderRadius: 2,
           }}
         >
-          {triggered.length} MATCHED
+          {triggered.length} DETECTED
         </span>
       </div>
 
-      {/* Typology rows */}
+      {/* Context note for clean wallets */}
+      {isClean && (
+        <div style={{
+          padding: '10px 14px',
+          marginBottom: 16,
+          background: 'rgba(255,214,10,0.04)',
+          border: '1px solid rgba(255,214,10,0.12)',
+          borderRadius: 2,
+        }}>
+          <p style={{ fontFamily: 'var(--font-inter)', fontSize: 12, color: 'rgba(255,214,10,0.7)', margin: 0, lineHeight: 1.5 }}>
+            This wallet scored {riskTotal}/100 (LOW risk). The patterns below are detected from raw transaction data and are common in normal high-volume wallets. They do not indicate wrongdoing on their own.
+          </p>
+        </div>
+      )}
+
+      {/* Pattern rows */}
       <div>
         {triggered.map(t => (
           <TypologyRow key={t.id} typology={t} />
