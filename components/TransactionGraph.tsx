@@ -109,16 +109,14 @@ const MAX_DEPTH = 4;
 
 function nodeColor(n: GraphNode): string {
   if (n.isQueried) return '#06b6d4';
-  if (n.isMixer) return '#ef4444';
-  if (n.isHighRisk) return '#f97316';
+  if (n.isMixer || n.isHighRisk) return '#ff3b3b';
   if (n.hopLevel === 2) return '#1e4d5c';
   return '#4b5563';
 }
 
 function invNodeColor(n: InvNode): string {
   if (n.state === 'root') return '#06b6d4';
-  if (n.isMixer || n.isOfac) return '#ef4444';
-  if (n.isHighRisk) return '#f97316';
+  if (n.isMixer || n.isOfac || n.isHighRisk) return '#ff3b3b';
   if (n.state === 'expanded') return '#2563eb';
   if (n.state === 'at-limit') return '#374151';
   if (n.state === 'loading') return '#7c3aed';
@@ -787,8 +785,7 @@ export default function TransactionGraph({
 
   const baseLegend = [
     { color: '#06b6d4', label: 'QUERIED' },
-    { color: '#ff3b3b', label: 'OFAC/MIXER' },
-    { color: '#ff8c00', label: 'HIGH RISK' },
+    { color: '#ff3b3b', label: 'HIGH RISK' },
   ];
   const legend = investigationMode
     ? (expandedTrail.length > 0
