@@ -941,7 +941,7 @@ function HeroContent({
             color: 'rgba(236,254,255,0.7)',
             lineHeight: 1.65,
             margin: '0 0 0',
-            maxWidth: 700,
+            maxWidth: 900,
             animation: 'fadeSlideUp 0.5s ease-out both',
             animationDelay: '0.25s',
           }}
@@ -960,7 +960,7 @@ function HeroContent({
           onSubmit={onSubmit}
           style={{
             width: '100%',
-            maxWidth: 680,
+            maxWidth: 900,
             animation: 'fadeSlideUp 0.5s ease-out both',
             animationDelay: '0.4s',
           }}

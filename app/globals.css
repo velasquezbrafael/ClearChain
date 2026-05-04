@@ -192,15 +192,15 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 80px 400px 60px 64px;
+  padding: 80px 360px 60px 64px;
   overflow: hidden;
 }
 
 .hero-right {
   position: absolute;
   top: 80px;
-  right: 56px;
-  width: 320px;
+  right: 36px;
+  width: 300px;
 }
 
 @media (max-width: 900px) {
