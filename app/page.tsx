@@ -890,22 +890,7 @@ function HeroContent({
             animationDelay: '0s',
           }}
         >
-          {'ETH · BTC · TRX · SOL · '}
-          <a
-            href="https://github.com/velasquezbrafael-source/ClearChain"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              color: 'inherit',
-              textDecoration: 'none',
-              borderBottom: '1px solid transparent',
-              transition: 'border-color 0.2s',
-            }}
-            onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(6,182,212,0.4)'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = 'transparent'; }}
-          >
-            OPEN SOURCE
-          </a>
+          FREE WALLET CHECKER
         </div>
 
         {/* Glitch scramble headline */}
@@ -952,7 +937,7 @@ function HeroContent({
             animationDelay: '0.25s',
           }}
         >
-          SAR-ready AML compliance for crypto teams. OFAC screening, typology detection, and AI-generated SAR drafts — in 30 seconds, not 3 hours.
+          Paste any crypto wallet address and instantly see if it&apos;s connected to scams, sanctions, or money laundering. Free, open source, no account needed.
         </p>
 
         {/* Live stats */}
