@@ -907,6 +907,9 @@ export default function TransactionGraph({
   const invEdgeCount = invEdges.length;
   const invMaxDepth = Object.values(invNodeMap).reduce((m, n) => Math.max(m, n.depth), 0);
   const invRiskCount = Object.values(invNodeMap).filter(n => n.isMixer || n.isHighRisk || n.isOfac).length;
+  const hiddenCount = filterLowRisk
+    ? Object.values(invNodeMap).filter(n => n.state !== 'root' && !n.isMixer && !n.isHighRisk && !n.isOfac).length
+    : 0;
 
   // Breadcrumb
   const breadcrumb = expandedTrail.length > 0 ? (
@@ -952,12 +955,34 @@ export default function TransactionGraph({
               {investigationMode && (
                 <>
                   {expandedTrail.length > 0 && (
-                    <button
-                      onClick={() => setFilterLowRisk(f => !f)}
-                      style={{ background: filterLowRisk ? 'rgba(255,214,10,0.1)' : 'none', border: filterLowRisk ? '1px solid rgba(255,214,10,0.4)' : '1px solid rgba(255,255,255,0.08)', borderRadius: 3, color: filterLowRisk ? '#ffd60a' : 'var(--text-dim)', cursor: 'pointer', padding: '5px 12px', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.1em', transition: 'background 0.15s, border-color 0.15s, color 0.15s' }}
-                    >
-                      {filterLowRisk ? 'SHOW ALL' : 'HIDE LOW RISK'}
-                    </button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <button
+                        onClick={() => setFilterLowRisk(f => !f)}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: 5,
+                          background: filterLowRisk ? 'rgba(255,59,59,0.15)' : 'none',
+                          border: filterLowRisk ? '1px solid rgba(255,59,59,0.4)' : '1px solid rgba(255,255,255,0.08)',
+                          borderRadius: 20,
+                          color: filterLowRisk ? '#ff3b3b' : 'var(--text-dim)',
+                          cursor: 'pointer',
+                          padding: '4px 10px 4px 8px',
+                          fontFamily: 'var(--font-jetbrains-mono)',
+                          fontSize: 9,
+                          letterSpacing: '0.08em',
+                          transition: 'background 0.15s, border-color 0.15s, color 0.15s',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" style={{ flexShrink: 0 }}>
+                          <path d="M1 1.5h8L6.25 4.75V8.25L3.75 7V4.75L1 1.5z" />
+                        </svg>
+                        {filterLowRisk ? 'High Risk Only' : 'Show All'}
+                        {filterLowRisk && (
+                          <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#ff3b3b', boxShadow: '0 0 6px rgba(255,59,59,0.7)', display: 'inline-block', flexShrink: 0 }} />
+                        )}
+                      </button>
+                      <InfoTooltip text="Hide LOW and MEDIUM risk nodes to focus on threats" />
+                    </div>
                   )}
                   <button onClick={resetGraph} style={{ background: 'none', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 3, color: 'var(--text-dim)', cursor: 'pointer', padding: '5px 12px', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.1em' }}>
                     RESET GRAPH
@@ -975,6 +1000,23 @@ export default function TransactionGraph({
             {/* Graph */}
             <div ref={fullContainerRef} style={{ position: 'relative', flex: '0 0 75%', borderRight: '1px solid rgba(6,182,212,0.08)' }}>
               <svg ref={fullSvgRef} style={{ width: '100%', height: '100%', display: 'block' }} />
+              {filterLowRisk && hiddenCount > 0 && (
+                <div style={{
+                  position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)',
+                  zIndex: 10, pointerEvents: 'none',
+                  background: 'rgba(255,59,59,0.12)',
+                  border: '1px solid rgba(255,59,59,0.35)',
+                  borderRadius: 3,
+                  padding: '4px 14px',
+                  fontFamily: 'var(--font-jetbrains-mono)',
+                  fontSize: 9,
+                  letterSpacing: '0.1em',
+                  color: '#ff3b3b',
+                  whiteSpace: 'nowrap',
+                }}>
+                  FILTERING: HIGH RISK ONLY — {hiddenCount} nodes hidden
+                </div>
+              )}
               {renderTooltipContent(fullTooltip, fullContainerWidth)}
             </div>
 
@@ -1080,12 +1122,45 @@ export default function TransactionGraph({
               }
               {!investigationMode && hasHopData && <div style={{ marginLeft: 4 }}>{hopToggle}</div>}
             </div>
-            <button onClick={() => { setIsFullscreen(true); setSelectedNode(null); }} title="Fullscreen graph"
-              style={{ background: 'none', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 3, color: 'var(--text-dim)', cursor: 'pointer', padding: '4px 8px', fontSize: 12, lineHeight: 1, transition: 'border-color 0.15s, color 0.15s', flexShrink: 0 }}
-              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#06b6d4'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(6,182,212,0.3)'; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-dim)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.08)'; }}>
-              ⛶
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+              {/* Filter pill — only when investigation mode has expanded nodes */}
+              {investigationMode && expandedTrail.length > 0 && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <button
+                    onClick={() => setFilterLowRisk(f => !f)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 5,
+                      background: filterLowRisk ? 'rgba(255,59,59,0.15)' : 'none',
+                      border: filterLowRisk ? '1px solid rgba(255,59,59,0.4)' : '1px solid rgba(255,255,255,0.08)',
+                      borderRadius: 20,
+                      color: filterLowRisk ? '#ff3b3b' : 'var(--text-dim)',
+                      cursor: 'pointer',
+                      padding: '4px 10px 4px 8px',
+                      fontFamily: 'var(--font-jetbrains-mono)',
+                      fontSize: 9,
+                      letterSpacing: '0.08em',
+                      transition: 'background 0.15s, border-color 0.15s, color 0.15s',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" style={{ flexShrink: 0 }}>
+                      <path d="M1 1.5h8L6.25 4.75V8.25L3.75 7V4.75L1 1.5z" />
+                    </svg>
+                    {filterLowRisk ? 'High Risk Only' : 'Show All'}
+                    {filterLowRisk && (
+                      <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#ff3b3b', boxShadow: '0 0 6px rgba(255,59,59,0.7)', display: 'inline-block', flexShrink: 0 }} />
+                    )}
+                  </button>
+                  <InfoTooltip text="Hide LOW and MEDIUM risk nodes to focus on threats" />
+                </div>
+              )}
+              <button onClick={() => { setIsFullscreen(true); setSelectedNode(null); }} title="Fullscreen graph"
+                style={{ background: 'none', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 3, color: 'var(--text-dim)', cursor: 'pointer', padding: '4px 8px', fontSize: 12, lineHeight: 1, transition: 'border-color 0.15s, color 0.15s', flexShrink: 0 }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#06b6d4'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(6,182,212,0.3)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-dim)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.08)'; }}>
+                ⛶
+              </button>
+            </div>
           </div>
           {/* Row 2: instruction + legend */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
@@ -1116,6 +1191,24 @@ export default function TransactionGraph({
           ) : (
             <svg ref={svgRef} style={{ width: '100%', height: '100%', display: 'block' }} />
           )}
+          {/* Active filter banner */}
+          {filterLowRisk && hiddenCount > 0 && (
+            <div style={{
+              position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)',
+              zIndex: 10, pointerEvents: 'none',
+              background: 'rgba(255,59,59,0.12)',
+              border: '1px solid rgba(255,59,59,0.35)',
+              borderRadius: 3,
+              padding: '4px 14px',
+              fontFamily: 'var(--font-jetbrains-mono)',
+              fontSize: 9,
+              letterSpacing: '0.1em',
+              color: '#ff3b3b',
+              whiteSpace: 'nowrap',
+            }}>
+              FILTERING: HIGH RISK ONLY — {hiddenCount} nodes hidden
+            </div>
+          )}
           {renderTooltipContent(tooltip, containerWidth)}
         </div>
 
@@ -1128,14 +1221,6 @@ export default function TransactionGraph({
               {invOverlapCount > 0 && <>&nbsp;·&nbsp;<span style={{ color: '#ffd60a' }}>{invOverlapCount} OVERLAP</span></>}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              {expandedTrail.length > 0 && (
-                <button
-                  onClick={() => setFilterLowRisk(f => !f)}
-                  style={{ background: filterLowRisk ? 'rgba(255,214,10,0.1)' : 'rgba(6,182,212,0.04)', border: filterLowRisk ? '1px solid rgba(255,214,10,0.4)' : '1px solid rgba(6,182,212,0.2)', borderRadius: 3, color: filterLowRisk ? '#ffd60a' : '#06b6d4', cursor: 'pointer', padding: '3px 10px', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 8, letterSpacing: '0.1em', transition: 'background 0.15s, border-color 0.15s, color 0.15s' }}
-                >
-                  {filterLowRisk ? 'SHOW ALL' : 'HIDE LOW RISK'}
-                </button>
-              )}
               <button onClick={resetGraph}
                 style={{ background: 'rgba(6,182,212,0.04)', border: '1px solid rgba(6,182,212,0.2)', borderRadius: 3, color: '#06b6d4', cursor: 'pointer', padding: '3px 10px', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 8, letterSpacing: '0.1em', transition: 'background 0.15s, border-color 0.15s' }}
                 onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(6,182,212,0.1)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(6,182,212,0.4)'; }}
