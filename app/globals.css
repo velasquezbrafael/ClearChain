@@ -206,6 +206,11 @@ body {
   padding: 80px 56px 60px 40px;
 }
 
+.hero-bottom {
+  padding: 32px 64px 60px;
+  width: 100%;
+}
+
 @media (max-width: 900px) {
   .hero-section {
     grid-template-columns: 1fr;
@@ -213,6 +218,7 @@ body {
   }
   .hero-left  { padding: 100px 24px 40px; }
   .hero-right { display: none; }
+  .hero-bottom { padding: 32px 24px 48px; }
 }
 
 /* ── Glassmorphism card ─────────────────────────────────────── */
