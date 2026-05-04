@@ -725,12 +725,13 @@ export default function TransactionGraph({
     return () => { cancelAnimationFrame(raf); if (invFullStopRef.current) { invFullStopRef.current(); invFullStopRef.current = null; invFullUpdateRef.current = null; } };
   }, [isFullscreen, investigationMode, queriedAddress]); // intentionally omit invNodeMap — snapshot at open, then hot-update handles changes
 
-  // HIDE LOW RISK filter — toggles D3 node/edge visibility without restarting sim
+  // HIDE LOW RISK filter — display:none removes nodes/edges cleanly, no ghost space
   useEffect(() => {
     if (!investigationMode) return;
     const hiddenIds = new Set<string>();
     if (filterLowRisk) {
       for (const n of Object.values(invNodeMap)) {
+        // Root always stays visible as the anchor; hide everything that is not a threat
         if (n.state !== 'root' && !n.isMixer && !n.isHighRisk && !n.isOfac) {
           hiddenIds.add(n.id);
         }
@@ -740,10 +741,10 @@ export default function TransactionGraph({
       if (!svgEl) return;
       const svg = d3.select(svgEl);
       svg.selectAll<SVGGElement, InvNode>('g.inv-node')
-        .style('opacity', (d) => hiddenIds.has(d.id) ? '0' : null)
-        .style('pointer-events', (d) => hiddenIds.has(d.id) ? 'none' : null);
+        .style('display', (d) => hiddenIds.has(d.id) ? 'none' : null);
+      // Hide any edge where either endpoint is hidden (not just both)
       svg.selectAll<SVGLineElement, { source: string; target: string }>('g.inv-links line')
-        .style('opacity', (d) => (hiddenIds.has(d.source) && hiddenIds.has(d.target)) ? '0' : null);
+        .style('display', (d) => (hiddenIds.has(d.source) || hiddenIds.has(d.target)) ? 'none' : null);
     }
     applyFilter(svgRef.current);
     if (isFullscreen) applyFilter(fullSvgRef.current);
@@ -954,36 +955,34 @@ export default function TransactionGraph({
               {!investigationMode && hasHopData && hopToggle}
               {investigationMode && (
                 <>
-                  {expandedTrail.length > 0 && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                      <button
-                        onClick={() => setFilterLowRisk(f => !f)}
-                        style={{
-                          display: 'flex', alignItems: 'center', gap: 5,
-                          background: filterLowRisk ? 'rgba(255,59,59,0.15)' : 'none',
-                          border: filterLowRisk ? '1px solid rgba(255,59,59,0.4)' : '1px solid rgba(255,255,255,0.08)',
-                          borderRadius: 20,
-                          color: filterLowRisk ? '#ff3b3b' : 'var(--text-dim)',
-                          cursor: 'pointer',
-                          padding: '4px 10px 4px 8px',
-                          fontFamily: 'var(--font-jetbrains-mono)',
-                          fontSize: 9,
-                          letterSpacing: '0.08em',
-                          transition: 'background 0.15s, border-color 0.15s, color 0.15s',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" style={{ flexShrink: 0 }}>
-                          <path d="M1 1.5h8L6.25 4.75V8.25L3.75 7V4.75L1 1.5z" />
-                        </svg>
-                        {filterLowRisk ? 'High Risk Only' : 'Show All'}
-                        {filterLowRisk && (
-                          <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#ff3b3b', boxShadow: '0 0 6px rgba(255,59,59,0.7)', display: 'inline-block', flexShrink: 0 }} />
-                        )}
-                      </button>
-                      <InfoTooltip text="Hide LOW and MEDIUM risk nodes to focus on threats" />
-                    </div>
-                  )}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, opacity: expandedTrail.length > 0 ? 1 : 0.4, transition: 'opacity 0.2s' }}>
+                    <button
+                      onClick={() => setFilterLowRisk(f => !f)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 5,
+                        background: filterLowRisk ? 'rgba(255,59,59,0.15)' : 'none',
+                        border: filterLowRisk ? '1px solid rgba(255,59,59,0.4)' : '1px solid rgba(255,255,255,0.08)',
+                        borderRadius: 20,
+                        color: filterLowRisk ? '#ff3b3b' : 'var(--text-dim)',
+                        cursor: 'pointer',
+                        padding: '4px 10px 4px 8px',
+                        fontFamily: 'var(--font-jetbrains-mono)',
+                        fontSize: 9,
+                        letterSpacing: '0.08em',
+                        transition: 'background 0.15s, border-color 0.15s, color 0.15s',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" style={{ flexShrink: 0 }}>
+                        <path d="M1 1.5h8L6.25 4.75V8.25L3.75 7V4.75L1 1.5z" />
+                      </svg>
+                      {filterLowRisk ? 'High Risk Only' : 'Show All'}
+                      {filterLowRisk && (
+                        <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#ff3b3b', boxShadow: '0 0 6px rgba(255,59,59,0.7)', display: 'inline-block', flexShrink: 0 }} />
+                      )}
+                    </button>
+                    <InfoTooltip text="Hide LOW and MEDIUM risk nodes to focus on threats" />
+                  </div>
                   <button onClick={resetGraph} style={{ background: 'none', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 3, color: 'var(--text-dim)', cursor: 'pointer', padding: '5px 12px', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.1em' }}>
                     RESET GRAPH
                   </button>
@@ -1123,9 +1122,9 @@ export default function TransactionGraph({
               {!investigationMode && hasHopData && <div style={{ marginLeft: 4 }}>{hopToggle}</div>}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-              {/* Filter pill — only when investigation mode has expanded nodes */}
-              {investigationMode && expandedTrail.length > 0 && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              {/* Filter pill — visible as soon as Investigation Mode is active */}
+              {investigationMode && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5, opacity: expandedTrail.length > 0 ? 1 : 0.4, transition: 'opacity 0.2s' }}>
                   <button
                     onClick={() => setFilterLowRisk(f => !f)}
                     style={{
