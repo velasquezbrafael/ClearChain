@@ -184,41 +184,30 @@ body {
 
 /* ── Two-column hero ─────────────────────────────────────────── */
 .hero-section {
+  position: relative;
   min-height: 100vh;
-  display: grid;
-  grid-template-columns: minmax(0, 72fr) minmax(0, 28fr);
-  align-items: start;
-  padding: 0;
+  display: block;
 }
 
 .hero-left {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 80px 48px 60px 64px;
+  padding: 80px 400px 60px 64px;
   overflow: hidden;
 }
 
 .hero-right {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 80px 56px 60px 40px;
-}
-
-.hero-bottom {
-  padding: 32px 64px 60px;
-  width: 100%;
+  position: absolute;
+  top: 80px;
+  right: 56px;
+  width: 320px;
 }
 
 @media (max-width: 900px) {
-  .hero-section {
-    grid-template-columns: 1fr;
-    min-height: auto;
-  }
+  .hero-section { min-height: auto; }
   .hero-left  { padding: 100px 24px 40px; }
   .hero-right { display: none; }
-  .hero-bottom { padding: 32px 24px 48px; }
 }
 
 /* ── Glassmorphism card ─────────────────────────────────────── */

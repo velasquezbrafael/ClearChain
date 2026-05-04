@@ -1119,7 +1119,7 @@ function HeroContent({
             background: 'rgba(6,182,212,0.03)',
             border: '1px solid rgba(6,182,212,0.1)',
             borderRadius: 4,
-            padding: '24px 16px',
+            padding: '32px 28px',
             backdropFilter: 'blur(12px)',
             WebkitBackdropFilter: 'blur(12px)',
           }}>
