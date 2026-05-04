@@ -587,17 +587,30 @@ function TrustSignal({ riskLevel, riskScore }: { riskLevel: RiskLevel; riskScore
   const isClean = riskLevel === 'LOW';
   const isCritical = riskLevel === 'CRITICAL' || riskLevel === 'HIGH';
   const color = isClean ? '#06b6d4' : isCritical ? '#ff3b3b' : '#ffd60a';
-  const icon = isClean ? '✓' : '⚠';
   const label = isClean ? 'NO RED FLAGS DETECTED' : `${riskLevel} RISK — REVIEW BEFORE SENDING`;
 
   const contextText = loaded && walletsScreened > 0
     ? isClean
-      ? `Checked against ${walletsScreened.toLocaleString()} wallets · looks clean`
-      : `${highRiskWallets.toLocaleString()} high-risk wallets in our database — this is one of them`
+      ? `Checked against ${walletsScreened.toLocaleString()} wallets`
+      : `${highRiskWallets.toLocaleString()} high-risk wallets flagged in our database`
     : null;
+
+  const IconSvg = isClean ? (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+      <circle cx="7" cy="7" r="6" stroke={color} strokeWidth="1.5" />
+      <path d="M4.5 7l2 2 3-3.5" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ) : (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+      <path d="M7 1.5L13 12.5H1L7 1.5Z" stroke={color} strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M7 5.5v3" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx="7" cy="10.5" r="0.75" fill={color} />
+    </svg>
+  );
 
   return (
     <div
+      className="trust-signal"
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -609,20 +622,20 @@ function TrustSignal({ riskLevel, riskScore }: { riskLevel: RiskLevel; riskScore
         marginBottom: 20,
         animation: 'fadeSlideUp 0.4s ease-out both',
         flexWrap: 'wrap',
+        rowGap: 6,
       }}
     >
-      <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 13, color, flexShrink: 0 }}>{icon}</span>
+      {IconSvg}
       <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.1em', color, fontWeight: 700 }}>
         {label}
       </span>
       {contextText && (
-        <>
-          <span style={{ color: 'rgba(255,255,255,0.08)', flexShrink: 0 }}>·</span>
-          <span style={{ fontFamily: 'var(--font-inter)', fontSize: 11, color: 'var(--text-dim)' }}>{contextText}</span>
-        </>
+        <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.06em', color: 'var(--text-dim)' }}>
+          · {contextText}
+        </span>
       )}
-      <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 8, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.15)', flexShrink: 0 }}>
-        CLEARCHAIN VERIFIED
+      <span className="trust-clearchain-label" style={{ marginLeft: 'auto', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 8, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.12)', flexShrink: 0 }}>
+        CLEARCHAIN
       </span>
     </div>
   );

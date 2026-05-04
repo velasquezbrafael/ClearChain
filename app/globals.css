@@ -262,6 +262,34 @@ input, textarea {
   button, [role="button"], a, select {
     min-height: 44px;
   }
+  /* Exception: compact UI controls that are already inside padded containers */
+  .graph-filter-select,
+  .tx-filter-btn {
+    min-height: 36px !important;
+  }
+  /* Hide decorative "CLEARCHAIN" label on narrow screens — it breaks trust badge wrap */
+  .trust-clearchain-label {
+    display: none !important;
+  }
+  /* Trust signal: tighter padding on mobile */
+  .trust-signal {
+    padding: 8px 10px !important;
+    gap: 8px !important;
+  }
+  /* Transaction filter bar: stack search full-width, keep buttons on one row */
+  .tx-filter-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .tx-filter-bar input {
+    flex: none !important;
+    width: 100% !important;
+  }
+  .tx-filter-controls {
+    display: flex !important;
+    gap: 6px !important;
+    flex-wrap: wrap;
+  }
 }
 
 /* Hero headline — single line always, scales with viewport */

@@ -215,7 +215,7 @@ export default function TransactionBreakdown({
   return (
     <div>
       {/* Filter bar */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap', alignItems: 'center' }}>
+      <div className="tx-filter-bar" style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap', alignItems: 'center' }}>
         <input
           value={search}
           onChange={e => setSearch(e.target.value)}
@@ -235,11 +235,12 @@ export default function TransactionBreakdown({
           onFocus={e => { e.currentTarget.style.borderColor = 'rgba(6,182,212,0.35)'; }}
           onBlur={e => { e.currentTarget.style.borderColor = 'rgba(6,182,212,0.12)'; }}
         />
-        <div style={{ display: 'flex', gap: 3 }}>
+        <div className="tx-filter-controls" style={{ display: 'flex', gap: 3 }}>
           {(['all', 'in', 'out'] as const).map(d => (
             <button
               key={d}
               onClick={() => setDirection(d)}
+              className="tx-filter-btn"
               style={{
                 fontFamily: 'var(--font-jetbrains-mono)',
                 fontSize: 9,
@@ -259,6 +260,7 @@ export default function TransactionBreakdown({
         </div>
         <button
           onClick={() => setFlaggedOnly(f => !f)}
+          className="tx-filter-btn"
           style={{
             fontFamily: 'var(--font-jetbrains-mono)',
             fontSize: 9,

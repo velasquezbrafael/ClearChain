@@ -729,16 +729,30 @@ export default function TransactionGraph({
   useEffect(() => {
     if (!investigationMode) return;
     const hiddenIds = new Set<string>();
+
+    // For overlap filter: collect IDs of overlap nodes + their direct neighbors
+    // so users see WHY a node is an overlap (which paths share it)
+    let overlapVisible = new Set<string>();
+    if (graphFilter === 'overlap') {
+      const overlapIds = new Set(Object.values(invNodeMap).filter(n => n.isOverlap).map(n => n.id));
+      overlapIds.forEach(id => overlapVisible.add(id));
+      for (const edge of invEdges) {
+        const src = typeof edge.source === 'string' ? edge.source : (edge.source as InvNode).id;
+        const tgt = typeof edge.target === 'string' ? edge.target : (edge.target as InvNode).id;
+        if (overlapIds.has(src)) overlapVisible.add(tgt);
+        if (overlapIds.has(tgt)) overlapVisible.add(src);
+      }
+    }
+
     for (const n of Object.values(invNodeMap)) {
       if (n.state === 'root') continue; // root always visible
       const isThreat = n.isMixer || n.isHighRisk || n.isOfac;
       const isCleanNode = !isThreat;
-      const isOverlapNode = !!n.isOverlap;
       const isUnexpandedNode = n.state === 'unexpanded' || n.state === 'at-limit';
       let hide = false;
       if (graphFilter === 'threats')    hide = !isThreat;
       if (graphFilter === 'clean')      hide = !isCleanNode;
-      if (graphFilter === 'overlap')    hide = !isOverlapNode;
+      if (graphFilter === 'overlap')    hide = !overlapVisible.has(n.id);
       if (graphFilter === 'unexpanded') hide = !isUnexpandedNode;
       if (hide) hiddenIds.add(n.id);
     }
@@ -752,7 +766,7 @@ export default function TransactionGraph({
     }
     applyFilter(svgRef.current);
     if (isFullscreen) applyFilter(fullSvgRef.current);
-  }, [graphFilter, invNodeMap, investigationMode, isFullscreen]);
+  }, [graphFilter, invNodeMap, invEdges, investigationMode, isFullscreen]);
 
   // Esc closes fullscreen
   useEffect(() => {
@@ -911,15 +925,29 @@ export default function TransactionGraph({
   const invEdgeCount = invEdges.length;
   const invMaxDepth = Object.values(invNodeMap).reduce((m, n) => Math.max(m, n.depth), 0);
   const invRiskCount = Object.values(invNodeMap).filter(n => n.isMixer || n.isHighRisk || n.isOfac).length;
-  const hiddenCount = graphFilter === 'all' ? 0 : Object.values(invNodeMap).filter(n => {
-    if (n.state === 'root') return false;
-    const isThreat = n.isMixer || n.isHighRisk || n.isOfac;
-    if (graphFilter === 'threats')    return !isThreat;
-    if (graphFilter === 'clean')      return isThreat;
-    if (graphFilter === 'overlap')    return !n.isOverlap;
-    if (graphFilter === 'unexpanded') return n.state !== 'unexpanded' && n.state !== 'at-limit';
-    return false;
-  }).length;
+  const hiddenCount = (() => {
+    if (graphFilter === 'all') return 0;
+    if (graphFilter === 'overlap') {
+      const overlapIds = new Set(Object.values(invNodeMap).filter(n => n.isOverlap).map(n => n.id));
+      const visibleIds = new Set<string>();
+      overlapIds.forEach(id => visibleIds.add(id));
+      for (const edge of invEdges) {
+        const src = typeof edge.source === 'string' ? edge.source : (edge.source as InvNode).id;
+        const tgt = typeof edge.target === 'string' ? edge.target : (edge.target as InvNode).id;
+        if (overlapIds.has(src)) visibleIds.add(tgt);
+        if (overlapIds.has(tgt)) visibleIds.add(src);
+      }
+      return Object.values(invNodeMap).filter(n => n.state !== 'root' && !visibleIds.has(n.id)).length;
+    }
+    return Object.values(invNodeMap).filter(n => {
+      if (n.state === 'root') return false;
+      const isThreat = n.isMixer || n.isHighRisk || n.isOfac;
+      if (graphFilter === 'threats')    return !isThreat;
+      if (graphFilter === 'clean')      return isThreat;
+      if (graphFilter === 'unexpanded') return n.state !== 'unexpanded' && n.state !== 'at-limit';
+      return false;
+    }).length;
+  })();
 
   // Breadcrumb
   const breadcrumb = expandedTrail.length > 0 ? (
@@ -1140,6 +1168,7 @@ export default function TransactionGraph({
                   <select
                     value={graphFilter}
                     onChange={e => setGraphFilter(e.target.value as GraphFilter)}
+                    className="graph-filter-select"
                     style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, background: '#001824', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 3, color: 'var(--text-secondary)', padding: '3px 6px', cursor: 'pointer' }}
                   >
                     <option value="all">ALL NODES</option>
