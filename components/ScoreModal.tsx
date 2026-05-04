@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import type { RiskScore } from '@/types';
+import InfoTooltip from '@/components/InfoTooltip';
 
 interface ScoreModalProps {
   riskScore: RiskScore;
@@ -15,6 +16,15 @@ const SIGNAL_LABELS: Record<string, string> = {
   high_risk_counterparty: 'High-Risk Counterparty',
   volume_anomaly: 'Volume Anomaly',
   community_red_flags: 'Community Red Flags',
+};
+
+const SIGNAL_TOOLTIPS: Record<string, string> = {
+  ofac_match: 'Wallet appears on the US Treasury OFAC SDN sanctions list. Transacting may violate federal law. See /docs#scoring.',
+  mixer_interaction: 'Wallet is a known mixer or directly transacted with one (e.g. Tornado Cash, OFAC-designated 08/08/2022). Mandatory SAR trigger. See /docs#scoring.',
+  rapid_fund_movement: '3+ outbound txns in 24h, each forwarding ≥80% of balance. Only fires alongside OFAC or mixer signal to avoid false positives on exchange hot wallets. See /docs#scoring.',
+  high_risk_counterparty: 'At least one counterparty is labeled OFAC-designated or known-malicious, even if the queried wallet itself is not sanctioned. See /docs#scoring.',
+  volume_anomaly: 'Total transaction volume exceeds 100 ETH in a wallet less than 30 days old — source-of-funds inquiry required. See /docs#scoring.',
+  community_red_flags: 'Wallet or counterparties carry red-flag labels from the open-source eth-labels community dataset. See /docs#scoring.',
 };
 
 function riskColor(level: string): string {
@@ -123,19 +133,24 @@ export default function ScoreModal({ riskScore, onClose }: ScoreModalProps) {
                 gap: 10,
               }}
             >
-              {/* Name */}
-              <span
-                style={{
-                  fontFamily: 'var(--font-jetbrains-mono)',
-                  fontSize: 11,
-                  color: signal.triggered ? 'var(--text-primary)' : 'var(--text-dim)',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                }}
-              >
-                {SIGNAL_LABELS[signal.name] ?? signal.name}
-              </span>
+              {/* Name + tooltip */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
+                <span
+                  style={{
+                    fontFamily: 'var(--font-jetbrains-mono)',
+                    fontSize: 11,
+                    color: signal.triggered ? 'var(--text-primary)' : 'var(--text-dim)',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  {SIGNAL_LABELS[signal.name] ?? signal.name}
+                </span>
+                {SIGNAL_TOOLTIPS[signal.name] && (
+                  <InfoTooltip text={SIGNAL_TOOLTIPS[signal.name]} />
+                )}
+              </div>
 
               {/* Max pts */}
               <span

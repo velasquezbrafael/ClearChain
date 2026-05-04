@@ -1,179 +1,167 @@
 /**
- * ClearChain — Developer Docs (/docs)
+ * ClearChain — Documentation Hub (/docs)
  *
- * Server component. Client children: CodeTabs, CopyButton.
- * Sections: Hero / Quickstart / Authentication / Endpoint Reference /
- *           Batch Screening / Risk Signals / Error Codes / Rate Limits / Footer CTA
+ * Static server component. Four sections with anchor nav:
+ * #scoring · #typologies · #sources · #sar
  */
 
 import { createClient } from '@/lib/supabase/server'
-import CodeTabs from '@/components/CodeTabs'
-import CopyButton from '@/components/CopyButton'
-
-const BASE = 'https://clearchain.vercel.app'
 
 // ---------------------------------------------------------------------------
-// Code snippets
+// Data
 // ---------------------------------------------------------------------------
 
-const CURL = `curl -X POST ${BASE}/api/v1/analyze \\
-  -H "Authorization: Bearer ck_live_your_key_here" \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "address": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
-    "chain": "ETH"
-  }'`
+const SIGNALS = [
+  {
+    name: 'OFAC / SDN Match',
+    max: 40,
+    detects: 'US Treasury sanctions exposure',
+    trigger: 'Wallet address appears directly on the OFAC Specially Designated Nationals (SDN) list. Covers ETH, BTC, TRX, and SOL addresses published in the OFAC SDN XML feed.',
+  },
+  {
+    name: 'Mixer Interaction',
+    max: 25,
+    detects: 'Cryptocurrency mixing / tumbling',
+    trigger: 'Wallet IS a known mixer contract (e.g. Tornado Cash, OFAC-designated 08/08/2022) or has directly transacted with one. Even a single deposit or withdrawal is a mandatory SAR trigger for covered institutions.',
+  },
+  {
+    name: 'Rapid Fund Movement',
+    max: 15,
+    detects: 'Layering through intermediary wallets',
+    trigger: '3 or more outbound transactions within 24 hours, each moving ≥ 80% of received balance. CONTEXTUAL GATE: this signal only fires when OFAC or Mixer also triggered — prevents false positives on legitimate high-volume wallets like exchange hot wallets that move funds quickly by design.',
+  },
+  {
+    name: 'High-Risk Counterparty',
+    max: 10,
+    detects: 'Known-bad address in transaction history',
+    trigger: 'At least one counterparty in the wallet\'s transaction history is labeled as OFAC-designated, known-malicious, or a known mixer — even if the queried wallet itself is not sanctioned.',
+  },
+  {
+    name: 'Volume Anomaly',
+    max: 5,
+    detects: 'Transaction volume inconsistent with wallet age',
+    trigger: 'Total ETH transaction volume exceeds 100 ETH in a wallet less than 30 days old. Threshold is conservative — legitimate businesses (DeFi protocols, CEX hot wallets) are typically identified by label and excluded.',
+  },
+  {
+    name: 'Community Red Flags',
+    max: 5,
+    detects: 'Crowdsourced address intelligence',
+    trigger: 'Wallet or its direct counterparties carry red-flag labels from the open-source eth-labels community dataset (github.com/dawsbot/eth-labels). Labels include scam, phishing, exploit, and rug-pull categories.',
+  },
+]
 
-const JS = `import { ClearChainClient } from 'clearchain-sdk'
+const RISK_LEVELS = [
+  {
+    level: 'LOW',
+    range: '0–24',
+    color: '#22d3ee',
+    meaning: 'No significant risk indicators detected. Standard monitoring applies. Appropriate for most normal wallets — personal wallets, DeFi users, NFT collectors. No EDD required, but keep in standard transaction monitoring.',
+  },
+  {
+    level: 'MEDIUM',
+    range: '25–49',
+    color: '#ffd60a',
+    meaning: 'Elevated risk indicators present. Enhanced due diligence (EDD) is warranted. Common causes: one minor signal triggered (e.g. volume anomaly alone), or indirect exposure to a flagged counterparty. Monitor for continued activity.',
+  },
+  {
+    level: 'HIGH',
+    range: '50–74',
+    color: '#ff8c00',
+    meaning: 'Significant red flags detected. Source-of-funds inquiry required. Typically indicates mixer interaction, multiple signals co-triggering, or direct counterparty with known-bad address. Consider whether a SAR is warranted.',
+  },
+  {
+    level: 'CRITICAL',
+    range: '75–100',
+    color: '#ff3b3b',
+    meaning: 'Immediate escalation required. OFAC sanctions exposure confirmed or mixer interaction alongside other signals. SAR filing should be considered for covered institutions. Do not proceed with the transaction until compliance review is complete.',
+  },
+]
 
-const client = new ClearChainClient({ apiKey: 'ck_live_your_key_here' })
+const TYPOLOGIES = [
+  {
+    id: 'smurfing',
+    name: 'Structuring / Smurfing',
+    ref: 'FinCEN 31 CFR § 1010.314',
+    pattern: 'Repeated transactions with amounts just below round-number thresholds (e.g. 0.99 ETH, 9.9 ETH, 99 ETH). Amounts cluster suspiciously below reporting cutoffs, indicating deliberate intent to avoid automated monitoring.',
+    why: 'Breaking up transactions is a federal crime under US law regardless of the source of funds. In crypto it\'s identifiable by the statistical clustering of amounts just below round numbers across many counterparties.',
+    threshold: '3+ transactions within 2% below a round-number threshold',
+  },
+  {
+    id: 'layering_dex',
+    name: 'Layering via Decentralized Exchange',
+    ref: 'FinCEN FIN-2019-A003; FATF Virtual Assets Report 2021',
+    pattern: 'Rapid token swaps across DEX protocols (Uniswap, SushiSwap, Curve) to change asset type multiple times in succession — USDC → ETH → WBTC → DAI — before off-ramping, exploiting the lack of KYC on DEXs.',
+    why: 'Each token swap severs the asset trail. Regulators cannot easily cross-reference swap records across decentralized protocols the way they can with centralized exchange records.',
+    threshold: 'Detection requires DEX token swap graph — currently in v2 (not yet live)',
+  },
+  {
+    id: 'mixer_obfuscation',
+    name: 'Mixer / Tumbler Obfuscation',
+    ref: 'OFAC SDN designation 08/08/2022; FinCEN Advisory FIN-2022-NTC2',
+    pattern: 'Direct interaction with Tornado Cash or other cryptocurrency mixing services. Mixers pool deposits and return equivalent amounts to withdrawal addresses, severing the on-chain link between source and destination.',
+    why: 'Tornado Cash was designated by OFAC under E.O. 13694 for laundering over $7 billion for criminal groups including the Lazarus Group (DPRK). Any interaction — deposit or withdrawal — constitutes a mandatory SAR trigger for US covered institutions.',
+    threshold: 'Any direct transaction to/from a known mixer contract address',
+  },
+  {
+    id: 'rapid_hop_layering',
+    name: 'Rapid Fund Movement / Hop Layering',
+    ref: 'FATF Virtual Assets Report 2021 §5; FinCEN FIN-2019-A003',
+    pattern: 'Funds move through 3+ wallets in under 24 hours, with each hop forwarding ≥ 80% of received balance to a new address. Intermediate wallets have no prior history (burner addresses). The transaction graph forms a straight chain rather than a fan.',
+    why: 'This directly mirrors wire-stripping in traditional banking fraud. Each hop adds distance between the source and destination, exploiting the difficulty of real-time blockchain monitoring at each intermediary.',
+    threshold: '3+ sequential outbound txns in 24h, each forwarding ≥ 80% of received funds. Contextual gate: also requires OFAC or mixer signal.',
+  },
+  {
+    id: 'convergence_pattern',
+    name: 'Fund Convergence / Integration Aggregation',
+    ref: 'FATF Risk-Based Approach: Virtual Assets 2019 Annex A; FATF Typologies 2020',
+    pattern: '5+ distinct inbound source wallets funneling funds into a single destination wallet, followed by a large outbound transfer within 72 hours. Characteristic of the integration phase: fragmented proceeds from a hack or rug pull aggregated before off-ramping.',
+    why: 'Proceeds are often fragmented during the placement and layering phases to avoid detection. Convergence into a single wallet signals the final consolidation before cash-out.',
+    threshold: '5+ distinct inbound sources; outbound transfer ≥ 50% of total inbound within 72h',
+  },
+  {
+    id: 'peel_chain',
+    name: 'Peel Chain',
+    ref: 'FATF Virtual Assets Report 2021; FinCEN FIN-2021-A002',
+    pattern: 'Sequential transactions where each step forwards the bulk of funds to a new address while "peeling off" a small residual amount. Each intermediate address appears only once (burner wallets). The total volume obscured can be enormous despite each individual transaction appearing small.',
+    why: 'Named for its visual appearance in transaction graphs — a long chain with small branches at each step. Widely used in ransomware payment processing and exchange hack cash-outs to obscure the total volume and ultimate destination.',
+    threshold: '5+ sequential outbound txns; linear chain with unique addresses; generally declining amounts per hop',
+  },
+  {
+    id: 'high_volume_anomaly',
+    name: 'High Volume Anomaly',
+    ref: 'FATF Risk-Based Approach: Virtual Assets 2019 Annex A §7; FinCEN CDD Rule 31 CFR § 1010.230',
+    pattern: 'Transaction volume grossly inconsistent with the wallet\'s operational age. A wallet created days ago moving 100+ ETH has no obvious legitimate explanation in most contexts.',
+    why: 'This is a "red flag" indicator, not a laundering pattern in itself. It signals that source-of-funds inquiry is urgently required. Legitimate explanations (DeFi yield, NFT sale, CEX hot wallet) should be documented.',
+    threshold: 'Total volume > 100 ETH in a wallet < 30 days old',
+  },
+]
 
-const result = await client.analyze(
-  '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
-  'ETH'
-)
-
-console.log(result.riskScore.total)     // 12
-console.log(result.riskScore.level)     // "LOW"
-console.log(result.ofacResult.matched)  // false`
-
-const PYTHON = `from clearchain import ClearChain
-
-client = ClearChain(api_key="ck_live_your_key_here")
-
-result = client.analyze(
-    "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
-    chain="ETH"
-)
-
-print(result.risk_score)   # 12
-print(result.risk_level)   # "LOW"
-print(result.ofac_match)   # False
-# install: pip install clearchain`
-
-const RESPONSE_JSON = `{
-  "success": true,
-  "data": {
-    "address": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
-    "chain": "ETH",
-    "resolvedAddress": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
-    "riskScore": {
-      "total": 12,
-      "level": "LOW",
-      "signals": {
-        "ofac_match": {
-          "name": "ofac_match",
-          "triggered": false,
-          "score": 0,
-          "weight": 40,
-          "detail": "No match found on OFAC SDN list."
-        },
-        "mixer_usage": {
-          "name": "mixer_usage",
-          "triggered": false,
-          "score": 0,
-          "weight": 30,
-          "detail": "No known mixer interactions detected."
-        }
-      }
-    },
-    "typologies": [],
-    "ofacResult": {
-      "matched": false,
-      "confidence": 0
-    },
-    "narrative": "The wallet at 0xd8dA...045 shows no indicators...",
-    "sarDraft": "SUSPICIOUS ACTIVITY REPORT DRAFT\\n\\n...",
-    "hopData": [
-      {
-        "address": "0xabc...123",
-        "transactions": []
-      }
-    ],
-    "analyzedAt": "2026-04-25T12:00:00.000Z"
-  }
-}`
-
-// ---------------------------------------------------------------------------
-// Shared style helpers
-// ---------------------------------------------------------------------------
-
-const MONO: React.CSSProperties = { fontFamily: 'var(--font-jetbrains-mono)' }
-
-const sectionLabel: React.CSSProperties = {
-  ...MONO,
-  fontSize: 10,
-  letterSpacing: '0.2em',
-  color: '#1e4d5c',
-  textTransform: 'uppercase',
-  marginBottom: 24,
-}
-
-const sectionH2: React.CSSProperties = {
-  fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif',
-  fontSize: 22,
-  fontWeight: 700,
-  color: '#ecfeff',
-  margin: '0 0 8px',
-  letterSpacing: '-0.01em',
-}
-
-const prose: React.CSSProperties = {
-  fontSize: 14,
-  color: '#7ec8d8',
-  lineHeight: 1.7,
-  margin: '0 0 20px',
-}
-
-const card: React.CSSProperties = {
-  background: '#001824',
-  border: '1px solid rgba(6,182,212,0.08)',
-  borderRadius: 4,
-  padding: '24px 28px',
-}
-
-const divider: React.CSSProperties = {
-  border: 'none',
-  borderTop: '1px solid rgba(6,182,212,0.08)',
-  margin: '64px 0',
-}
-
-const inlineCode: React.CSSProperties = {
-  ...MONO,
-  fontSize: 12,
-  background: 'rgba(6,182,212,0.08)',
-  border: '1px solid rgba(255,255,255,0.08)',
-  borderRadius: 3,
-  padding: '2px 6px',
-  color: '#06b6d4',
-}
-
-const thStyle: React.CSSProperties = {
-  ...MONO,
-  fontSize: 10,
-  letterSpacing: '0.12em',
-  color: '#1e4d5c',
-  textTransform: 'uppercase',
-  padding: '10px 16px',
-  textAlign: 'left',
-  borderBottom: '1px solid rgba(6,182,212,0.08)',
-  fontWeight: 400,
-}
-
-const tdStyle: React.CSSProperties = {
-  ...MONO,
-  fontSize: 12,
-  color: '#ecfeff',
-  padding: '12px 16px',
-  borderBottom: '1px solid rgba(6,182,212,0.05)',
-  verticalAlign: 'top',
-}
-
-const tdMuted: React.CSSProperties = {
-  ...tdStyle,
-  color: '#7ec8d8',
-  fontFamily: 'var(--font-inter), system-ui, sans-serif',
-}
+const SOURCES = [
+  {
+    name: 'OFAC SDN List',
+    who: 'US Department of the Treasury, Office of Foreign Assets Control',
+    link: 'https://ofac.treasury.gov',
+    description: 'The authoritative list of individuals, entities, and cryptocurrency addresses under US sanctions. ClearChain screens against the OFAC SDN XML feed, which covers ETH, BTC, TRX, and SOL addresses. The OFAC list is updated continuously; ClearChain refreshes in the background.',
+  },
+  {
+    name: 'Alchemy',
+    who: 'Alchemy (alchemy.com) — blockchain infrastructure provider',
+    link: 'https://alchemy.com',
+    description: 'On-chain data provider for all four supported chains: Ethereum, Bitcoin, Tron, and Solana. Alchemy supplies transaction history, asset transfers, token balances, and ENS resolution used in every wallet analysis.',
+  },
+  {
+    name: 'eth-labels (Community Dataset)',
+    who: 'Open-source community project maintained by dawsbot',
+    link: 'https://github.com/dawsbot/eth-labels',
+    description: 'A community-maintained dataset of labeled Ethereum addresses. Integrated into ClearChain via lib/labels.ts. Labels cover scams, phishing wallets, known protocols, exchanges, and notable public wallets. Updated with each ClearChain release.',
+  },
+  {
+    name: 'Hardcoded Wallet Labels',
+    who: 'ClearChain (open-source, lib/labels.ts)',
+    link: 'https://github.com/velasquezbrafael/ClearChain/blob/main/lib/labels.ts',
+    description: 'A curated set of well-known addresses with verified labels: Tornado Cash contracts, Lazarus Group wallets, major exchange hot wallets (Binance, Coinbase), and notable public wallets (Vitalik Buterin). All labels are publicly verifiable and cited in comments.',
+  },
+]
 
 // ---------------------------------------------------------------------------
 // Page
@@ -183,584 +171,242 @@ export default async function DocsPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const quickstartTabs = [
-    { label: 'CURL', code: CURL },
-    { label: 'JAVASCRIPT', code: JS },
-    { label: 'PYTHON', code: PYTHON },
-  ]
+  const mono = 'var(--font-jetbrains-mono)'
+  const grotesk = 'var(--font-space-grotesk)'
+  const inter = 'var(--font-inter)'
 
   return (
-    <div style={{ minHeight: '100vh', background: '#00080f', color: '#ecfeff', fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: '#03040a', color: 'var(--text-primary)' }}>
 
-      {/* ── Nav ─────────────────────────────────────────────────────────────── */}
-      <nav style={{ position: 'sticky', top: 0, zIndex: 50, borderBottom: '1px solid rgba(6,182,212,0.08)', padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 56, background: 'rgba(0,8,15,0.75)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
-          <a href="/" style={{ fontSize: 15, letterSpacing: '0.15em', color: '#ecfeff', fontFamily: 'var(--font-rubik-glitch)', fontWeight: 400, textDecoration: 'none' }}>CLEARCHAIN</a>
-          <a href="/" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>← Back to Tool</a>
-          <span style={{ fontSize: 12, color: '#06b6d4', letterSpacing: '0.08em' }}>Docs</span>
-          <a href="/intel" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>Intel</a>
+      {/* Nav */}
+      <nav style={{ position: 'sticky', top: 0, zIndex: 50, height: 52, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 32px', borderBottom: '1px solid rgba(6,182,212,0.08)', background: 'rgba(3,4,10,0.85)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+          <a href="/" style={{ fontFamily: mono, fontSize: 14, letterSpacing: '0.15em', color: '#22d3ee', textDecoration: 'none', fontWeight: 700 }}>CLEARCHAIN</a>
+          <span style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.1em', color: '#00ff88' }}>DOCS</span>
         </div>
-        {user ? (
-          <a href="/dashboard" style={{ ...MONO, fontSize: 10, letterSpacing: '0.1em', color: '#06b6d4', textDecoration: 'none' }}>DASHBOARD →</a>
-        ) : (
-          <a href="/auth/login" style={{ ...MONO, fontSize: 10, letterSpacing: '0.1em', color: '#7ec8d8', textDecoration: 'none' }}>SIGN IN →</a>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+          <a href="/api-docs" style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.1em', color: 'var(--text-dim)', textDecoration: 'none' }}>API DOCS</a>
+          <a href="/" style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.1em', color: 'var(--text-dim)', textDecoration: 'none' }}>TOOL →</a>
+          {user
+            ? <a href="/dashboard" style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.1em', color: '#00ff88', textDecoration: 'none' }}>DASHBOARD →</a>
+            : <a href="/auth/login" style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.1em', color: 'var(--text-dim)', textDecoration: 'none' }}>SIGN IN →</a>
+          }
+        </div>
       </nav>
 
-      <div style={{ maxWidth: 960, margin: '0 auto', padding: '64px 32px 120px' }}>
+      {/* Header */}
+      <div style={{ borderBottom: '1px solid rgba(6,182,212,0.06)', padding: '48px 32px 40px', maxWidth: 960, margin: '0 auto' }}>
+        <div style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.18em', color: '#00ff88', marginBottom: 16 }}>METHODOLOGY</div>
+        <h1 style={{ fontFamily: grotesk, fontSize: 36, fontWeight: 700, color: '#ecfeff', margin: '0 0 16px', letterSpacing: '-0.02em' }}>
+          How ClearChain Works
+        </h1>
+        <p style={{ fontFamily: inter, fontSize: 15, color: 'var(--text-secondary)', lineHeight: 1.7, margin: '0 0 32px', maxWidth: 640 }}>
+          Every score, signal, and SAR draft is fully explained below. No black boxes. All data sources are public, all detection logic is open-source under MIT.
+        </p>
 
-        {/* ── Hero ────────────────────────────────────────────────────────────── */}
-        <section style={{ marginBottom: 80 }}>
-          <div style={{ ...MONO, fontSize: 10, letterSpacing: '0.2em', color: '#06b6d4', marginBottom: 16, textTransform: 'uppercase' }}>
-            Developer API · v1
-          </div>
-          <h1 style={{ fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif', fontSize: 48, fontWeight: 700, color: '#ecfeff', margin: '0 0 20px', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
-            Build AML compliance<br />into your product
-          </h1>
-          <p style={{ fontSize: 17, color: '#7ec8d8', lineHeight: 1.7, maxWidth: 620, margin: '0 0 32px' }}>
-            The ClearChain API gives you programmatic access to blockchain risk scoring, OFAC sanctions screening, and SAR-ready intelligence — for ETH, BTC, TRX, and SOL.
+        {/* Anchor nav */}
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {[
+            { href: '#scoring', label: 'Risk Scoring' },
+            { href: '#typologies', label: 'Typologies' },
+            { href: '#sources', label: 'Data Sources' },
+            { href: '#sar', label: 'SAR Drafts' },
+          ].map(({ href, label }) => (
+            <a
+              key={href}
+              href={href}
+              style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.1em', color: '#06b6d4', textDecoration: 'none', padding: '6px 14px', border: '1px solid rgba(6,182,212,0.2)', borderRadius: 3, background: 'rgba(6,182,212,0.04)', transition: 'background 0.15s' }}
+            >
+              {label} →
+            </a>
+          ))}
+        </div>
+      </div>
+
+      {/* Content */}
+      <div style={{ maxWidth: 960, margin: '0 auto', padding: '0 32px 80px' }}>
+
+        {/* ---------------------------------------------------------------- */}
+        {/* SECTION 1 — Risk Scoring                                         */}
+        {/* ---------------------------------------------------------------- */}
+        <section id="scoring" style={{ paddingTop: 64 }}>
+          <div style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.18em', color: '#06b6d4', marginBottom: 12 }}>01</div>
+          <h2 style={{ fontFamily: grotesk, fontSize: 26, fontWeight: 700, color: '#ecfeff', margin: '0 0 8px' }}>Risk Scoring Methodology</h2>
+          <p style={{ fontFamily: inter, fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.7, margin: '0 0 32px', maxWidth: 600 }}>
+            Every wallet receives a score from 0–100. Every point is earned by a weighted signal — scores are fully deterministic and reproducible given the same transaction data.
           </p>
-          <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', marginBottom: 40 }}>
-            <a
-              href="/dashboard/settings"
-              style={{ ...MONO, fontSize: 11, letterSpacing: '0.1em', color: '#00080f', background: '#06b6d4', padding: '10px 20px', borderRadius: 3, textDecoration: 'none', fontWeight: 700 }}
-            >
-              GET API KEY →
-            </a>
-            <a
-              href="/openapi.json"
-              target="_blank"
-              rel="noopener"
-              style={{ ...MONO, fontSize: 11, letterSpacing: '0.1em', color: '#7ec8d8', background: 'transparent', border: '1px solid rgba(255,255,255,0.12)', padding: '10px 20px', borderRadius: 3, textDecoration: 'none' }}
-            >
-              OPENAPI SPEC
-            </a>
-          </div>
-          {/* Stat pills */}
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {['4 chains', '6 risk signals', '5-min cache', 'Bearer auth', 'Webhook support'].map(s => (
-              <span
-                key={s}
-                style={{ ...MONO, fontSize: 10, letterSpacing: '0.1em', color: '#1e4d5c', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 3, padding: '4px 10px', textTransform: 'uppercase' }}
+
+          {/* Signals table */}
+          <div style={{ border: '1px solid rgba(6,182,212,0.1)', borderRadius: 4, overflow: 'hidden', marginBottom: 40 }}>
+            {/* Header */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px 1fr 1fr', gap: 0, background: '#080b14', borderBottom: '1px solid rgba(6,182,212,0.1)', padding: '10px 20px' }}>
+              {['Signal', 'Max pts', 'What It Detects', 'What Triggers It'].map(h => (
+                <div key={h} style={{ fontFamily: mono, fontSize: 9, letterSpacing: '0.15em', color: 'var(--text-dim)' }}>{h}</div>
+              ))}
+            </div>
+            {SIGNALS.map((s, i) => (
+              <div
+                key={s.name}
+                style={{ display: 'grid', gridTemplateColumns: '1fr 80px 1fr 1fr', gap: 0, padding: '16px 20px', background: i % 2 === 0 ? 'transparent' : 'rgba(6,182,212,0.02)', borderBottom: i < SIGNALS.length - 1 ? '1px solid rgba(6,182,212,0.05)' : 'none', alignItems: 'start' }}
               >
-                {s}
-              </span>
+                <div style={{ fontFamily: mono, fontSize: 11, color: 'var(--text-primary)', fontWeight: 700, paddingRight: 12 }}>{s.name}</div>
+                <div style={{ fontFamily: mono, fontSize: 13, color: '#00ff88', fontWeight: 700 }}>{s.max}</div>
+                <div style={{ fontFamily: inter, fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.55, paddingRight: 16 }}>{s.detects}</div>
+                <div style={{ fontFamily: inter, fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.55 }}>{s.trigger}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Contextual gate callout */}
+          <div style={{ border: '1px solid rgba(6,182,212,0.15)', borderLeft: '3px solid #06b6d4', borderRadius: 4, padding: '16px 20px', background: 'rgba(6,182,212,0.04)', marginBottom: 40 }}>
+            <div style={{ fontFamily: mono, fontSize: 9, letterSpacing: '0.15em', color: '#06b6d4', marginBottom: 8 }}>CONTEXTUAL GATE — RAPID FUND MOVEMENT</div>
+            <p style={{ fontFamily: inter, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.7, margin: 0 }}>
+              The Rapid Fund Movement signal (15 pts) only fires when the OFAC Match or Mixer Interaction signal is also triggered.
+              Without this gate, high-volume legitimate wallets — exchange hot wallets, DeFi protocol vaults, market makers — would score HIGH incorrectly because
+              they genuinely move large sums quickly. The contextual gate prevents false positives: rapid movement alone is only suspicious
+              when paired with evidence of sanctions exposure or mixing.
+            </p>
+          </div>
+
+          {/* Risk levels */}
+          <h3 style={{ fontFamily: grotesk, fontSize: 18, fontWeight: 700, color: '#ecfeff', margin: '0 0 20px' }}>Risk Tiers</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 40 }}>
+            {RISK_LEVELS.map(r => (
+              <div key={r.level} style={{ border: `1px solid ${r.color}22`, borderRadius: 4, padding: '16px 18px', background: `${r.color}08` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                  <span style={{ fontFamily: mono, fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', color: r.color, padding: '3px 8px', border: `1px solid ${r.color}44`, borderRadius: 2 }}>{r.level}</span>
+                  <span style={{ fontFamily: mono, fontSize: 10, color: 'var(--text-dim)' }}>{r.range} pts</span>
+                </div>
+                <p style={{ fontFamily: inter, fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>{r.meaning}</p>
+              </div>
             ))}
           </div>
         </section>
 
-        <hr style={divider} />
-
-        {/* ── Quickstart ──────────────────────────────────────────────────────── */}
-        <section style={{ marginBottom: 0 }} id="quickstart">
-          <div style={sectionLabel}>Quickstart</div>
-          <h2 style={sectionH2}>Analyze a wallet in 60 seconds</h2>
-          <p style={{ ...prose, marginBottom: 36 }}>
-            Three steps to your first risk report. No SDK required — plain HTTP from any language.
+        {/* ---------------------------------------------------------------- */}
+        {/* SECTION 2 — Typologies                                           */}
+        {/* ---------------------------------------------------------------- */}
+        <section id="typologies" style={{ paddingTop: 64 }}>
+          <div style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.18em', color: '#06b6d4', marginBottom: 12 }}>02</div>
+          <h2 style={{ fontFamily: grotesk, fontSize: 26, fontWeight: 700, color: '#ecfeff', margin: '0 0 8px' }}>Typology Detection</h2>
+          <p style={{ fontFamily: inter, fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.7, margin: '0 0 8px', maxWidth: 600 }}>
+            Beyond the risk score, ClearChain maps on-chain patterns to named FATF and FinCEN typologies. A typology tells a compliance analyst not just that something is suspicious, but what type of money laundering pattern the evidence is consistent with.
+          </p>
+          <p style={{ fontFamily: inter, fontSize: 12, color: 'var(--text-dim)', lineHeight: 1.6, margin: '0 0 32px' }}>
+            Typology definitions follow{' '}
+            <a href="https://www.fatf-gafi.org" target="_blank" rel="noopener noreferrer" style={{ color: '#06b6d4' }}>FATF guidance</a>
+            {' '}and FinCEN advisories. Detection logic is in{' '}
+            <a href="https://github.com/velasquezbrafael/ClearChain/blob/main/lib/typology.ts" target="_blank" rel="noopener noreferrer" style={{ color: '#06b6d4' }}>lib/typology.ts</a>.
           </p>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr', gap: 24, alignItems: 'start' }}>
-
-            {/* Step 1 */}
-            <div style={card}>
-              <div style={{ ...MONO, fontSize: 10, letterSpacing: '0.15em', color: '#06b6d4', marginBottom: 12, textTransform: 'uppercase' }}>01 / Get Your Key</div>
-              <p style={{ fontSize: 13, color: '#7ec8d8', lineHeight: 1.7, margin: '0 0 16px' }}>
-                Sign in and generate an API key from the dashboard. Keys start with <code style={inlineCode}>ck_live_</code>.
-              </p>
-              <a
-                href="/dashboard/settings"
-                style={{ ...MONO, fontSize: 10, letterSpacing: '0.1em', color: '#06b6d4', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}
-              >
-                Open Dashboard →
-              </a>
-            </div>
-
-            {/* Step 2 — CodeTabs (wider col) */}
-            <div>
-              <div style={{ ...MONO, fontSize: 10, letterSpacing: '0.15em', color: '#1e4d5c', marginBottom: 12, textTransform: 'uppercase' }}>02 / Make Your First Call</div>
-              <CodeTabs tabs={quickstartTabs} />
-            </div>
-
-            {/* Step 3 — collapsible response */}
-            <div style={card}>
-              <div style={{ ...MONO, fontSize: 10, letterSpacing: '0.15em', color: '#1e4d5c', marginBottom: 12, textTransform: 'uppercase' }}>03 / Parse the Response</div>
-              <p style={{ fontSize: 12, color: '#7ec8d8', lineHeight: 1.6, margin: '0 0 14px' }}>
-                A <code style={inlineCode}>200</code> returns <code style={inlineCode}>success: true</code> with the full analysis under <code style={inlineCode}>data</code>.
-              </p>
-              <details style={{ cursor: 'pointer' }}>
-                <summary style={{ ...MONO, fontSize: 10, letterSpacing: '0.1em', color: '#1e4d5c', textTransform: 'uppercase', userSelect: 'none', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ color: '#06b6d4' }}>▸</span> Example Response
-                </summary>
-                <pre style={{ margin: '12px 0 0', padding: '14px', background: '#00080f', borderRadius: 3, border: '1px solid rgba(6,182,212,0.08)', fontSize: 10, color: '#7ec8d8', lineHeight: 1.6, overflowX: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
-                  {RESPONSE_JSON}
-                </pre>
-              </details>
-            </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {TYPOLOGIES.map((t) => (
+              <div key={t.id} style={{ border: '1px solid rgba(6,182,212,0.08)', borderRadius: 4, padding: '20px 24px', background: '#080b14' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 12, flexWrap: 'wrap' }}>
+                  <h3 style={{ fontFamily: grotesk, fontSize: 16, fontWeight: 700, color: '#ecfeff', margin: 0 }}>{t.name}</h3>
+                  <span style={{ fontFamily: mono, fontSize: 9, color: 'var(--text-dim)', letterSpacing: '0.06em', flexShrink: 0, paddingTop: 2 }}>{t.ref}</span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 12 }}>
+                  <div>
+                    <div style={{ fontFamily: mono, fontSize: 9, letterSpacing: '0.12em', color: '#06b6d4', marginBottom: 6 }}>ON-CHAIN PATTERN</div>
+                    <p style={{ fontFamily: inter, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.65, margin: 0 }}>{t.pattern}</p>
+                  </div>
+                  <div>
+                    <div style={{ fontFamily: mono, fontSize: 9, letterSpacing: '0.12em', color: '#06b6d4', marginBottom: 6 }}>WHY IT'S SUSPICIOUS</div>
+                    <p style={{ fontFamily: inter, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.65, margin: 0 }}>{t.why}</p>
+                  </div>
+                </div>
+                <div style={{ borderTop: '1px solid rgba(6,182,212,0.06)', paddingTop: 10 }}>
+                  <span style={{ fontFamily: mono, fontSize: 9, letterSpacing: '0.1em', color: 'var(--text-dim)' }}>DETECTION THRESHOLD: </span>
+                  <span style={{ fontFamily: mono, fontSize: 9, color: 'var(--text-secondary)', letterSpacing: '0.04em' }}>{t.threshold}</span>
+                </div>
+              </div>
+            ))}
           </div>
         </section>
 
-        <hr style={divider} />
-
-        {/* ── Authentication ──────────────────────────────────────────────────── */}
-        <section id="authentication">
-          <div style={sectionLabel}>Authentication</div>
-          <h2 style={sectionH2}>Bearer token auth</h2>
-          <p style={prose}>
-            Pass your API key in the <code style={inlineCode}>Authorization</code> header on every request.
+        {/* ---------------------------------------------------------------- */}
+        {/* SECTION 3 — Data Sources                                         */}
+        {/* ---------------------------------------------------------------- */}
+        <section id="sources" style={{ paddingTop: 64 }}>
+          <div style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.18em', color: '#06b6d4', marginBottom: 12 }}>03</div>
+          <h2 style={{ fontFamily: grotesk, fontSize: 26, fontWeight: 700, color: '#ecfeff', margin: '0 0 8px' }}>Data Sources</h2>
+          <p style={{ fontFamily: inter, fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.7, margin: '0 0 8px', maxWidth: 600 }}>
+            All sources are open, publicly citable, and non-proprietary. No black-box databases. No vendor-only threat intelligence.
+          </p>
+          <p style={{ fontFamily: inter, fontSize: 12, color: 'var(--text-dim)', lineHeight: 1.6, margin: '0 0 32px' }}>
+            Attribution philosophy: if a compliance analyst needs to justify a finding in a SAR, every data point in ClearChain can be traced to a public source.
           </p>
 
-          <div style={{ ...card, marginBottom: 24 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-              <span style={{ ...MONO, fontSize: 10, letterSpacing: '0.15em', color: '#1e4d5c', textTransform: 'uppercase' }}>Header</span>
-              <CopyButton text="Authorization: Bearer ck_live_your_key_here" />
-            </div>
-            <pre style={{ margin: 0, ...MONO, fontSize: 13, color: '#ecfeff', lineHeight: 1.6 }}>
-              <span style={{ color: '#1e4d5c' }}>Authorization: </span>
-              <span style={{ color: '#06b6d4' }}>Bearer</span>
-              {' ck_live_your_key_here'}
-            </pre>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-            <div style={{ ...card, borderLeft: '2px solid #06b6d4' }}>
-              <div style={{ ...MONO, fontSize: 10, letterSpacing: '0.12em', color: '#06b6d4', marginBottom: 8, textTransform: 'uppercase' }}>Key Format</div>
-              <p style={{ fontSize: 13, color: '#7ec8d8', lineHeight: 1.6, margin: 0 }}>
-                Keys follow the format <code style={inlineCode}>ck_live_{'<'}32 hex chars{'>'}</code>. Keys are hashed on our end — the raw value is never stored.
-              </p>
-            </div>
-            <div style={{ ...card, borderLeft: '2px solid rgba(255,255,255,0.12)' }}>
-              <div style={{ ...MONO, fontSize: 10, letterSpacing: '0.12em', color: '#1e4d5c', marginBottom: 8, textTransform: 'uppercase' }}>Session Fallback</div>
-              <p style={{ fontSize: 13, color: '#7ec8d8', lineHeight: 1.6, margin: 0 }}>
-                If no <code style={inlineCode}>Authorization</code> header is present, the API checks for a valid session cookie — used by the ClearChain dashboard internally.
-              </p>
-            </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            {SOURCES.map((s) => (
+              <div key={s.name} style={{ border: '1px solid rgba(6,182,212,0.08)', borderRadius: 4, padding: '20px 24px', background: '#080b14', marginBottom: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 10, flexWrap: 'wrap' }}>
+                  <h3 style={{ fontFamily: grotesk, fontSize: 16, fontWeight: 700, color: '#ecfeff', margin: 0 }}>{s.name}</h3>
+                  <a href={s.link} target="_blank" rel="noopener noreferrer" style={{ fontFamily: mono, fontSize: 9, color: '#06b6d4', letterSpacing: '0.06em', textDecoration: 'none', flexShrink: 0, paddingTop: 2 }}>
+                    {s.link.replace('https://', '')} →
+                  </a>
+                </div>
+                <div style={{ fontFamily: mono, fontSize: 10, color: 'var(--text-dim)', marginBottom: 10 }}>{s.who}</div>
+                <p style={{ fontFamily: inter, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.65, margin: 0 }}>{s.description}</p>
+              </div>
+            ))}
           </div>
         </section>
 
-        <hr style={divider} />
-
-        {/* ── Endpoint Reference ──────────────────────────────────────────────── */}
-        <section id="endpoint">
-          <div style={sectionLabel}>Endpoint Reference</div>
-          <h2 style={sectionH2}>POST /api/v1/analyze</h2>
-          <p style={prose}>
-            Analyzes a wallet address and returns a full risk report including OFAC screening, risk signals, typology detection, AI narrative, and SAR draft.
+        {/* ---------------------------------------------------------------- */}
+        {/* SECTION 4 — SAR Draft Generation                                 */}
+        {/* ---------------------------------------------------------------- */}
+        <section id="sar" style={{ paddingTop: 64 }}>
+          <div style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.18em', color: '#06b6d4', marginBottom: 12 }}>04</div>
+          <h2 style={{ fontFamily: grotesk, fontSize: 26, fontWeight: 700, color: '#ecfeff', margin: '0 0 8px' }}>SAR Draft Generation</h2>
+          <p style={{ fontFamily: inter, fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.7, margin: '0 0 32px', maxWidth: 600 }}>
+            ClearChain generates a FinCEN-style Suspicious Activity Report draft automatically for every wallet analysis.
           </p>
 
-          {/* Request body */}
-          <div style={{ ...MONO, fontSize: 10, letterSpacing: '0.15em', color: '#1e4d5c', textTransform: 'uppercase', marginBottom: 12 }}>Request Body</div>
-          <div style={{ border: '1px solid rgba(6,182,212,0.08)', borderRadius: 4, overflow: 'hidden', marginBottom: 32 }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ background: '#001824' }}>
-                  <th style={thStyle}>Field</th>
-                  <th style={thStyle}>Type</th>
-                  <th style={thStyle}>Required</th>
-                  <th style={thStyle}>Description</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style={tdStyle}><code style={{ ...inlineCode, background: 'transparent', border: 'none', padding: 0 }}>address</code></td>
-                  <td style={{ ...tdStyle, color: '#7ec8d8' }}>string</td>
-                  <td style={{ ...tdStyle, color: '#06b6d4' }}>Yes</td>
-                  <td style={tdMuted}>Wallet address. ETH supports ENS names (resolved on-chain). BTC must be a valid mainnet address. TRX must be a valid Tron address. SOL must be a 32–44 char base58 public key.</td>
-                </tr>
-                <tr>
-                  <td style={{ ...tdStyle, borderBottom: 'none' }}><code style={{ ...inlineCode, background: 'transparent', border: 'none', padding: 0 }}>chain</code></td>
-                  <td style={{ ...tdStyle, color: '#7ec8d8', borderBottom: 'none' }}>string</td>
-                  <td style={{ ...tdStyle, color: '#06b6d4', borderBottom: 'none' }}>Yes</td>
-                  <td style={{ ...tdMuted, borderBottom: 'none' }}>
-                    One of <code style={inlineCode}>ETH</code>, <code style={inlineCode}>BTC</code>, <code style={inlineCode}>TRX</code>, <code style={inlineCode}>SOL</code>. Any other value returns a <code style={inlineCode}>400 UNSUPPORTED_CHAIN</code> error.
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          {/* Response schema — collapsible tree */}
-          <div style={{ ...MONO, fontSize: 10, letterSpacing: '0.15em', color: '#1e4d5c', textTransform: 'uppercase', marginBottom: 12 }}>Response Schema</div>
-          <div style={{ border: '1px solid rgba(6,182,212,0.08)', borderRadius: 4, overflow: 'hidden', marginBottom: 16 }}>
-            <div style={{ background: '#001824', padding: '14px 20px', borderBottom: '1px solid rgba(6,182,212,0.08)', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <code style={{ ...inlineCode, color: '#06b6d4' }}>200 OK</code>
-              <span style={{ fontSize: 12, color: '#7ec8d8' }}>application/json</span>
-            </div>
-            <div style={{ padding: '20px 24px', background: '#001824' }}>
+          <div style={{ border: '1px solid rgba(6,182,212,0.08)', borderRadius: 4, padding: '24px', background: '#080b14', marginBottom: 24 }}>
+            <h3 style={{ fontFamily: grotesk, fontSize: 16, fontWeight: 700, color: '#ecfeff', margin: '0 0 16px' }}>How It Works</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {[
-                { field: 'success', type: 'true', desc: 'Always true on a 200 response.' },
-                { field: 'data.address', type: 'string', desc: 'The input address as provided.' },
-                { field: 'data.resolvedAddress', type: 'string', desc: 'Resolved checksummed address (ENS resolved for ETH).' },
-                { field: 'data.chain', type: 'ETH | BTC | TRX | SOL', desc: 'Chain that was analyzed.' },
-                { field: 'data.analyzedAt', type: 'string (ISO 8601)', desc: 'Timestamp of when the analysis was generated.' },
-                { field: 'data.riskScore.total', type: 'number', desc: 'Aggregate risk score 0–100.' },
-                { field: 'data.riskScore.level', type: 'LOW | MEDIUM | HIGH | CRITICAL', desc: 'Risk tier based on score thresholds: LOW <25 / MEDIUM <50 / HIGH <75 / CRITICAL ≥75.' },
-                { field: 'data.riskScore.signals', type: 'object', desc: 'Map of signal name → ScoringSignal. Each signal has: name, triggered, score, weight, detail.' },
-                { field: 'data.typologies', type: 'AMLTypology[]', desc: 'Matched AML typologies (ETH only). Each has: name, triggered, confidence, description.' },
-                { field: 'data.ofacResult.matched', type: 'boolean', desc: 'Whether the address appears on the OFAC SDN list.' },
-                { field: 'data.ofacResult.matchedEntity', type: 'string?', desc: 'SDN entity name if matched.' },
-                { field: 'data.ofacResult.confidence', type: 'number', desc: '0 = no match, 1 = exact match.' },
-                { field: 'data.transactions', type: 'WalletTransaction[]', desc: 'Recent transactions used in analysis. Each has: hash, from, to, value, timestamp, isInbound.' },
-                { field: 'data.hopData', type: 'HopEntry[]', desc: 'Top counterparty addresses + their transactions (ETH only, up to 5 hops).' },
-                { field: 'data.narrative', type: 'string', desc: 'AI-generated plain-English risk narrative.' },
-                { field: 'data.sarDraft', type: 'string', desc: 'SAR-ready filing draft. Structured for FinCEN BSA form.' },
-              ].map((row, i, arr) => (
-                <div
-                  key={row.field}
-                  style={{
-                    display: 'grid', gridTemplateColumns: '260px 200px 1fr', gap: 16,
-                    padding: '10px 0',
-                    borderBottom: i < arr.length - 1 ? '1px solid rgba(6,182,212,0.05)' : 'none',
-                    alignItems: 'start',
-                  }}
-                >
-                  <code style={{ ...inlineCode, color: '#ecfeff', background: 'transparent', border: 'none', padding: 0, fontSize: 12 }}>{row.field}</code>
-                  <span style={{ ...MONO, fontSize: 11, color: '#1e4d5c' }}>{row.type}</span>
-                  <span style={{ fontSize: 13, color: '#7ec8d8', lineHeight: 1.5 }}>{row.desc}</span>
+                { n: '1', title: 'Analysis runs', body: 'On-chain data is fetched, OFAC is screened, risk signals are scored, and typologies are matched.' },
+                { n: '2', title: 'Claude Haiku generates the narrative', body: 'Anthropic\'s Claude Haiku model receives the wallet\'s signals, typologies, risk score, and transaction data. It produces a structured, plain-English compliance narrative and a FinCEN-style SAR draft in a single call.' },
+                { n: '3', title: 'SAR structure', body: 'The draft covers: Subject Wallet (address, chain, risk score), Risk Summary (signal breakdown), Suspicious Activity Description (narrative tying signals to typologies), and Recommended Action (SAR filing, EDD, transaction blocking).' },
+                { n: '4', title: 'Download and edit', body: 'The SAR draft is downloadable as a .txt file. Compliance teams use it as a starting point — edit, validate, and file through your institution\'s SAR filing system.' },
+              ].map(({ n, title, body }) => (
+                <div key={n} style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+                  <div style={{ fontFamily: mono, fontSize: 13, color: '#06b6d4', fontWeight: 700, flexShrink: 0, width: 20 }}>{n}.</div>
+                  <div>
+                    <div style={{ fontFamily: grotesk, fontSize: 14, fontWeight: 700, color: '#ecfeff', marginBottom: 4 }}>{title}</div>
+                    <p style={{ fontFamily: inter, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.65, margin: 0 }}>{body}</p>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* ENS note */}
-          <div style={{ background: 'rgba(6,182,212,0.04)', border: '1px solid rgba(6,182,212,0.15)', borderRadius: 4, padding: '14px 18px', display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-            <span style={{ color: '#06b6d4', flexShrink: 0, marginTop: 1 }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            </span>
-            <p style={{ fontSize: 13, color: '#7ec8d8', lineHeight: 1.6, margin: 0 }}>
-              For <code style={inlineCode}>chain: ETH</code>, the API automatically resolves ENS names (e.g. <code style={inlineCode}>vitalik.eth</code>) to their on-chain addresses. The resolved address is returned in <code style={inlineCode}>data.resolvedAddress</code>.
+          {/* Disclaimer */}
+          <div style={{ border: '1px solid rgba(255,140,0,0.4)', borderRadius: 4, padding: '20px 24px', background: 'rgba(255,140,0,0.08)' }}>
+            <div style={{ fontFamily: mono, fontSize: 9, letterSpacing: '0.15em', color: '#ff8c00', marginBottom: 12 }}>IMPORTANT DISCLAIMER</div>
+            <p style={{ fontFamily: inter, fontSize: 13, color: 'rgba(255,200,150,0.85)', lineHeight: 1.7, margin: 0 }}>
+              AI-generated SAR drafts are starting points only. All drafts must be reviewed, validated, and filed by a qualified compliance professional.
+              ClearChain does not provide legal or regulatory advice. FinCEN requires SARs to be filed within 30 days of detecting suspicious activity
+              (or 60 days if no suspect is identified). The SAR draft does not constitute a filed SAR — it must be submitted through your institution&apos;s
+              BSA E-Filing account at{' '}
+              <a href="https://bsaefiling.fincen.treas.gov" target="_blank" rel="noopener noreferrer" style={{ color: '#ff8c00' }}>bsaefiling.fincen.treas.gov</a>.
             </p>
           </div>
         </section>
 
-        <hr style={divider} />
-
-        {/* ── Batch Screening ─────────────────────────────────────────────────── */}
-        <section id="batch">
-          <div style={sectionLabel}>Batch Screening</div>
-          <h2 style={sectionH2}>POST /api/v1/batch</h2>
-          <p style={prose}>
-            Screen up to 100 addresses in a single request. Results are processed in parallel and returned sorted by risk score (highest first) — ideal for bulk compliance checks, watchlist ingestion, or portfolio screening.
-          </p>
-
-          {/* Rate limit callout */}
-          <div style={{ background: 'rgba(255,214,10,0.04)', border: '1px solid rgba(255,214,10,0.15)', borderRadius: 4, padding: '14px 18px', display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 28 }}>
-            <span style={{ color: '#ffd60a', flexShrink: 0, marginTop: 1 }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-            </span>
-            <p style={{ fontSize: 13, color: '#7ec8d8', lineHeight: 1.6, margin: 0 }}>
-              A batch of N addresses counts as <strong style={{ color: '#ecfeff' }}>N calls</strong> against your daily quota. If you have fewer than N calls remaining, the entire request returns <code style={inlineCode}>429</code> with no partial consumption. Individual address failures (invalid format, upstream error) are reported inline — other addresses still process.
-            </p>
+        {/* Footer */}
+        <div style={{ marginTop: 80, paddingTop: 32, borderTop: '1px solid rgba(6,182,212,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+          <div style={{ fontFamily: mono, fontSize: 10, color: 'var(--text-dim)', letterSpacing: '0.08em' }}>
+            CLEARCHAIN — Open source, MIT licensed.{' '}
+            <a href="https://github.com/velasquezbrafael/ClearChain" target="_blank" rel="noopener noreferrer" style={{ color: '#06b6d4', textDecoration: 'none' }}>View source on GitHub →</a>
           </div>
-
-          <CodeTabs tabs={[
-            {
-              label: 'CURL',
-              code: `curl -X POST ${BASE}/api/v1/batch \\
-  -H "Authorization: Bearer ck_live_your_key_here" \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "addresses": [
-      { "address": "0xd882cfc20f52f2599d84b8e8d58c7fb62cfe344b", "chain": "ETH" },
-      { "address": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045", "chain": "ETH" },
-      { "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7Divf5n", "chain": "BTC" }
-    ]
-  }'`,
-            },
-            {
-              label: 'JAVASCRIPT',
-              code: `const res = await fetch('${BASE}/api/v1/batch', {
-  method: 'POST',
-  headers: {
-    'Authorization': 'Bearer ck_live_your_key_here',
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify({
-    addresses: [
-      { address: '0xd882cfc20f52f2599d84b8e8d58c7fb62cfe344b', chain: 'ETH' },
-      { address: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045', chain: 'ETH' },
-      { address: '1A1zP1eP5QGefi2DMPTfTL5SLmv7Divf5n', chain: 'BTC' },
-    ],
-  }),
-})
-
-const data = await res.json()
-// Sorted by risk_score DESC — highest risk first
-const flagged = data.data.results.filter(r => r.risk_score !== null && r.risk_score >= 50)
-console.log(\`\${flagged.length} high-risk addresses found\`)`,
-            },
-            {
-              label: 'PYTHON',
-              code: `import requests
-
-resp = requests.post(
-    '${BASE}/api/v1/batch',
-    headers={
-        'Authorization': 'Bearer ck_live_your_key_here',
-        'Content-Type': 'application/json',
-    },
-    json={
-        'addresses': [
-            {'address': '0xd882cfc20f52f2599d84b8e8d58c7fb62cfe344b', 'chain': 'ETH'},
-            {'address': '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045', 'chain': 'ETH'},
-            {'address': '1A1zP1eP5QGefi2DMPTfTL5SLmv7Divf5n', 'chain': 'BTC'},
-        ]
-    }
-)
-
-data = resp.json()
-for r in data['data']['results']:
-    if r['error']:
-        print(f"{r['address']}: ERROR — {r['error']}")
-    else:
-        print(f"{r['address']}: {r['risk_level']} ({r['risk_score']})")`,
-            },
-          ]} />
-
-          {/* Response fields */}
-          <div style={{ ...MONO, fontSize: 10, letterSpacing: '0.15em', color: '#1e4d5c', textTransform: 'uppercase', margin: '28px 0 12px' }}>Response Fields</div>
-          <div style={{ border: '1px solid rgba(6,182,212,0.08)', borderRadius: 4, overflow: 'hidden' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ background: '#001824' }}>
-                  <th style={thStyle}>Field</th>
-                  <th style={thStyle}>Type</th>
-                  <th style={thStyle}>Description</th>
-                </tr>
-              </thead>
-              <tbody>
-                {([
-                  { field: 'data.total',       type: 'number',       desc: 'Total addresses submitted.' },
-                  { field: 'data.processed',   type: 'number',       desc: 'Addresses that were successfully analyzed.' },
-                  { field: 'data.failed',      type: 'number',       desc: 'Addresses that failed (invalid format, upstream error).' },
-                  { field: 'data.results',     type: 'BatchResult[]', desc: 'Per-address results sorted by risk_score DESC. Failed addresses last.' },
-                  { field: 'data.summary',     type: 'object',       desc: 'Counts of { critical, high, medium, low, clean } across the batch.' },
-                  { field: 'meta.rate_limit',  type: 'object',       desc: '{ limit, remaining, reset_at } — reflects quota state after the batch.' },
-                ] as const).map((row, i, arr) => (
-                  <tr key={row.field}>
-                    <td style={{ ...tdStyle, borderBottom: i < arr.length - 1 ? '1px solid rgba(6,182,212,0.05)' : 'none' }}>
-                      <code style={{ ...inlineCode, background: 'transparent', border: 'none', padding: 0, fontSize: 12 }}>{row.field}</code>
-                    </td>
-                    <td style={{ ...tdStyle, color: '#1e4d5c', fontSize: 11, borderBottom: i < arr.length - 1 ? '1px solid rgba(6,182,212,0.05)' : 'none' }}>{row.type}</td>
-                    <td style={{ ...tdMuted, borderBottom: i < arr.length - 1 ? '1px solid rgba(6,182,212,0.05)' : 'none' }}>{row.desc}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Per-result fields */}
-          <div style={{ ...MONO, fontSize: 10, letterSpacing: '0.15em', color: '#1e4d5c', textTransform: 'uppercase', margin: '24px 0 12px' }}>Per-Address Result (BatchResult)</div>
-          <div style={{ border: '1px solid rgba(6,182,212,0.08)', borderRadius: 4, overflow: 'hidden' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ background: '#001824' }}>
-                  <th style={thStyle}>Field</th>
-                  <th style={thStyle}>Type</th>
-                  <th style={thStyle}>Description</th>
-                </tr>
-              </thead>
-              <tbody>
-                {([
-                  { field: 'address',           type: 'string',         desc: 'The address as submitted.' },
-                  { field: 'chain',             type: 'ETH|BTC|TRX|SOL', desc: 'Chain analyzed.' },
-                  { field: 'risk_score',        type: 'number|null',    desc: 'Aggregate score 0–100. null if analysis failed.' },
-                  { field: 'risk_level',        type: 'string|null',    desc: 'LOW / MEDIUM / HIGH / CRITICAL. null if analysis failed.' },
-                  { field: 'ofac_match',        type: 'boolean|null',   desc: 'OFAC SDN list match. null if analysis failed.' },
-                  { field: 'mixer_interaction', type: 'boolean|null',   desc: 'Mixer or CoinJoin interaction detected. null if analysis failed.' },
-                  { field: 'top_signal',        type: 'string|null',    desc: 'Name of the highest-scoring triggered risk signal. null if none.' },
-                  { field: 'typologies',        type: 'string[]|null',  desc: 'Triggered AML typology names. Empty array if none. null if failed.' },
-                  { field: 'error',             type: 'string|null',    desc: 'Error code if this address failed (e.g. INVALID_ADDRESS). null on success.' },
-                ] as const).map((row, i, arr) => (
-                  <tr key={row.field}>
-                    <td style={{ ...tdStyle, borderBottom: i < arr.length - 1 ? '1px solid rgba(6,182,212,0.05)' : 'none' }}>
-                      <code style={{ ...inlineCode, background: 'transparent', border: 'none', padding: 0, fontSize: 11 }}>{row.field}</code>
-                    </td>
-                    <td style={{ ...tdStyle, color: '#1e4d5c', fontSize: 11, borderBottom: i < arr.length - 1 ? '1px solid rgba(6,182,212,0.05)' : 'none' }}>{row.type}</td>
-                    <td style={{ ...tdMuted, borderBottom: i < arr.length - 1 ? '1px solid rgba(6,182,212,0.05)' : 'none' }}>{row.desc}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <hr style={divider} />
-
-        {/* ── Risk Signals ────────────────────────────────────────────────────── */}
-        <section id="signals">
-          <div style={sectionLabel}>Risk Signals</div>
-          <h2 style={sectionH2}>What we detect</h2>
-          <p style={prose}>
-            Each signal contributes a weighted score to the overall risk total. The sum is capped at 100.
-          </p>
-          <div style={{ border: '1px solid rgba(6,182,212,0.08)', borderRadius: 4, overflow: 'hidden' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ background: '#001824' }}>
-                  <th style={thStyle}>Signal</th>
-                  <th style={thStyle}>Chain</th>
-                  <th style={{ ...thStyle, textAlign: 'center' }}>Weight</th>
-                  <th style={thStyle}>Description</th>
-                </tr>
-              </thead>
-              <tbody>
-                {([
-                  { signal: 'ofac_match', chain: 'ETH / TRX', weight: 40, desc: 'Address appears on the OFAC Specially Designated Nationals (SDN) list. Mandatory SAR filing required.' },
-                  { signal: 'mixer_usage', chain: 'ETH', weight: 30, desc: 'Interaction with known mixing contracts (Tornado Cash and derivatives). Indicates deliberate privacy obfuscation.' },
-                  { signal: 'high_risk_counterparty', chain: 'ETH / TRX', weight: 20, desc: 'One or more transactions with OFAC-sanctioned counterparty addresses.' },
-                  { signal: 'rapid_fund_movement', chain: 'ETH / TRX', weight: 25, desc: 'Three or more outbound transactions within 24 hours, combined with OFAC or counterparty exposure. Consistent with layering.' },
-                  { signal: 'coinjoin_usage', chain: 'BTC', weight: 25, desc: 'CoinJoin transaction detected — multiple equal-value outputs consistent with privacy mixing.' },
-                  { signal: 'peel_chain', chain: 'BTC', weight: 20, desc: 'Sequential 2-output transaction pattern consistent with Bitcoin layering.' },
-                  { signal: 'volume_anomaly', chain: 'TRX', weight: 15, desc: 'High TRX transaction volume in a wallet under 30 days old — inconsistent with normal wallet activity.' },
-                  { signal: 'contract_interaction_risk', chain: 'ETH', weight: 15, desc: 'Interaction with flagged smart contracts or DeFi protocols with high risk exposure.' },
-                  { signal: 'structuring_pattern', chain: 'ETH', weight: 20, desc: 'Transaction amounts structured to avoid detection thresholds (below $10K equivalent).' },
-                  { signal: 'coinbase_recipient', chain: 'BTC', weight: 0, desc: 'Address has received coinbase (mining) rewards. Informational only — does not affect score.' },
-                ] as const).map((row, i, arr) => (
-                  <tr key={row.signal}>
-                    <td style={{ ...tdStyle, borderBottom: i < arr.length - 1 ? '1px solid rgba(6,182,212,0.05)' : 'none' }}>
-                      <code style={{ ...inlineCode, background: 'transparent', border: 'none', padding: 0, fontSize: 11 }}>{row.signal}</code>
-                    </td>
-                    <td style={{ ...tdStyle, color: '#1e4d5c', fontSize: 11, borderBottom: i < arr.length - 1 ? '1px solid rgba(6,182,212,0.05)' : 'none' }}>{row.chain}</td>
-                    <td style={{ ...tdStyle, textAlign: 'center', color: row.weight > 0 ? '#ecfeff' : '#1e4d5c', borderBottom: i < arr.length - 1 ? '1px solid rgba(6,182,212,0.05)' : 'none' }}>{row.weight}</td>
-                    <td style={{ ...tdMuted, borderBottom: i < arr.length - 1 ? '1px solid rgba(6,182,212,0.05)' : 'none' }}>{row.desc}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <hr style={divider} />
-
-        {/* ── Error Codes ─────────────────────────────────────────────────────── */}
-        <section id="errors">
-          <div style={sectionLabel}>Error Codes</div>
-          <h2 style={sectionH2}>Error handling</h2>
-          <p style={prose}>
-            All errors return <code style={inlineCode}>{'{ "success": false, "error": { "code": "...", "message": "..." } }'}</code>. Use the <code style={inlineCode}>code</code> field for programmatic handling.
-          </p>
-          <div style={{ border: '1px solid rgba(6,182,212,0.08)', borderRadius: 4, overflow: 'hidden' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ background: '#001824' }}>
-                  <th style={thStyle}>Code</th>
-                  <th style={{ ...thStyle, textAlign: 'center' }}>HTTP</th>
-                  <th style={thStyle}>Description</th>
-                </tr>
-              </thead>
-              <tbody>
-                {([
-                  { code: 'MISSING_FIELDS', http: 400, desc: 'Request body is missing address or chain.' },
-                  { code: 'UNSUPPORTED_CHAIN', http: 400, desc: 'The chain value is not one of ETH, BTC, TRX, or SOL.' },
-                  { code: 'INVALID_ADDRESS', http: 400, desc: 'The address format is invalid for the specified chain.' },
-                  { code: 'ENS_RESOLUTION_FAILED', http: 400, desc: 'The ENS name could not be resolved to an on-chain address.' },
-                  { code: 'UNAUTHORIZED', http: 401, desc: 'Missing or invalid API key. No session cookie found as fallback.' },
-                  { code: 'KEY_INACTIVE', http: 401, desc: 'The API key exists but has been revoked.' },
-                  { code: 'RATE_LIMIT_EXCEEDED', http: 429, desc: 'Daily request quota exceeded for your tier. Check X-RateLimit-Reset for when the window resets.' },
-                  { code: 'ANALYSIS_FAILED', http: 500, desc: 'Upstream data fetch or analysis pipeline failed. Safe to retry with exponential backoff.' },
-                ] as const).map((row, i, arr) => (
-                  <tr key={row.code}>
-                    <td style={{ ...tdStyle, borderBottom: i < arr.length - 1 ? '1px solid rgba(6,182,212,0.05)' : 'none' }}>
-                      <code style={{ ...inlineCode, background: 'transparent', border: 'none', padding: 0, color: row.http >= 500 ? '#ff3b3b' : row.http === 429 ? '#ffd60a' : row.http >= 400 ? '#ff8c00' : '#ecfeff', fontSize: 11 }}>{row.code}</code>
-                    </td>
-                    <td style={{ ...tdStyle, textAlign: 'center', color: row.http >= 500 ? '#ff3b3b' : row.http === 429 ? '#ffd60a' : row.http >= 400 ? '#ff8c00' : '#06b6d4', borderBottom: i < arr.length - 1 ? '1px solid rgba(6,182,212,0.05)' : 'none' }}>{row.http}</td>
-                    <td style={{ ...tdMuted, borderBottom: i < arr.length - 1 ? '1px solid rgba(6,182,212,0.05)' : 'none' }}>{row.desc}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Rate limit headers note */}
-          <div style={{ marginTop: 24, ...card }}>
-            <div style={{ ...MONO, fontSize: 10, letterSpacing: '0.12em', color: '#1e4d5c', marginBottom: 14, textTransform: 'uppercase' }}>Rate Limit Response Headers</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
-              {([
-                { header: 'X-RateLimit-Limit', desc: 'Your tier\'s daily request quota.' },
-                { header: 'X-RateLimit-Remaining', desc: 'Requests remaining in the current 24h window.' },
-                { header: 'X-RateLimit-Reset', desc: 'Unix timestamp (seconds) when the window resets.' },
-              ] as const).map(h => (
-                <div key={h.header}>
-                  <code style={{ ...inlineCode, display: 'block', marginBottom: 6, fontSize: 11 }}>{h.header}</code>
-                  <span style={{ fontSize: 12, color: '#7ec8d8', lineHeight: 1.5 }}>{h.desc}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <hr style={divider} />
-
-        {/* ── Rate Limits ─────────────────────────────────────────────────────── */}
-        <section id="rate-limits">
-          <div style={sectionLabel}>Rate Limits</div>
-          <h2 style={sectionH2}>Request quotas</h2>
-          <p style={prose}>
-            Limits are per API key, per 24-hour rolling window. The window resets exactly 24 hours after the first request in the current period.
-          </p>
-          <div style={{ border: '1px solid rgba(6,182,212,0.08)', borderRadius: 4, overflow: 'hidden', marginBottom: 24 }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ background: '#001824' }}>
-                  <th style={thStyle}>Tier</th>
-                  <th style={{ ...thStyle, textAlign: 'center' }}>Daily Limit</th>
-                  <th style={thStyle}>Description</th>
-                </tr>
-              </thead>
-              <tbody>
-                {([
-                  { tier: 'free', limit: '100', desc: 'Default tier for all new API keys. Suitable for testing and low-volume integrations.' },
-                  { tier: 'analyst', limit: '2,000', desc: 'For production compliance workflows. Contact us to upgrade.' },
-                  { tier: 'team', limit: 'Unlimited', desc: 'Enterprise tier. No per-key daily cap. SLA and support included.' },
-                ] as const).map((row, i, arr) => (
-                  <tr key={row.tier}>
-                    <td style={{ ...tdStyle, borderBottom: i < arr.length - 1 ? '1px solid rgba(6,182,212,0.05)' : 'none' }}>
-                      <code style={{ ...inlineCode, background: 'transparent', border: 'none', padding: 0, color: row.tier === 'team' ? '#06b6d4' : row.tier === 'analyst' ? '#ffd60a' : '#ecfeff', fontSize: 11 }}>{row.tier}</code>
-                    </td>
-                    <td style={{ ...tdStyle, textAlign: 'center', color: row.limit === 'Unlimited' ? '#06b6d4' : '#ecfeff', borderBottom: i < arr.length - 1 ? '1px solid rgba(6,182,212,0.05)' : 'none' }}>{row.limit}</td>
-                    <td style={{ ...tdMuted, borderBottom: i < arr.length - 1 ? '1px solid rgba(6,182,212,0.05)' : 'none' }}>{row.desc}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div style={{ background: 'rgba(255,214,10,0.04)', border: '1px solid rgba(255,214,10,0.15)', borderRadius: 4, padding: '14px 18px', display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-            <span style={{ color: '#ffd60a', flexShrink: 0, marginTop: 1 }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-            </span>
-            <p style={{ fontSize: 13, color: '#7ec8d8', lineHeight: 1.6, margin: 0 }}>
-              On a <code style={inlineCode}>429</code> response, check the <code style={inlineCode}>Retry-After</code> header for seconds until your window resets. Identical requests within 5 minutes are served from cache and do not count toward your quota.
-            </p>
-          </div>
-        </section>
-
-        <hr style={divider} />
-
-        {/* ── Footer CTA ──────────────────────────────────────────────────────── */}
-        <section style={{ textAlign: 'center', padding: '48px 0 0' }}>
-          <div style={{ ...MONO, fontSize: 10, letterSpacing: '0.2em', color: '#1e4d5c', marginBottom: 16, textTransform: 'uppercase' }}>Ready to Integrate?</div>
-          <h2 style={{ fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif', fontSize: 32, fontWeight: 700, color: '#ecfeff', margin: '0 0 16px', letterSpacing: '-0.01em' }}>
-            Start analyzing wallets today
-          </h2>
-          <p style={{ fontSize: 15, color: '#7ec8d8', lineHeight: 1.7, maxWidth: 480, margin: '0 auto 32px' }}>
-            Free tier includes 100 analyses per day. No credit card required.
-          </p>
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <a
-              href="/dashboard/settings"
-              style={{ ...MONO, fontSize: 11, letterSpacing: '0.1em', color: '#00080f', background: '#06b6d4', padding: '12px 28px', borderRadius: 3, textDecoration: 'none', fontWeight: 700 }}
-            >
-              GET API KEY →
-            </a>
-            <a
-              href="/"
-              style={{ ...MONO, fontSize: 11, letterSpacing: '0.1em', color: '#7ec8d8', background: 'transparent', border: '1px solid rgba(255,255,255,0.12)', padding: '12px 28px', borderRadius: 3, textDecoration: 'none' }}
-            >
-              TRY THE TOOL
-            </a>
-          </div>
-        </section>
+          <a href="/" style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.1em', color: '#00ff88', textDecoration: 'none' }}>
+            ← Back to Tool
+          </a>
+        </div>
 
       </div>
     </div>
