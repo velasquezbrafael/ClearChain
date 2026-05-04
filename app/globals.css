@@ -60,6 +60,11 @@ body {
   to   { opacity: 1; transform: translateX(-50%) translateY(calc(-100% - 10px)); }
 }
 
+@keyframes tooltipFadeInBelow {
+  from { opacity: 0; transform: translateX(-50%) translateY(-6px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
 @keyframes fadeSlideUp {
   from {
     opacity: 0;

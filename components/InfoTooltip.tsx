@@ -9,7 +9,7 @@ interface InfoTooltipProps {
 
 export default function InfoTooltip({ text }: InfoTooltipProps) {
   const [visible, setVisible] = useState(false);
-  const [pos, setPos] = useState({ top: 0, left: 0, showBelow: false, arrowOffset: 0 });
+  const [pos, setPos] = useState({ top: 0, bottom: 0, left: 0, showBelow: false, arrowOffset: 0 });
   const [mounted, setMounted] = useState(false);
   const iconRef = useRef<HTMLSpanElement>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -36,7 +36,7 @@ export default function InfoTooltip({ text }: InfoTooltipProps) {
       // Flip below if not enough room above
       const showBelow = rect.top < TOOLTIP_APPROX_H + MARGIN;
 
-      setPos({ top: rect.top, left: clampedLeft, showBelow, arrowOffset });
+      setPos({ top: rect.top, bottom: rect.bottom, left: clampedLeft, showBelow, arrowOffset });
     }
     setVisible(true);
   }
@@ -50,7 +50,7 @@ export default function InfoTooltip({ text }: InfoTooltipProps) {
         <div
           style={{
             position: 'fixed',
-            top: pos.showBelow ? pos.top + 20 : pos.top,
+            top: pos.showBelow ? pos.bottom + 8 : pos.top,
             left: pos.left,
             transform: pos.showBelow
               ? 'translateX(-50%)'
@@ -63,7 +63,9 @@ export default function InfoTooltip({ text }: InfoTooltipProps) {
             width: 'max-content',
             zIndex: 9999,
             pointerEvents: 'none',
-            animation: 'tooltipFadeIn 0.12s ease-out both',
+            animation: pos.showBelow
+              ? 'tooltipFadeInBelow 0.12s ease-out both'
+              : 'tooltipFadeIn 0.12s ease-out both',
           }}
         >
           {/* Arrow — offset-corrected to always point at icon */}
