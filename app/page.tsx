@@ -682,10 +682,8 @@ function StatsBar() {
         animationDelay: '0.3s',
       }}
     >
-      <StatPill value={stats.walletsScreened} label="WALLETS SCREENED" />
-      <StatPill value={stats.ofacHits}        label="OFAC HITS"        />
-      <StatPill value={stats.sarDrafts}       label="SAR DRAFTS"       />
-      <StatPill value={stats.casesOpened}     label="CASES OPENED"     />
+      <StatPill value={stats.walletsScreened} label="WALLETS CHECKED"   />
+      <StatPill value={stats.ofacHits}        label="FLAGGED WALLETS"   />
       <StatPill value={stats.highRiskWallets} label="HIGH RISK WALLETS" accent="#ff8c00" />
     </div>
   );
@@ -889,7 +887,7 @@ function HeroContent({
             animationDelay: '0s',
           }}
         >
-          FREE WALLET CHECKER
+          FREE WALLET SAFETY CHECK
         </div>
 
         {/* Glitch scramble headline — natural height, nowrap prevents layout shift */}
@@ -946,7 +944,7 @@ function HeroContent({
             animationDelay: '0.25s',
           }}
         >
-          Paste any crypto wallet address and instantly see if it&apos;s connected to scams, sanctions, or money laundering. Free, open source, no account needed.
+          Paste any wallet address and know in seconds if it&apos;s safe to send to. Catch scams, flagged addresses, and sanctioned wallets before you confirm.
         </p>
 
 
@@ -1095,7 +1093,7 @@ function HeroContent({
             animationDelay: '0.55s',
           }}
         >
-          {['OFAC Screening', '7 AML Typologies', 'SAR Auto-Draft', 'ETH · BTC · TRX · SOL', 'Free Forever'].map(label => (
+          {['OFAC Screening', 'Scam Detection', 'Risk Report', 'ETH · BTC · TRX · SOL', 'Free Forever'].map(label => (
             <span
               key={label}
               style={{
@@ -2122,6 +2120,8 @@ export default function HomePage() {
   useEffect(() => { window.scrollTo(0, 0); }, []);
   useEffect(() => { setHistory(loadHistory()); }, []);
   const [navUser, setNavUser] = useState<{ email: string } | null>(null);
+  const [isAuthed, setIsAuthed] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const pendingTabRef  = useRef<Tab | null>(null);
   const showResults = !!analysis && !loading;
 
@@ -2195,11 +2195,14 @@ export default function HomePage() {
 
   const displayTabs: Tab[] = hasFlowData ? [...BASE_TABS, 'FLOW'] : [...BASE_TABS];
 
-  // Check auth state for nav
+  // Check auth state for nav + analyze gate
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) setNavUser({ email: user.email ?? '' });
+    });
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthed(!!session);
     });
   }, []);
 
@@ -2355,6 +2358,7 @@ export default function HomePage() {
 
   async function handleAnalyze(e: React.FormEvent) {
     e.preventDefault();
+    if (!isAuthed) { setShowAuthModal(true); return; }
     const trimmed = address.trim();
     if (!trimmed) {
       setError(makeError(
@@ -2655,6 +2659,131 @@ export default function HomePage() {
           onRemoveHistory={handleRemoveHistory}
         />
       </div>
+
+      {/* Auth gate modal — shown when unauthenticated user clicks Analyze */}
+      {showAuthModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.7)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+          onClick={(e) => { if (e.target === e.currentTarget) setShowAuthModal(false); }}
+        >
+          <div
+            className="glass"
+            style={{
+              padding: 40,
+              maxWidth: 420,
+              width: '90%',
+              borderRadius: 8,
+              position: 'relative',
+            }}
+          >
+            {/* Close button */}
+            <button
+              onClick={() => setShowAuthModal(false)}
+              style={{
+                position: 'absolute',
+                top: 16,
+                right: 16,
+                background: 'none',
+                border: 'none',
+                color: 'var(--text-dim)',
+                cursor: 'pointer',
+                fontSize: 18,
+                lineHeight: 1,
+                padding: '4px 8px',
+              }}
+              aria-label="Close"
+            >
+              ×
+            </button>
+
+            {/* Badge */}
+            <div style={{
+              display: 'inline-block',
+              fontFamily: 'var(--font-jetbrains-mono)',
+              fontSize: 9,
+              letterSpacing: '0.2em',
+              color: '#06b6d4',
+              border: '1px solid rgba(6,182,212,0.3)',
+              borderRadius: 2,
+              padding: '3px 10px',
+              marginBottom: 20,
+            }}>
+              FREE · NO CREDIT CARD
+            </div>
+
+            {/* Heading */}
+            <h2 style={{
+              fontFamily: 'var(--font-space-grotesk)',
+              fontSize: 24,
+              fontWeight: 600,
+              color: 'var(--text-primary)',
+              margin: '0 0 12px',
+              lineHeight: 1.25,
+            }}>
+              Create a free account to run your check
+            </h2>
+
+            {/* Subtext */}
+            <p style={{
+              fontFamily: 'var(--font-inter)',
+              fontSize: 14,
+              color: 'rgba(236,254,255,0.55)',
+              lineHeight: 1.6,
+              margin: '0 0 28px',
+            }}>
+              Takes 30 seconds. See the full risk score, scam detection, and sanctions screening for any wallet.
+            </p>
+
+            {/* Primary CTA */}
+            <a
+              href="/auth/signup"
+              style={{
+                display: 'block',
+                width: '100%',
+                height: 44,
+                lineHeight: '44px',
+                textAlign: 'center',
+                background: '#06b6d4',
+                color: '#00080f',
+                fontFamily: 'var(--font-jetbrains-mono)',
+                fontSize: 12,
+                letterSpacing: '0.1em',
+                fontWeight: 700,
+                borderRadius: 3,
+                textDecoration: 'none',
+                marginBottom: 16,
+              }}
+            >
+              CREATE FREE ACCOUNT
+            </a>
+
+            {/* Secondary link */}
+            <div style={{ textAlign: 'center' }}>
+              <a
+                href="/auth/login"
+                style={{
+                  fontFamily: 'var(--font-jetbrains-mono)',
+                  fontSize: 13,
+                  color: 'var(--text-dim)',
+                  textDecoration: 'none',
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-secondary)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-dim)'; }}
+              >
+                Already have an account? Sign in
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* HexTicker — ambient hex-dump strip, idle state only */}
       {!loading && !analysis && <HexTicker />}

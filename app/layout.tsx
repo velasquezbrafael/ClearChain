@@ -44,13 +44,13 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: 'ClearChain — Crypto AML Intelligence',
+  title: 'ClearChain — Check Any Wallet Before You Send',
   description:
-    'Know in 10 seconds whether a wallet is clean, connected to a mixer, or on a government sanctions list — with the SAR draft written automatically. Free, open source.',
+    'Know in seconds if a wallet is safe to send to. Free scam detection, sanctions screening, and risk scores for any ETH, BTC, TRX, or SOL address.',
   openGraph: {
-    title: 'ClearChain — Crypto AML Intelligence',
+    title: 'ClearChain — Check Any Wallet Before You Send',
     description:
-      'Free OFAC screening, AML typology matching, transaction graph, and AI-generated SAR drafts for any Ethereum, Bitcoin, or Tron wallet.',
+      'Know in seconds if a wallet is safe to send to. Free scam detection, sanctions screening, and risk scores for any ETH, BTC, TRX, or SOL address.',
     url: 'https://clearchain.vercel.app',
     siteName: 'ClearChain',
     type: 'website',
@@ -58,9 +58,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'ClearChain — Crypto AML Intelligence',
+    title: 'ClearChain — Check Any Wallet Before You Send',
     description:
-      'Free OFAC screening, AML typologies, transaction graph, and AI SAR drafts for any Ethereum wallet.',
+      'Know in seconds if a wallet is safe to send to. Free scam detection, sanctions screening, and risk scores for any ETH, BTC, TRX, or SOL address.',
     images: ['/clearchainlogo.jpg'],
   },
 };
