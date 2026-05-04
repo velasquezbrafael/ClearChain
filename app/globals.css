@@ -187,7 +187,7 @@ body {
   min-height: 100vh;
   display: grid;
   grid-template-columns: 55fr 45fr;
-  align-items: center;
+  align-items: start;
   padding: 0;
 }
 
