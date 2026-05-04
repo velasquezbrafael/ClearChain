@@ -616,9 +616,6 @@ function StatPill({ value, label, accent = '#22d3ee' }: { value: number; label: 
 }
 
 function StatsBar() {
-  const width    = useWindowWidth();
-  const isMobile = width <= 640;
-
   const [stats, setStats] = React.useState<LiveStats>({
     walletsScreened: 0,
     ofacHits:        0,
@@ -677,13 +674,12 @@ function StatsBar() {
   return (
     <div
       style={{
-        display:             'grid',
-        gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, auto)',
-        justifyContent:      'center',
-        gap:                 12,
-        marginBottom:        40,
-        animation:           'fadeSlideUp 0.5s ease-out both',
-        animationDelay:      '0.3s',
+        display:        'flex',
+        flexWrap:       'wrap',
+        gap:            12,
+        marginBottom:   40,
+        animation:      'fadeSlideUp 0.5s ease-out both',
+        animationDelay: '0.3s',
       }}
     >
       <StatPill value={stats.walletsScreened} label="WALLETS SCREENED" />
