@@ -2119,7 +2119,7 @@ export default function HomePage() {
   // Scroll to top on mount — belt-and-suspenders with the layout script
   useEffect(() => { window.scrollTo(0, 0); }, []);
   useEffect(() => { setHistory(loadHistory()); }, []);
-  const [navUser, setNavUser] = useState<{ email: string } | null>(null);
+  const [navUser, setNavUser] = useState<{ email: string; name: string } | null>(null);
   const [isAuthed, setIsAuthed] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const pendingTabRef  = useRef<Tab | null>(null);
@@ -2199,7 +2199,10 @@ export default function HomePage() {
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) setNavUser({ email: user.email ?? '' });
+      if (user) setNavUser({
+        email: user.email ?? '',
+        name: user.user_metadata?.name ?? user.email?.split('@')[0] ?? 'there',
+      });
     });
     supabase.auth.getSession().then(({ data: { session } }) => {
       setIsAuthed(!!session);
@@ -2614,6 +2617,9 @@ export default function HomePage() {
 
           {navUser ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, paddingLeft: 12, borderLeft: '1px solid rgba(6,182,212,0.08)' }}>
+              <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.1em', color: 'var(--text-secondary)' }}>
+                hello, {navUser.name.split(' ')[0].toLowerCase()}
+              </span>
               <a
                 href="/dashboard"
                 style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.1em', color: 'var(--accent-green)', textDecoration: 'none' }}
