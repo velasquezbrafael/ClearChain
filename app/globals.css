@@ -186,7 +186,7 @@ body {
 .hero-section {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 55fr 45fr;
+  grid-template-columns: minmax(0, 55fr) minmax(0, 45fr);
   align-items: start;
   padding: 0;
 }
@@ -196,6 +196,7 @@ body {
   flex-direction: column;
   justify-content: center;
   padding: 80px 48px 60px 64px;
+  overflow: hidden;
 }
 
 .hero-right {
