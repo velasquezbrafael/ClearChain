@@ -74,6 +74,7 @@ export default function SimulatorCard({ signals, address, baselineScore, baselin
     try {
       const res = await fetch('/api/simulate', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ address, activeSignals: [...active] }),
       });

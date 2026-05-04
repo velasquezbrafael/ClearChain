@@ -2195,41 +2195,48 @@ export default function HomePage() {
 
   const displayTabs: Tab[] = hasFlowData ? [...BASE_TABS, 'FLOW'] : [...BASE_TABS];
 
-  // Check auth state for nav + analyze gate; handles URL auto-analyze after auth resolves
+  // Auth state — initial check + reactive listener + URL auto-analyze
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) setNavUser({
-        email: user.email ?? '',
-        name: user.user_metadata?.name ?? user.email?.split('@')[0] ?? 'there',
-      });
-    });
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      const authed = !!session;
-      setIsAuthed(authed);
+
+    const setUserFromSupabase = async (userObj: import('@supabase/supabase-js').User | null) => {
+      if (userObj) {
+        setIsAuthed(true);
+        setNavUser({
+          email: userObj.email ?? '',
+          name: userObj.user_metadata?.name ?? userObj.email?.split('@')[0] ?? 'there',
+        });
+      } else {
+        setIsAuthed(false);
+        setNavUser(null);
+      }
+    };
+
+    // Initial check + URL auto-analyze
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      await setUserFromSupabase(session?.user ?? null);
 
       const params = new URLSearchParams(window.location.search);
       const urlAddr = params.get('address');
       if (!urlAddr) return;
-
-      if (!authed) {
-        setShowAuthModal(true);
-        return;
-      }
+      if (!session) { setShowAuthModal(true); return; }
 
       const urlChain = params.get('chain');
       const chain: 'ETH' | 'BTC' | 'TRX' | 'SOL' =
-        urlChain === 'BTC' ? 'BTC' :
-        urlChain === 'TRX' ? 'TRX' :
-        urlChain === 'SOL' ? 'SOL' : 'ETH';
+        urlChain === 'BTC' ? 'BTC' : urlChain === 'TRX' ? 'TRX' : urlChain === 'SOL' ? 'SOL' : 'ETH';
       const isEth = /^0x[a-fA-F0-9]{40}$/.test(urlAddr) || urlAddr.includes('.');
       const isBtc = /^(1|3)[a-km-zA-HJ-NP-Z1-9]{25,34}$/.test(urlAddr) || /^bc1[a-z0-9]{39,59}$/.test(urlAddr);
       const isTrx = /^T[a-zA-Z0-9]{33}$/.test(urlAddr);
       const isSol = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(urlAddr);
-      if (isEth || isBtc || isTrx || isSol) {
-        runAnalysis(urlAddr, chain);
-      }
+      if (isEth || isBtc || isTrx || isSol) runAnalysis(urlAddr, chain);
     });
+
+    // Reactive — updates nav immediately on sign-in/sign-out
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUserFromSupabase(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -2262,7 +2269,9 @@ export default function HomePage() {
       if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
         e.preventDefault();
         const trimmed = address.trim();
-        if (trimmed && !loading) runAnalysis(trimmed);
+        if (!trimmed || loading) return;
+        if (!isAuthed) { setShowAuthModal(true); return; }
+        runAnalysis(trimmed);
       }
     }
     document.addEventListener('keydown', handleKeyDown);
@@ -2620,16 +2629,25 @@ export default function HomePage() {
           </button>
 
           {navUser ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16, paddingLeft: 12, borderLeft: '1px solid rgba(6,182,212,0.08)' }}>
-              <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.1em', color: 'var(--text-secondary)' }}>
-                hello, {navUser.name.split(' ')[0].toLowerCase()}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingLeft: 12, borderLeft: '1px solid rgba(6,182,212,0.08)' }}>
+              <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, letterSpacing: '0.08em', color: '#06b6d4' }}>
+                {navUser.name.split(' ')[0].toLowerCase()} ↗
               </span>
               <a
                 href="/dashboard"
-                style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.1em', color: 'var(--accent-green)', textDecoration: 'none' }}
+                style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.1em', color: 'var(--text-secondary)', textDecoration: 'none' }}
               >
-                DASHBOARD →
+                DASHBOARD
               </a>
+              <button
+                onClick={async () => {
+                  const supabase = createClient();
+                  await supabase.auth.signOut();
+                }}
+                style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.1em', color: 'var(--text-dim)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+              >
+                SIGN OUT
+              </button>
             </div>
           ) : (
             <a
