@@ -7,10 +7,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "mcp": "node mcp-server/dist/index.js"
+    "mcp": "node mcp-server/dist/index.js",
+    "video": "remotion render remotion/index.ts ClearChainLaunch out/launch.mp4"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.90.0",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@react-pdf/renderer": "^4.5.1",
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.104.1",
@@ -22,12 +24,14 @@
     "react-dom": "19.2.4"
   },
   "devDependencies": {
+    "@remotion/cli": "^4.0.456",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
+    "remotion": "^4.0.456",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
