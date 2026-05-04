@@ -5,15 +5,16 @@
 // Template: dark branded HTML with green CTA button (see handoff notes)
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 export default function SignupPage() {
+  const router = useRouter()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [done, setDone] = useState(false)
 
   async function handleSignUp(e: React.FormEvent) {
     e.preventDefault()
@@ -29,7 +30,8 @@ export default function SignupPage() {
       setError(err.message)
       setLoading(false)
     } else {
-      setDone(true)
+      router.push('/')
+      router.refresh()
     }
   }
 
@@ -67,29 +69,7 @@ export default function SignupPage() {
           </div>
         </div>
 
-        {done ? (
-          <div style={{
-            padding: '24px',
-            background: 'rgba(6,182,212,0.06)',
-            border: '1px solid rgba(6,182,212,0.2)',
-            borderRadius: 4,
-            textAlign: 'center',
-          }}>
-            <div style={{ color: '#06b6d4', fontSize: 14, fontWeight: 600, marginBottom: 8 }}>
-              Check your email
-            </div>
-            <div style={{ color: '#7ec8d8', fontSize: 13 }}>
-              We sent a confirmation link to <strong style={{ color: '#ecfeff' }}>{email}</strong>.
-              Click it and you&apos;ll be taken straight to your wallet check.
-            </div>
-            <div style={{ marginTop: 20 }}>
-              <a href="/auth/login" style={{ color: '#06b6d4', fontSize: 13, textDecoration: 'none' }}>
-                ← Back to sign in
-              </a>
-            </div>
-          </div>
-        ) : (
-          <form onSubmit={handleSignUp}>
+        <form onSubmit={handleSignUp}>
             <div style={{ marginBottom: 24 }}>
               <label style={{ display: 'block', fontSize: 11, letterSpacing: '0.12em', color: '#7ec8d8', marginBottom: 8 }}>
                 NAME
@@ -145,16 +125,13 @@ export default function SignupPage() {
               {loading ? 'CREATING...' : '→ CREATE ACCOUNT'}
             </button>
           </form>
-        )}
 
-        {!done && (
-          <div style={{ textAlign: 'center', marginTop: 24, fontSize: 13, color: '#7ec8d8' }}>
+        <div style={{ textAlign: 'center', marginTop: 24, fontSize: 13, color: '#7ec8d8' }}>
             Already have an account?{' '}
             <a href="/auth/login" style={{ color: '#06b6d4', textDecoration: 'none' }}>
               Sign in →
             </a>
           </div>
-        )}
 
         <div style={{ textAlign: 'center', marginTop: 32 }}>
           <a href="/" style={{ fontSize: 12, color: '#1e4d5c', textDecoration: 'none' }}>
