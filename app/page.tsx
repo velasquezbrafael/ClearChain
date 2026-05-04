@@ -874,7 +874,7 @@ function HeroContent({
     >
       {/* ── Hero — content over full-page aurora (layout.tsx fixed bg) ── */}
       <div className="hero-section">
-        <div className="hero-content">
+        <div className="hero-left">
         {/* Label */}
         <div
           style={{
@@ -882,7 +882,7 @@ function HeroContent({
             fontSize: 11,
             letterSpacing: '0.3em',
             color: 'rgba(6,182,212,0.6)',
-            marginBottom: 28,
+            marginBottom: 32,
             borderLeft: '3px solid rgba(6,182,212,0.5)',
             paddingLeft: 12,
             animation: 'fadeSlideUp 0.5s ease-out both',
@@ -893,7 +893,7 @@ function HeroContent({
         </div>
 
         {/* Glitch scramble headline */}
-        <div style={{ margin: '0 0 24px', animation: 'fadeSlideUp 0.5s ease-out both', animationDelay: '0.1s' }}>
+        <div style={{ margin: '0 0 28px', animation: 'fadeSlideUp 0.5s ease-out both', animationDelay: '0.1s' }}>
           <h1
             className="hero-headline"
             style={{
@@ -1074,202 +1074,178 @@ function HeroContent({
           )}
         </form>
 
-        {/* Stat pills */}
+        {/* Feature pills — borderless text, subtle */}
         <div
           style={{
             display: 'flex',
-            gap: 8,
             flexWrap: 'wrap',
-            justifyContent: 'flex-start',
             marginTop: 28,
             animation: 'fadeSlideUp 0.5s ease-out both',
             animationDelay: '0.55s',
           }}
         >
-          {['OFAC Screening', '7 AML Typologies', 'SAR Auto-Draft', 'ETH + BTC + TRX + SOL', 'Investigation Mode'].map(label => (
+          {['OFAC Screening', '7 AML Typologies', 'SAR Auto-Draft', 'ETH · BTC · TRX · SOL', 'Free Forever'].map(label => (
             <span
               key={label}
               style={{
-                padding: '6px 14px',
-                border: '1px solid rgba(255,255,255,0.07)',
-                borderRadius: 2,
                 fontFamily: 'var(--font-jetbrains-mono)',
                 fontSize: 10,
                 letterSpacing: '0.1em',
-                color: 'var(--text-secondary)',
+                color: 'var(--text-dim)',
+                marginRight: 20,
+                marginBottom: 8,
               }}
             >
               {label}
             </span>
           ))}
-          <span
-            style={{
-              padding: '6px 14px',
-              border: '1px solid rgba(6,182,212,0.12)',
-              borderRadius: 2,
+        </div>
+        </div>{/* end hero-left */}
+
+        {/* RIGHT COLUMN — example panel */}
+        <div className="hero-right">
+          <div style={{
+            background: 'rgba(6,182,212,0.03)',
+            border: '1px solid rgba(6,182,212,0.1)',
+            borderRadius: 4,
+            padding: '40px 36px',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+          }}>
+            {/* Panel header */}
+            <div style={{
               fontFamily: 'var(--font-jetbrains-mono)',
               fontSize: 10,
-              letterSpacing: '0.1em',
-              color: 'rgba(6,182,212,0.6)',
-            }}
-          >
-            Free Forever
-          </span>
-        </div>
-
-        {/* Quick fills */}
-        <div
-          style={{
-            fontFamily: 'var(--font-jetbrains-mono)',
-            fontSize: 10,
-            letterSpacing: '0.12em',
-            color: '#1e4d5c',
-            textTransform: 'uppercase',
-            marginTop: 20,
-            animation: 'fadeSlideUp 0.5s ease-out both',
-            animationDelay: '0.6s',
-          }}
-        >
-          Try an example →
-        </div>
-        <div
-          style={{
-            display: 'flex',
-            gap: 8,
-            flexWrap: 'wrap',
-            justifyContent: 'flex-start',
-            marginTop: 8,
-            animation: 'fadeSlideUp 0.5s ease-out both',
-            animationDelay: '0.65s',
-          }}
-        >
-          {(() => {
-            const STYLE_MAP = {
-              red:    { border: 'rgba(6,182,212,0.08)', color: 'var(--text-secondary)', bg: 'none',                    hoverBorder: 'rgba(255,59,59,0.35)',    hoverColor: '#ff6b6b' },
-              green:  { border: 'rgba(6,182,212,0.2)',    color: 'rgba(6,182,212,0.8)',   bg: 'rgba(6,182,212,0.04)',    hoverBorder: 'rgba(6,182,212,0.4)',     hoverColor: '#06b6d4' },
-              blue:   { border: 'rgba(59,130,246,0.25)',  color: 'rgba(96,165,250,0.8)',  bg: 'rgba(59,130,246,0.04)',   hoverBorder: 'rgba(59,130,246,0.5)',    hoverColor: '#60a5fa' },
-              orange: { border: 'rgba(255,69,0,0.25)',    color: 'rgba(255,100,0,0.8)',   bg: 'rgba(255,69,0,0.04)',     hoverBorder: 'rgba(255,69,0,0.5)',      hoverColor: '#ff4500' },
-            };
-            return (
-              <>
-                {visibleQuickFills.map(({ label, sub, address, style }) => {
-                  const s = STYLE_MAP[style];
-                  return (
-                    <button
-                      key={label}
-                      onClick={() => onQuickFill(address)}
-                      disabled={loading}
-                      style={{ padding: '6px 14px', border: `1px solid ${s.border}`, borderRadius: 2, background: s.bg, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: s.color, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, transition: 'border-color 0.2s, color 0.2s' }}
-                      onMouseEnter={e => { e.currentTarget.style.borderColor = s.hoverBorder; e.currentTarget.style.color = s.hoverColor; }}
-                      onMouseLeave={e => { e.currentTarget.style.borderColor = s.border; e.currentTarget.style.color = s.color; }}
-                    >
-                      {label}
-                      {sub && <span style={{ color: 'var(--text-dim)', fontSize: 9 }}>{sub}</span>}
-                    </button>
-                  );
-                })}
-                {selectedChain === 'ETH' && (
-                  <button
-                    onClick={onSimulatorFill}
-                    disabled={loading}
-                    style={{ padding: '6px 14px', border: '1px solid rgba(6,182,212,0.2)', borderRadius: 2, background: 'rgba(6,182,212,0.04)', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: 'rgba(6,182,212,0.8)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, transition: 'border-color 0.2s, color 0.2s' }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(6,182,212,0.4)'; e.currentTarget.style.color = '#06b6d4'; }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(6,182,212,0.2)'; e.currentTarget.style.color = 'rgba(6,182,212,0.8)'; }}
-                  >
-                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0 }}>
-                      <polygon points="2,1 9,5 2,9" fill="#06b6d4"/>
-                    </svg>
-                    Try the Simulator
-                  </button>
-                )}
-              </>
-            );
-          })()}
-        </div>
-
-        {/* Search history */}
-        {history.length > 0 && (
-          <div
-            style={{
+              letterSpacing: '0.25em',
+              color: 'rgba(6,182,212,0.5)',
+              marginBottom: 28,
               display: 'flex',
               alignItems: 'center',
-              gap: 10,
-              flexWrap: 'wrap',
-              justifyContent: 'flex-start',
-              marginTop: 20,
-              animation: 'fadeSlideUp 0.5s ease-out both',
-              animationDelay: '0.55s',
-            }}
-          >
-            <span
-              style={{
-                fontFamily: 'var(--font-jetbrains-mono)',
-                fontSize: 9,
-                letterSpacing: '0.12em',
-                color: 'var(--text-dim)',
-              }}
-            >
-              RECENT:
-            </span>
-            {history.map(entry => (
-              <span
-                key={entry.address}
+              gap: 8,
+            }}>
+              <span style={{
+                display: 'inline-block',
+                width: 6,
+                height: 6,
+                borderRadius: '50%',
+                background: '#06b6d4',
+                boxShadow: '0 0 8px rgba(6,182,212,0.8)',
+                flexShrink: 0,
+              }} />
+              TRY AN EXAMPLE
+            </div>
+
+            {/* Quick fill buttons — stacked vertically with risk badge */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {visibleQuickFills.map(({ label, sub, address: addr, style: qStyle }) => {
+                const riskColor = qStyle === 'red' ? '#ff3b3b' : qStyle === 'green' ? '#06b6d4' : qStyle === 'blue' ? '#60a5fa' : '#ff8c00';
+                const riskLabel = qStyle === 'red' ? 'HIGH RISK' : qStyle === 'green' ? 'CLEAN' : qStyle === 'blue' ? 'EXCHANGE' : 'EXCHANGE';
+                return (
+                  <button
+                    key={label}
+                    onClick={() => onQuickFill(addr)}
+                    disabled={loading}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '12px 16px',
+                      border: '1px solid rgba(255,255,255,0.06)',
+                      borderRadius: 3,
+                      background: 'rgba(255,255,255,0.02)',
+                      cursor: loading ? 'default' : 'pointer',
+                      width: '100%',
+                      textAlign: 'left' as const,
+                      transition: 'border-color 0.2s, background 0.2s',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(6,182,212,0.25)'; e.currentTarget.style.background = 'rgba(6,182,212,0.04)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; }}
+                  >
+                    <div>
+                      <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: 'var(--text-primary)', marginBottom: 2 }}>
+                        {label}
+                      </div>
+                      {sub && (
+                        <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: 'var(--text-dim)', letterSpacing: '0.08em' }}>
+                          {sub}
+                        </div>
+                      )}
+                    </div>
+                    <span style={{
+                      fontFamily: 'var(--font-jetbrains-mono)',
+                      fontSize: 8,
+                      letterSpacing: '0.12em',
+                      color: riskColor,
+                      border: `1px solid ${riskColor}`,
+                      borderRadius: 2,
+                      padding: '2px 6px',
+                      opacity: 0.8,
+                      flexShrink: 0,
+                    }}>
+                      {riskLabel}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Simulator CTA */}
+            {selectedChain === 'ETH' && (
+              <button
+                onClick={onSimulatorFill}
+                disabled={loading}
                 style={{
-                  display: 'inline-flex',
+                  display: 'flex',
                   alignItems: 'center',
-                  gap: 6,
-                  padding: '4px 10px',
-                  border: '1px solid rgba(6,182,212,0.08)',
-                  borderRadius: 2,
+                  gap: 10,
+                  background: 'none',
+                  border: 'none',
+                  borderTop: '1px solid rgba(6,182,212,0.08)',
+                  cursor: loading ? 'default' : 'pointer',
+                  width: '100%',
+                  fontFamily: 'var(--font-jetbrains-mono)',
+                  fontSize: 11,
+                  letterSpacing: '0.12em',
+                  color: 'rgba(6,182,212,0.7)',
+                  padding: '20px 0 0',
+                  marginTop: 20,
+                  transition: 'color 0.2s',
                 }}
+                onMouseEnter={e => { e.currentTarget.style.color = '#06b6d4'; }}
+                onMouseLeave={e => { e.currentTarget.style.color = 'rgba(6,182,212,0.7)'; }}
               >
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0 }}>
+                  <polygon points="2,1 9,5 2,9" fill="currentColor"/>
+                </svg>
+                RUN THE SIMULATOR
+              </button>
+            )}
+
+            {/* Chain selector — controls examples shown in this panel */}
+            <div style={{ display: 'flex', gap: 6, marginTop: 24, paddingTop: 16, borderTop: '1px solid rgba(6,182,212,0.06)' }}>
+              {(['ETH', 'BTC', 'TRX', 'SOL'] as const).map(c => (
                 <button
-                  onClick={() => onQuickFill(entry.address)}
-                  disabled={loading}
+                  key={c}
+                  type="button"
+                  onClick={() => { setSelectedChain(c); setAddress(''); }}
                   style={{
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
+                    padding: '3px 10px',
                     fontFamily: 'var(--font-jetbrains-mono)',
                     fontSize: 9,
-                    color: 'var(--text-secondary)',
-                    padding: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 6,
-                  }}
-                >
-                  <span
-                    style={{
-                      width: 5,
-                      height: 5,
-                      borderRadius: '50%',
-                      background: entry.level === 'CRITICAL' ? '#ff3b3b' : entry.level === 'HIGH' ? '#ff8c00' : entry.level === 'MEDIUM' ? '#ffd60a' : '#06b6d4',
-                      flexShrink: 0,
-                    }}
-                  />
-                  {`${entry.address.slice(0, 6)}…${entry.address.slice(-4)}`}
-                </button>
-                <button
-                  onClick={() => onRemoveHistory(entry.address)}
-                  style={{
-                    background: 'none',
-                    border: 'none',
+                    letterSpacing: '0.1em',
+                    border: `1px solid ${selectedChain === c ? 'rgba(6,182,212,0.4)' : 'rgba(255,255,255,0.08)'}`,
+                    borderRadius: 2,
+                    background: selectedChain === c ? 'rgba(6,182,212,0.08)' : 'transparent',
+                    color: selectedChain === c ? '#06b6d4' : 'var(--text-dim)',
                     cursor: 'pointer',
-                    color: 'var(--text-dim)',
-                    fontSize: 10,
-                    padding: 0,
-                    lineHeight: 1,
                   }}
-                  aria-label="Remove from history"
                 >
-                  ×
+                  {c}
                 </button>
-              </span>
-            ))}
+              ))}
+            </div>
           </div>
-        )}
-        </div>{/* end hero-content */}
+        </div>{/* end hero-right */}
       </div>{/* end hero-section */}
 
       {/* Email capture — above the fold, right after quick fills */}

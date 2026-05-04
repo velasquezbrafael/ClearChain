@@ -30,14 +30,24 @@ html {
 body {
   background-color: #00080f;
   background-image:
+    /* Grid — explicit 64px tiles */
     linear-gradient(rgba(6,182,212,0.05) 1px, transparent 1px),
     linear-gradient(90deg, rgba(6,182,212,0.05) 1px, transparent 1px),
-    radial-gradient(ellipse 900px 800px at -10% -15%, rgba(6,182,212,0.55) 0%, transparent 65%),
-    radial-gradient(ellipse 800px 750px at 108% -5%, rgba(34,211,238,0.45) 0%, transparent 65%),
-    radial-gradient(ellipse 700px 650px at -5% 72%, rgba(0,255,136,0.40) 0%, transparent 65%),
-    radial-gradient(ellipse 950px 850px at 108% 42%, rgba(79,70,229,0.45) 0%, transparent 65%),
-    radial-gradient(ellipse 750px 700px at 50% 108%, rgba(99,102,241,0.40) 0%, transparent 65%);
-  background-size: 64px 64px, 64px 64px, auto, auto, auto, auto, auto;
+    /* Aurora — percentage ellipses, all centers within viewport */
+    radial-gradient(ellipse 65% 55% at 8%  28%, rgba(6,182,212,0.55)  0%, transparent 100%),
+    radial-gradient(ellipse 55% 50% at 88% 12%, rgba(34,211,238,0.48)  0%, transparent 100%),
+    radial-gradient(ellipse 50% 45% at 12% 70%, rgba(0,255,136,0.42)   0%, transparent 100%),
+    radial-gradient(ellipse 60% 55% at 85% 50%, rgba(79,70,229,0.48)   0%, transparent 100%),
+    radial-gradient(ellipse 50% 45% at 50% 90%, rgba(99,102,241,0.42)  0%, transparent 100%);
+  /* CRITICAL: explicit 100% 100% for aurora layers — auto renders as 0×0 */
+  background-size:
+    64px 64px,
+    64px 64px,
+    100% 100%,
+    100% 100%,
+    100% 100%,
+    100% 100%,
+    100% 100%;
   background-attachment: fixed;
   color: var(--text-primary);
   font-family: var(--font-inter), 'Inter', system-ui, sans-serif;
@@ -172,25 +182,36 @@ body {
   100% { transform: translateY(100vh); opacity: 0; }
 }
 
-/* ── Full-page hero — content over fixed aurora+grid background ── */
+/* ── Two-column hero ─────────────────────────────────────────── */
 .hero-section {
   min-height: 100vh;
-  display: flex;
+  display: grid;
+  grid-template-columns: 55fr 45fr;
   align-items: center;
-  padding: 120px 64px 80px;
-  width: 100%;
-}
-.hero-content {
-  width: 100%;
-  max-width: 1000px;
+  padding: 0;
 }
 
-@media (max-width: 768px) {
+.hero-left {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 120px 48px 80px 64px;
+}
+
+.hero-right {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 120px 56px 80px 40px;
+}
+
+@media (max-width: 900px) {
   .hero-section {
+    grid-template-columns: 1fr;
     min-height: auto;
-    padding: 100px 24px 60px;
-    align-items: flex-start;
   }
+  .hero-left  { padding: 100px 24px 40px; }
+  .hero-right { display: none; }
 }
 
 /* ── Glassmorphism card ─────────────────────────────────────── */
