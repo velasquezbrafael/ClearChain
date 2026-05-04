@@ -829,6 +829,17 @@ function HeroContent({
         </svg>
       ),
     },
+    {
+      title: '17,000+ Labeled Wallets',
+      desc: 'Every analysis cross-references a database of known exchanges, scam wallets, phishing addresses, DeFi protocols, and flagged entities — so you know exactly who you\'re dealing with.',
+      href: '/docs#attribution',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M2 2h7.5l8.5 8.5-7.5 7.5L2 9.5V2z" stroke="#06b6d4" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round"/>
+          <circle cx="6.5" cy="6.5" r="1.5" fill="#06b6d4"/>
+        </svg>
+      ),
+    },
   ];
 
 
@@ -1401,7 +1412,7 @@ function HeroContent({
           className="feature-grid"
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(5, 1fr)',
+            gridTemplateColumns: 'repeat(3, 1fr)',
             gap: 1,
             background: 'rgba(6,182,212,0.05)',
             alignItems: 'stretch',
@@ -1409,7 +1420,13 @@ function HeroContent({
         >
           {features.map(f => (
             <div key={f.title} style={{ background: '#00080f', display: 'flex', alignItems: 'stretch' }}>
-              <FeatureCard title={f.title} desc={f.desc} icon={f.icon} />
+              {f.href ? (
+                <a href={f.href} style={{ textDecoration: 'none', display: 'flex', alignItems: 'stretch', width: '100%' }}>
+                  <FeatureCard title={f.title} desc={f.desc} icon={f.icon} />
+                </a>
+              ) : (
+                <FeatureCard title={f.title} desc={f.desc} icon={f.icon} />
+              )}
             </div>
           ))}
         </div>

@@ -174,6 +174,7 @@ export default async function DocsPage() {
           {[
             { href: '#scoring', label: 'Risk Scores' },
             { href: '#typologies', label: 'Risk Patterns' },
+            { href: '#attribution', label: 'Wallet Attribution' },
             { href: '#sources', label: 'Our Data' },
             { href: '#sar', label: 'SAR Drafts' },
           ].map(({ href, label }) => (
@@ -269,10 +270,82 @@ export default async function DocsPage() {
         </section>
 
         {/* ---------------------------------------------------------------- */}
-        {/* SECTION 3 — Data Sources                                         */}
+        {/* SECTION 3 — Wallet Attribution                                   */}
+        {/* ---------------------------------------------------------------- */}
+        <section id="attribution" style={{ paddingTop: 72 }}>
+          <div style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.18em', color: '#06b6d4', marginBottom: 12 }}>03 — WALLET ATTRIBUTION</div>
+          <h2 style={{ fontFamily: grotesk, fontSize: 26, fontWeight: 700, color: '#ecfeff', margin: '0 0 12px' }}>Who&apos;s behind the wallet?</h2>
+          <p style={{ fontSize: 15, color: 'var(--text-secondary)', lineHeight: 1.75, margin: '0 0 12px', maxWidth: 580 }}>
+            When you look up a wallet, ClearChain doesn&apos;t just check if it&apos;s on a government blacklist — it also tries to tell you who it belongs to. Is it a known exchange? A DeFi protocol? A wallet that&apos;s been reported for phishing?
+          </p>
+          <p style={{ fontSize: 15, color: 'var(--text-secondary)', lineHeight: 1.75, margin: '0 0 40px', maxWidth: 580 }}>
+            ClearChain cross-references every wallet and its counterparties against a database of 17,000+ labeled addresses, sourced from the open-source community and our own curated list.
+          </p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginBottom: 32 }}>
+            {[
+              {
+                icon: (
+                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                    <rect x="1" y="7" width="16" height="10" rx="1" stroke="#06b6d4" strokeWidth="1.4"/>
+                    <path d="M4 7V5a5 5 0 0 1 10 0v2" stroke="#06b6d4" strokeWidth="1.4" strokeLinecap="round"/>
+                    <rect x="7" y="12" width="4" height="3" rx="0.5" stroke="#06b6d4" strokeWidth="1.2"/>
+                  </svg>
+                ),
+                title: 'Exchanges & Protocols',
+                body: 'Major crypto exchanges (Binance, Coinbase, Kraken) and DeFi protocols (Uniswap, Aave, Curve) are labeled so their activity doesn’t get misread as suspicious.',
+              },
+              {
+                icon: (
+                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                    <path d="M9 1.5L2 5v5c0 4 3 7 7 8 4-1 7-4 7-8V5L9 1.5z" stroke="#06b6d4" strokeWidth="1.4" strokeLinejoin="round"/>
+                    <line x1="9" y1="7" x2="9" y2="10.5" stroke="#06b6d4" strokeWidth="1.4" strokeLinecap="round"/>
+                    <circle cx="9" cy="12.5" r="0.8" fill="#06b6d4"/>
+                  </svg>
+                ),
+                title: 'Scams & Phishing',
+                body: 'Wallets linked to phishing attacks, rug pulls, and exploit drains are flagged with a “Flagged:” label. If a wallet you’re checking has transacted with one of these, it shows up as a High-Risk Counterparty signal.',
+              },
+              {
+                icon: (
+                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                    <circle cx="9" cy="6" r="3" stroke="#06b6d4" strokeWidth="1.4"/>
+                    <path d="M2.5 16.5c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5" stroke="#06b6d4" strokeWidth="1.4" strokeLinecap="round"/>
+                  </svg>
+                ),
+                title: 'Notable Public Wallets',
+                body: 'Well-known public addresses — Vitalik Buterin, major DAOs, foundation wallets — are labeled so they score correctly. Vitalik’s wallet moves large amounts of ETH but should never score HIGH.',
+              },
+              {
+                icon: (
+                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                    <circle cx="9" cy="9" r="7" stroke="#06b6d4" strokeWidth="1.4"/>
+                    <line x1="3.9" y1="3.9" x2="14.1" y2="14.1" stroke="#06b6d4" strokeWidth="1.4" strokeLinecap="round"/>
+                  </svg>
+                ),
+                title: 'Sanctioned Entities',
+                body: 'OFAC-designated wallets (Tornado Cash contracts, Lazarus Group, Garantex) are in both the sanctions list AND the label database, so they surface in analysis even when encountered as counterparties.',
+              },
+            ].map(({ icon, title, body }) => (
+              <div key={title} style={{ border: '1px solid rgba(6,182,212,0.08)', borderRadius: 4, padding: '22px 24px', background: '#080b14' }}>
+                <div style={{ marginBottom: 12, color: '#06b6d4' }}>{icon}</div>
+                <div style={{ fontFamily: mono, fontSize: 12, fontWeight: 700, color: '#ecfeff', marginBottom: 10 }}>{title}</div>
+                <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.75, margin: 0 }}>{body}</p>
+              </div>
+            ))}
+          </div>
+
+          <p style={{ fontSize: 14, color: 'var(--text-dim)', lineHeight: 1.75, margin: 0 }}>
+            Label coverage is continuously improving. All sources are open — if you find a mislabeled address,{' '}
+            <a href="https://github.com/velasquezbrafael-source/ClearChain/issues" target="_blank" rel="noopener noreferrer" style={{ color: '#06b6d4', textDecoration: 'none' }}>open an issue on GitHub</a>.
+          </p>
+        </section>
+
+        {/* ---------------------------------------------------------------- */}
+        {/* SECTION 4 — Data Sources                                         */}
         {/* ---------------------------------------------------------------- */}
         <section id="sources" style={{ paddingTop: 72 }}>
-          <div style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.18em', color: '#06b6d4', marginBottom: 12 }}>03 — OUR DATA</div>
+          <div style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.18em', color: '#06b6d4', marginBottom: 12 }}>04 — OUR DATA</div>
           <h2 style={{ fontFamily: grotesk, fontSize: 26, fontWeight: 700, color: '#ecfeff', margin: '0 0 12px' }}>Where the data comes from</h2>
           <p style={{ fontSize: 15, color: 'var(--text-secondary)', lineHeight: 1.75, margin: '0 0 12px', maxWidth: 580 }}>
             Every piece of data ClearChain uses is from a public, verifiable source. No black-box threat databases. No proprietary scores you can&apos;t trace back.
@@ -298,10 +371,10 @@ export default async function DocsPage() {
         </section>
 
         {/* ---------------------------------------------------------------- */}
-        {/* SECTION 4 — SAR Drafts                                           */}
+        {/* SECTION 5 — SAR Drafts                                           */}
         {/* ---------------------------------------------------------------- */}
         <section id="sar" style={{ paddingTop: 72 }}>
-          <div style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.18em', color: '#06b6d4', marginBottom: 12 }}>04 — SAR DRAFTS</div>
+          <div style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.18em', color: '#06b6d4', marginBottom: 12 }}>05 — SAR DRAFTS</div>
           <h2 style={{ fontFamily: grotesk, fontSize: 26, fontWeight: 700, color: '#ecfeff', margin: '0 0 12px' }}>What is a SAR draft?</h2>
           <p style={{ fontSize: 15, color: 'var(--text-secondary)', lineHeight: 1.75, margin: '0 0 12px', maxWidth: 580 }}>
             A SAR (Suspicious Activity Report) is an official document that financial institutions are required to file with the US government when they detect potential money laundering or financial crime.
