@@ -23,6 +23,7 @@ import { hashApiKey } from '@/lib/apikeys';
 import { fireWebhook } from '@/lib/webhook';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { incrementGlobalStats } from '@/lib/supabase/server';
 
 import type { WalletTransaction, WalletAnalysis, RiskScore, ScoringSignal } from '@/types';
 
@@ -377,6 +378,7 @@ export async function POST(request: NextRequest) {
       }
 
       analysisCache.set(cacheKey, { data: analysis, narrative, sarDraft: sarDraftRaw, hopData: [], cachedAt: Date.now() });
+      void incrementGlobalStats({ ofacHit: !!btcRiskScore.signals['ofac_match']?.triggered, highRisk: btcRiskScore.total >= 50 });
 
       if (apiKeyWebhookUrl && apiKeyId) {
         fireWebhook(apiKeyWebhookUrl, apiKeyWebhookSecret, {
@@ -540,6 +542,7 @@ export async function POST(request: NextRequest) {
       }
 
       analysisCache.set(cacheKey, { data: analysis, narrative, sarDraft: sarDraftRaw, hopData: [], cachedAt: Date.now() });
+      void incrementGlobalStats({ ofacHit: !!trxRiskScore.signals['ofac_match']?.triggered, highRisk: trxRiskScore.total >= 50 });
 
       if (apiKeyWebhookUrl && apiKeyId) {
         fireWebhook(apiKeyWebhookUrl, apiKeyWebhookSecret, {
@@ -641,6 +644,7 @@ export async function POST(request: NextRequest) {
       }
 
       analysisCache.set(cacheKey, { data: analysis, narrative, sarDraft: sarDraftRaw, hopData: [], cachedAt: Date.now() });
+      void incrementGlobalStats({ ofacHit: !!solRiskScore.signals['ofac_match']?.triggered, highRisk: solRiskScore.total >= 50 });
 
       if (apiKeyWebhookUrl && apiKeyId) {
         fireWebhook(apiKeyWebhookUrl, apiKeyWebhookSecret, {
@@ -789,6 +793,7 @@ export async function POST(request: NextRequest) {
     hopData,
     cachedAt: Date.now(),
   });
+  void incrementGlobalStats({ ofacHit: !!riskScore.signals['ofac_match']?.triggered, highRisk: riskScore.total >= 50 });
 
   // ── 13. Webhook (fire-and-forget, API key requests only) ─────────────────
   if (apiKeyWebhookUrl && apiKeyId) {
