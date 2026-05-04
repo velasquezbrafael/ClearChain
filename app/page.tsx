@@ -873,11 +873,9 @@ function HeroContent({
       }}
     >
       {/* ── Hero — content over full-page aurora (layout.tsx fixed bg) ── */}
-      <div className="hero-section" style={{ display: 'flex', flexDirection: 'column' }}>
-        {/* Top row: headline left, example box right */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 65fr) minmax(0, 35fr)', alignItems: 'start', width: '100%' }}>
-          <div className="hero-left" style={{ paddingBottom: 0 }}>
-          {/* Label */}
+      <div className="hero-section">
+        <div className="hero-left">
+        {/* Label */}
         <div
           style={{
             fontFamily: 'var(--font-jetbrains-mono)',
@@ -951,158 +949,9 @@ function HeroContent({
           Paste any crypto wallet address and instantly see if it&apos;s connected to scams, sanctions, or money laundering. Free, open source, no account needed.
         </p>
 
-          </div>{/* end hero-left */}
 
-        {/* RIGHT COLUMN — example panel */}
-        <div className="hero-right">
-          <div style={{
-            background: 'rgba(6,182,212,0.03)',
-            border: '1px solid rgba(6,182,212,0.1)',
-            borderRadius: 4,
-            padding: '28px 20px',
-            backdropFilter: 'blur(12px)',
-            WebkitBackdropFilter: 'blur(12px)',
-          }}>
-            {/* Panel header */}
-            <div style={{
-              fontFamily: 'var(--font-jetbrains-mono)',
-              fontSize: 10,
-              letterSpacing: '0.25em',
-              color: 'rgba(6,182,212,0.5)',
-              marginBottom: 28,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-            }}>
-              <span style={{
-                display: 'inline-block',
-                width: 6,
-                height: 6,
-                borderRadius: '50%',
-                background: '#06b6d4',
-                boxShadow: '0 0 8px rgba(6,182,212,0.8)',
-                flexShrink: 0,
-              }} />
-              TRY AN EXAMPLE
-            </div>
-
-            {/* Quick fill buttons — stacked vertically with risk badge */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {visibleQuickFills.map(({ label, sub, address: addr, style: qStyle }) => {
-                const riskColor = qStyle === 'red' ? '#ff3b3b' : qStyle === 'green' ? '#06b6d4' : qStyle === 'blue' ? '#60a5fa' : '#ff8c00';
-                const riskLabel = qStyle === 'red' ? 'HIGH RISK' : qStyle === 'green' ? 'CLEAN' : qStyle === 'blue' ? 'EXCHANGE' : 'EXCHANGE';
-                return (
-                  <button
-                    key={label}
-                    onClick={() => onQuickFill(addr)}
-                    disabled={loading}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '12px 16px',
-                      border: '1px solid rgba(255,255,255,0.06)',
-                      borderRadius: 3,
-                      background: 'rgba(255,255,255,0.02)',
-                      cursor: loading ? 'default' : 'pointer',
-                      width: '100%',
-                      textAlign: 'left' as const,
-                      transition: 'border-color 0.2s, background 0.2s',
-                    }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(6,182,212,0.25)'; e.currentTarget.style.background = 'rgba(6,182,212,0.04)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; }}
-                  >
-                    <div>
-                      <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: 'var(--text-primary)', marginBottom: 2 }}>
-                        {label}
-                      </div>
-                      {sub && (
-                        <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: 'var(--text-dim)', letterSpacing: '0.08em' }}>
-                          {sub}
-                        </div>
-                      )}
-                    </div>
-                    <span style={{
-                      fontFamily: 'var(--font-jetbrains-mono)',
-                      fontSize: 8,
-                      letterSpacing: '0.12em',
-                      color: riskColor,
-                      border: `1px solid ${riskColor}`,
-                      borderRadius: 2,
-                      padding: '2px 6px',
-                      opacity: 0.8,
-                      flexShrink: 0,
-                    }}>
-                      {riskLabel}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Simulator CTA */}
-            {selectedChain === 'ETH' && (
-              <button
-                onClick={onSimulatorFill}
-                disabled={loading}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 10,
-                  background: 'none',
-                  border: 'none',
-                  borderTop: '1px solid rgba(6,182,212,0.08)',
-                  cursor: loading ? 'default' : 'pointer',
-                  width: '100%',
-                  fontFamily: 'var(--font-jetbrains-mono)',
-                  fontSize: 11,
-                  letterSpacing: '0.12em',
-                  color: 'rgba(6,182,212,0.7)',
-                  padding: '20px 0 0',
-                  marginTop: 20,
-                  transition: 'color 0.2s',
-                }}
-                onMouseEnter={e => { e.currentTarget.style.color = '#06b6d4'; }}
-                onMouseLeave={e => { e.currentTarget.style.color = 'rgba(6,182,212,0.7)'; }}
-              >
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0 }}>
-                  <polygon points="2,1 9,5 2,9" fill="currentColor"/>
-                </svg>
-                RUN THE SIMULATOR
-              </button>
-            )}
-
-            {/* Chain selector — controls examples shown in this panel */}
-            <div style={{ display: 'flex', gap: 6, marginTop: 24, paddingTop: 16, borderTop: '1px solid rgba(6,182,212,0.06)' }}>
-              {(['ETH', 'BTC', 'TRX', 'SOL'] as const).map(c => (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => { setSelectedChain(c); setAddress(''); }}
-                  style={{
-                    padding: '3px 10px',
-                    fontFamily: 'var(--font-jetbrains-mono)',
-                    fontSize: 9,
-                    letterSpacing: '0.1em',
-                    border: `1px solid ${selectedChain === c ? 'rgba(6,182,212,0.4)' : 'rgba(255,255,255,0.08)'}`,
-                    borderRadius: 2,
-                    background: selectedChain === c ? 'rgba(6,182,212,0.08)' : 'transparent',
-                    color: selectedChain === c ? '#06b6d4' : 'var(--text-dim)',
-                    cursor: 'pointer',
-                  }}
-                >
-                  {c}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>{/* end hero-right */}
-        </div>{/* end top row */}
-
-        {/* Bottom: full width — stats, input, features */}
-        <div className="hero-bottom">
         {/* Live stats */}
-        <div style={{ marginBottom: 40 }}>
+        <div style={{ marginTop: 32, marginBottom: 40 }}>
           <StatsBar />
         </div>
 
@@ -1262,7 +1111,152 @@ function HeroContent({
             </span>
           ))}
         </div>
-        </div>{/* end hero-bottom */}
+        </div>{/* end hero-left */}
+
+        {/* RIGHT COLUMN — example panel */}
+        <div className="hero-right">
+          <div style={{
+            background: 'rgba(6,182,212,0.03)',
+            border: '1px solid rgba(6,182,212,0.1)',
+            borderRadius: 4,
+            padding: '24px 16px',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+          }}>
+            {/* Panel header */}
+            <div style={{
+              fontFamily: 'var(--font-jetbrains-mono)',
+              fontSize: 10,
+              letterSpacing: '0.25em',
+              color: 'rgba(6,182,212,0.5)',
+              marginBottom: 28,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+            }}>
+              <span style={{
+                display: 'inline-block',
+                width: 6,
+                height: 6,
+                borderRadius: '50%',
+                background: '#06b6d4',
+                boxShadow: '0 0 8px rgba(6,182,212,0.8)',
+                flexShrink: 0,
+              }} />
+              TRY AN EXAMPLE
+            </div>
+
+            {/* Quick fill buttons — stacked vertically with risk badge */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {visibleQuickFills.map(({ label, sub, address: addr, style: qStyle }) => {
+                const riskColor = qStyle === 'red' ? '#ff3b3b' : qStyle === 'green' ? '#06b6d4' : qStyle === 'blue' ? '#60a5fa' : '#ff8c00';
+                const riskLabel = qStyle === 'red' ? 'HIGH RISK' : qStyle === 'green' ? 'CLEAN' : qStyle === 'blue' ? 'EXCHANGE' : 'EXCHANGE';
+                return (
+                  <button
+                    key={label}
+                    onClick={() => onQuickFill(addr)}
+                    disabled={loading}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '12px 16px',
+                      border: '1px solid rgba(255,255,255,0.06)',
+                      borderRadius: 3,
+                      background: 'rgba(255,255,255,0.02)',
+                      cursor: loading ? 'default' : 'pointer',
+                      width: '100%',
+                      textAlign: 'left' as const,
+                      transition: 'border-color 0.2s, background 0.2s',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(6,182,212,0.25)'; e.currentTarget.style.background = 'rgba(6,182,212,0.04)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; }}
+                  >
+                    <div>
+                      <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: 'var(--text-primary)', marginBottom: 2 }}>
+                        {label}
+                      </div>
+                      {sub && (
+                        <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: 'var(--text-dim)', letterSpacing: '0.08em' }}>
+                          {sub}
+                        </div>
+                      )}
+                    </div>
+                    <span style={{
+                      fontFamily: 'var(--font-jetbrains-mono)',
+                      fontSize: 8,
+                      letterSpacing: '0.12em',
+                      color: riskColor,
+                      border: `1px solid ${riskColor}`,
+                      borderRadius: 2,
+                      padding: '2px 6px',
+                      opacity: 0.8,
+                      flexShrink: 0,
+                    }}>
+                      {riskLabel}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Simulator CTA */}
+            {selectedChain === 'ETH' && (
+              <button
+                onClick={onSimulatorFill}
+                disabled={loading}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  background: 'none',
+                  border: 'none',
+                  borderTop: '1px solid rgba(6,182,212,0.08)',
+                  cursor: loading ? 'default' : 'pointer',
+                  width: '100%',
+                  fontFamily: 'var(--font-jetbrains-mono)',
+                  fontSize: 11,
+                  letterSpacing: '0.12em',
+                  color: 'rgba(6,182,212,0.7)',
+                  padding: '20px 0 0',
+                  marginTop: 20,
+                  transition: 'color 0.2s',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.color = '#06b6d4'; }}
+                onMouseLeave={e => { e.currentTarget.style.color = 'rgba(6,182,212,0.7)'; }}
+              >
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0 }}>
+                  <polygon points="2,1 9,5 2,9" fill="currentColor"/>
+                </svg>
+                RUN THE SIMULATOR
+              </button>
+            )}
+
+            {/* Chain selector — controls examples shown in this panel */}
+            <div style={{ display: 'flex', gap: 6, marginTop: 24, paddingTop: 16, borderTop: '1px solid rgba(6,182,212,0.06)' }}>
+              {(['ETH', 'BTC', 'TRX', 'SOL'] as const).map(c => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => { setSelectedChain(c); setAddress(''); }}
+                  style={{
+                    padding: '3px 10px',
+                    fontFamily: 'var(--font-jetbrains-mono)',
+                    fontSize: 9,
+                    letterSpacing: '0.1em',
+                    border: `1px solid ${selectedChain === c ? 'rgba(6,182,212,0.4)' : 'rgba(255,255,255,0.08)'}`,
+                    borderRadius: 2,
+                    background: selectedChain === c ? 'rgba(6,182,212,0.08)' : 'transparent',
+                    color: selectedChain === c ? '#06b6d4' : 'var(--text-dim)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>{/* end hero-right */}
       </div>{/* end hero-section */}
 
       {/* Email capture — above the fold, right after quick fills */}
