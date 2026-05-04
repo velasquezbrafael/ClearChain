@@ -951,7 +951,7 @@ function HeroContent({
 
 
         {/* Live stats */}
-        <div style={{ marginTop: 32, marginBottom: 40 }}>
+        <div style={{ marginTop: 32, marginBottom: 16 }}>
           <StatsBar />
         </div>
 
