@@ -532,10 +532,11 @@ interface TransactionGraphProps {
   onAnalyzeAddress?: (addr: string) => void;
   containerHeight?: number;
   investigationMode?: boolean;
+  isMobile?: boolean;
 }
 
 export default function TransactionGraph({
-  transactions, queriedAddress, hopData, onAnalyzeAddress, containerHeight, investigationMode,
+  transactions, queriedAddress, hopData, onAnalyzeAddress, containerHeight, investigationMode, isMobile,
 }: TransactionGraphProps) {
   // Static graph refs/state
   const svgRef = useRef<SVGSVGElement>(null);
@@ -892,12 +893,12 @@ export default function TransactionGraph({
               VIEW ON ETHERSCAN
             </a>
           )}
-          {onAnalyzeAddress && invSelectedNode.state !== 'root' && (
+          {invSelectedNode.state !== 'root' && (
             <button
-              onClick={() => { setIsFullscreen(false); setInvSelectedAddr(null); onAnalyzeAddress(invSelectedNode.id); }}
+              onClick={() => { window.open(`/?address=${invSelectedNode.id}`, '_blank', 'noopener'); }}
               style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.1em', color: '#06b6d4', background: 'rgba(6,182,212,0.08)', border: '1px solid rgba(6,182,212,0.25)', borderRadius: 3, padding: '6px 10px', cursor: 'pointer' }}
             >
-              ANALYZE THIS WALLET →
+              FULL ANALYSIS ↗
             </button>
           )}
         </div>
@@ -1135,32 +1136,46 @@ export default function TransactionGraph({
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
               {/* Filter pill — visible as soon as Investigation Mode is active */}
               {investigationMode && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 3, opacity: expandedTrail.length > 0 ? 1 : 0.4, transition: 'opacity 0.2s' }}>
-                  {(['all', 'threats', 'clean', 'overlap', 'unexpanded'] as GraphFilter[]).map(mode => {
-                    const isActive = graphFilter === mode;
-                    const colorMap: Record<GraphFilter, string> = { all: '#06b6d4', threats: '#ff3b3b', clean: '#00ff88', overlap: '#ffd60a', unexpanded: '#a78bfa' };
-                    const labelMap: Record<GraphFilter, string> = { all: 'ALL', threats: 'THREATS', clean: 'CLEAN', overlap: 'OVERLAPS', unexpanded: 'UNEXPANDED' };
-                    const c = colorMap[mode];
-                    return (
-                      <button key={mode} onClick={() => setGraphFilter(mode)} style={{
-                        background: isActive ? `${c}22` : 'none',
-                        border: `1px solid ${isActive ? c + '66' : 'rgba(255,255,255,0.08)'}`,
-                        borderRadius: 3,
-                        color: isActive ? c : 'var(--text-dim)',
-                        cursor: 'pointer',
-                        padding: '2px 6px',
-                        fontFamily: 'var(--font-jetbrains-mono)',
-                        fontSize: 7,
-                        letterSpacing: '0.07em',
-                        transition: 'all 0.15s',
-                        whiteSpace: 'nowrap',
-                      }}>
-                        {labelMap[mode]}
-                      </button>
-                    );
-                  })}
-                  <InfoTooltip text="Filter graph nodes: THREATS = OFAC/mixer/high-risk · CLEAN = no flags · OVERLAPS = appear in multiple hops · UNEXPANDED = not yet traced" />
-                </div>
+                isMobile ? (
+                  <select
+                    value={graphFilter}
+                    onChange={e => setGraphFilter(e.target.value as GraphFilter)}
+                    style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, background: '#001824', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 3, color: 'var(--text-secondary)', padding: '3px 6px', cursor: 'pointer' }}
+                  >
+                    <option value="all">ALL NODES</option>
+                    <option value="threats">THREATS</option>
+                    <option value="clean">CLEAN</option>
+                    <option value="overlap">OVERLAPS</option>
+                    <option value="unexpanded">UNEXPANDED</option>
+                  </select>
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 3, opacity: expandedTrail.length > 0 ? 1 : 0.4, transition: 'opacity 0.2s' }}>
+                    {(['all', 'threats', 'clean', 'overlap', 'unexpanded'] as GraphFilter[]).map(mode => {
+                      const isActive = graphFilter === mode;
+                      const colorMap: Record<GraphFilter, string> = { all: '#06b6d4', threats: '#ff3b3b', clean: '#00ff88', overlap: '#ffd60a', unexpanded: '#a78bfa' };
+                      const labelMap: Record<GraphFilter, string> = { all: 'ALL', threats: 'THREATS', clean: 'CLEAN', overlap: 'OVERLAPS', unexpanded: 'UNEXPANDED' };
+                      const c = colorMap[mode];
+                      return (
+                        <button key={mode} onClick={() => setGraphFilter(mode)} style={{
+                          background: isActive ? `${c}22` : 'none',
+                          border: `1px solid ${isActive ? c + '66' : 'rgba(255,255,255,0.08)'}`,
+                          borderRadius: 3,
+                          color: isActive ? c : 'var(--text-dim)',
+                          cursor: 'pointer',
+                          padding: '2px 6px',
+                          fontFamily: 'var(--font-jetbrains-mono)',
+                          fontSize: 7,
+                          letterSpacing: '0.07em',
+                          transition: 'all 0.15s',
+                          whiteSpace: 'nowrap',
+                        }}>
+                          {labelMap[mode]}
+                        </button>
+                      );
+                    })}
+                    <InfoTooltip text="Filter graph nodes: THREATS = OFAC/mixer/high-risk · CLEAN = no flags · OVERLAPS = appear in multiple hops · UNEXPANDED = not yet traced" />
+                  </div>
+                )
               )}
               <button onClick={() => { setIsFullscreen(true); setSelectedNode(null); }} title="Fullscreen graph"
                 style={{ background: 'none', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 3, color: 'var(--text-dim)', cursor: 'pointer', padding: '4px 8px', fontSize: 12, lineHeight: 1, transition: 'border-color 0.15s, color 0.15s', flexShrink: 0 }}

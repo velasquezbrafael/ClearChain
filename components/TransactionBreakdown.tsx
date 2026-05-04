@@ -155,7 +155,7 @@ function AddressCell({ addr, onAnalyzeAddress }: { addr: string; onAnalyzeAddres
   );
 }
 
-const MAX_DISPLAY = 25;
+const MAX_DISPLAY = 50;
 
 export default function TransactionBreakdown({
   transactions,
@@ -166,8 +166,29 @@ export default function TransactionBreakdown({
   queriedAddress: string;
   onAnalyzeAddress?: (addr: string) => void;
 }) {
+  const [search, setSearch] = useState('');
+  const [direction, setDirection] = useState<'all' | 'in' | 'out'>('all');
+  const [flaggedOnly, setFlaggedOnly] = useState(false);
+
   const sorted = [...transactions].sort((a, b) => b.timestamp - a.timestamp);
-  const display = sorted.slice(0, MAX_DISPLAY);
+
+  const filtered = sorted.filter(tx => {
+    const isInbound = tx.isInbound ?? tx.to?.toLowerCase() === queriedAddress.toLowerCase();
+    if (direction === 'in' && !isInbound) return false;
+    if (direction === 'out' && isInbound) return false;
+    if (flaggedOnly && !isTxFlagged(tx, queriedAddress)) return false;
+    if (search) {
+      const q = search.toLowerCase();
+      if (
+        !tx.from?.toLowerCase().includes(q) &&
+        !tx.to?.toLowerCase().includes(q) &&
+        !tx.hash?.toLowerCase().includes(q)
+      ) return false;
+    }
+    return true;
+  });
+
+  const display = filtered.slice(0, MAX_DISPLAY);
 
   // Fixed: exclude self-references when counting flagged
   const flaggedCount = transactions.filter(tx => isTxFlagged(tx, queriedAddress)).length;
@@ -193,6 +214,77 @@ export default function TransactionBreakdown({
 
   return (
     <div>
+      {/* Filter bar */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap', alignItems: 'center' }}>
+        <input
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="Search address or hash..."
+          style={{
+            flex: '1 1 180px',
+            fontFamily: 'var(--font-jetbrains-mono)',
+            fontSize: 11,
+            background: 'rgba(255,255,255,0.03)',
+            border: '1px solid rgba(6,182,212,0.12)',
+            borderRadius: 3,
+            color: 'var(--text-primary)',
+            padding: '6px 10px',
+            outline: 'none',
+            minWidth: 0,
+          }}
+          onFocus={e => { e.currentTarget.style.borderColor = 'rgba(6,182,212,0.35)'; }}
+          onBlur={e => { e.currentTarget.style.borderColor = 'rgba(6,182,212,0.12)'; }}
+        />
+        <div style={{ display: 'flex', gap: 3 }}>
+          {(['all', 'in', 'out'] as const).map(d => (
+            <button
+              key={d}
+              onClick={() => setDirection(d)}
+              style={{
+                fontFamily: 'var(--font-jetbrains-mono)',
+                fontSize: 9,
+                letterSpacing: '0.08em',
+                padding: '5px 10px',
+                borderRadius: 3,
+                cursor: 'pointer',
+                background: direction === d ? 'rgba(6,182,212,0.12)' : 'none',
+                border: direction === d ? '1px solid rgba(6,182,212,0.35)' : '1px solid rgba(255,255,255,0.08)',
+                color: direction === d ? '#06b6d4' : 'var(--text-dim)',
+                transition: 'all 0.15s',
+              }}
+            >
+              {d === 'all' ? 'ALL' : d === 'in' ? '↓ IN' : '↑ OUT'}
+            </button>
+          ))}
+        </div>
+        <button
+          onClick={() => setFlaggedOnly(f => !f)}
+          style={{
+            fontFamily: 'var(--font-jetbrains-mono)',
+            fontSize: 9,
+            letterSpacing: '0.08em',
+            padding: '5px 10px',
+            borderRadius: 3,
+            cursor: 'pointer',
+            background: flaggedOnly ? 'rgba(255,59,59,0.1)' : 'none',
+            border: flaggedOnly ? '1px solid rgba(255,59,59,0.35)' : '1px solid rgba(255,255,255,0.08)',
+            color: flaggedOnly ? '#ff3b3b' : 'var(--text-dim)',
+            transition: 'all 0.15s',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          ⚠ FLAGGED ONLY
+        </button>
+        {(search || direction !== 'all' || flaggedOnly) && (
+          <button
+            onClick={() => { setSearch(''); setDirection('all'); setFlaggedOnly(false); }}
+            style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, padding: '5px 8px', borderRadius: 3, cursor: 'pointer', background: 'none', border: '1px solid rgba(255,255,255,0.06)', color: 'var(--text-dim)', letterSpacing: '0.06em' }}
+          >
+            ✕ CLEAR
+          </button>
+        )}
+      </div>
+
       {/* Stats row */}
       <div
         style={{
@@ -213,10 +305,10 @@ export default function TransactionBreakdown({
         </div>
         <div>
           <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: 'var(--text-dim)', marginBottom: 4 }}>
-            SHOWING
+            {search || direction !== 'all' || flaggedOnly ? 'FILTERED' : 'SHOWING'}
           </div>
-          <div style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 24, fontWeight: 700, color: 'var(--text-primary)' }}>
-            {display.length}
+          <div style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 24, fontWeight: 700, color: (search || direction !== 'all' || flaggedOnly) ? '#06b6d4' : 'var(--text-primary)' }}>
+            {filtered.length}
           </div>
         </div>
         <div>
@@ -349,7 +441,7 @@ export default function TransactionBreakdown({
         </table>
       </div>
 
-      {transactions.length > MAX_DISPLAY && (
+      {filtered.length > MAX_DISPLAY && (
         <div
           style={{
             marginTop: 16,
@@ -362,7 +454,7 @@ export default function TransactionBreakdown({
             textAlign: 'center',
           }}
         >
-          {transactions.length - MAX_DISPLAY} additional transactions not shown — full history via Alchemy API
+          Showing {MAX_DISPLAY} of {filtered.length} — refine filters or use Alchemy API for full history
         </div>
       )}
     </div>

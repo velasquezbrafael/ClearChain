@@ -565,6 +565,70 @@ function FeatureCard({ title, desc, icon }: { title: string; desc: string; icon?
 }
 
 // ---------------------------------------------------------------------------
+// Trust signal badge (shown after analysis)
+// ---------------------------------------------------------------------------
+
+function TrustSignal({ riskLevel, riskScore }: { riskLevel: RiskLevel; riskScore: number }) {
+  const [walletsScreened, setWalletsScreened] = React.useState(0);
+  const [highRiskWallets, setHighRiskWallets] = React.useState(0);
+  const [loaded, setLoaded] = React.useState(false);
+
+  React.useEffect(() => {
+    fetch('/api/stats')
+      .then(r => r.json())
+      .then(d => {
+        if (d.walletsScreened) setWalletsScreened(d.walletsScreened);
+        if (d.highRiskWallets) setHighRiskWallets(d.highRiskWallets);
+        setLoaded(true);
+      })
+      .catch(() => setLoaded(true));
+  }, []);
+
+  const isClean = riskLevel === 'LOW';
+  const isCritical = riskLevel === 'CRITICAL' || riskLevel === 'HIGH';
+  const color = isClean ? '#06b6d4' : isCritical ? '#ff3b3b' : '#ffd60a';
+  const icon = isClean ? '✓' : '⚠';
+  const label = isClean ? 'NO RED FLAGS DETECTED' : `${riskLevel} RISK — REVIEW BEFORE SENDING`;
+
+  const contextText = loaded && walletsScreened > 0
+    ? isClean
+      ? `Checked against ${walletsScreened.toLocaleString()} wallets · looks clean`
+      : `${highRiskWallets.toLocaleString()} high-risk wallets in our database — this is one of them`
+    : null;
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        padding: '8px 14px',
+        background: `${color}0a`,
+        border: `1px solid ${color}25`,
+        borderRadius: 3,
+        marginBottom: 20,
+        animation: 'fadeSlideUp 0.4s ease-out both',
+        flexWrap: 'wrap',
+      }}
+    >
+      <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 13, color, flexShrink: 0 }}>{icon}</span>
+      <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.1em', color, fontWeight: 700 }}>
+        {label}
+      </span>
+      {contextText && (
+        <>
+          <span style={{ color: 'rgba(255,255,255,0.08)', flexShrink: 0 }}>·</span>
+          <span style={{ fontFamily: 'var(--font-inter)', fontSize: 11, color: 'var(--text-dim)' }}>{contextText}</span>
+        </>
+      )}
+      <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 8, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.15)', flexShrink: 0 }}>
+        CLEARCHAIN VERIFIED
+      </span>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Live stats counter
 // ---------------------------------------------------------------------------
 
@@ -2920,6 +2984,9 @@ export default function HomePage() {
             watchlistButton={<AddToWatchlistButton address={analysis.address} chain={analysis.chain} />}
           />
 
+          {/* Trust signal */}
+          <TrustSignal riskLevel={analysis.riskScore.level} riskScore={analysis.riskScore.total} />
+
           {/* Row 2: 3-col layout */}
           <div
             className="results-grid"
@@ -2944,6 +3011,7 @@ export default function HomePage() {
               onAnalyzeAddress={analyzeAddress}
               containerHeight={isMobile ? 280 : undefined}
               investigationMode={true}
+              isMobile={isMobile}
             />
 
             {/* Col 3: Signal list — full width on tablet/mobile */}
