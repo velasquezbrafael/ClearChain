@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ClearChain</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── SITE-ACCURATE COLOR PALETTE ──────────────────────────────
+   Extracted from clearchain.vercel.app via DevTools
+   Primary cyan:  #06B6D4  (rgb 6 182 212)
+   Bright cyan:   #22D3EE  (rgb 34 211 238)
+   Background:    #00080F  (rgb 0 8 15)
+   Card:          #080B14
+   Elevated:      #0D1220
+   Text primary:  #ECFEFF  (cyan-tinted white)
+   Text sec:      #8892A4
+   Text dim:      #4A7A8A
+   Red:           #FF3B3B
+   Orange:        #FF8C00
+──────────────────────────────────────────────────────────── */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%; height: 100%;
+  background: #000;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+
+/* 9:16 vertical stage */
+#stage {
+  width: 390px; height: 693px;
+  background: #00080F;
+  position: relative; overflow: hidden;
+}
+
+/* always-on background layer */
+#bg { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+
+/* scene base */
+.scene {
+  position: absolute; inset: 0; z-index: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 28px 22px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+.scene.on { opacity: 1; }
+
+/* ── SHARED ── */
+.card {
+  width: 100%;
+  background: #080B14;
+  border: 1px solid rgba(6,182,212,0.2);
+  border-radius: 4px;
+  padding: 20px;
+}
+
+/* fade-up entry */
+.fu {
+  opacity: 0; transform: translateY(10px);
+  transition: opacity 0.42s ease, transform 0.42s ease;
+}
+.fu.in { opacity: 1; transform: translateY(0); }
+
+/* badges */
+.badge {
+  display: inline-flex; align-items: center;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 2px; text-transform: uppercase;
+  padding: 3px 9px; border-radius: 2px;
+}
+.b-cyan { background: rgba(6,182,212,0.1); border: 1px solid rgba(6,182,212,0.35); color: #22D3EE; }
+.b-red  { background: rgba(255,59,59,0.1); border: 1px solid rgba(255,59,59,0.3);  color: #FF3B3B; }
+.b-org  { background: rgba(255,140,0,0.1); border: 1px solid rgba(255,140,0,0.3);  color: #FF8C00; }
+.b-dim  { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); color: #8892A4; }
+
+/* label */
+.lbl {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 3px; text-transform: uppercase;
+  color: #8892A4;
+}
+
+/* ══════════════════════════════════════════
+   SCENE 1 — Brand / Hero
+══════════════════════════════════════════ */
+#s1 { gap: 10px; }
+
+#s1-wordmark {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 36px; font-weight: 700;
+  letter-spacing: 8px; text-transform: uppercase;
+  color: #22D3EE;
+  opacity: 0; transform: translateY(-8px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+#s1-wordmark.in { opacity: 1; transform: translateY(0); }
+
+#s1-hero {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 44px; font-weight: 700;
+  color: #ECFEFF; letter-spacing: -1.5px;
+  line-height: 1.05; text-align: center;
+  white-space: nowrap;
+  opacity: 0; transform: translateY(18px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+#s1-hero.in { opacity: 1; transform: translateY(0); }
+
+#s1-cursor {
+  display: inline-block; width: 3px; height: 40px;
+  background: #22D3EE; margin-left: 4px;
+  animation: blink 0.8s step-end infinite;
+  vertical-align: middle;
+  opacity: 0;                    /* hidden until hero fades in */
+  transition: opacity 0.3s ease;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+/* hero row — centers text + cursor together */
+#s1-herorow { display: flex; align-items: center; justify-content: center; }
+
+#s1-usvg { overflow: visible; display: block; margin-top: 2px; }
+#s1-uline {
+  stroke-dasharray: 300; stroke-dashoffset: 300;
+  transition: stroke-dashoffset 0.8s ease;
+}
+
+#s1-sub {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px; font-weight: 500;
+  color: #4A7A8A; letter-spacing: 0.3px;
+  text-align: center; line-height: 1.5;
+  max-width: 300px;
+}
+
+#s1-chips {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  justify-content: center; margin-top: 4px;
+}
+.s1-chip {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; color: #06B6D4;
+  background: rgba(6,182,212,0.06);
+  border: 1px solid rgba(6,182,212,0.18);
+  padding: 3px 8px; border-radius: 2px;
+  letter-spacing: 0.5px;
+}
+
+/* ══════════════════════════════════════════
+   SCENE 2 — Wallet Analysis
+══════════════════════════════════════════ */
+#s2 { justify-content: center; }
+
+#s2-card { margin: 0; }
+
+#s2-addr {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px; color: #4A7A8A;
+  margin: 6px 0 14px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* stats row */
+.mini-row {
+  display: flex;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 3px; margin-bottom: 16px; overflow: hidden;
+}
+.mini-stat {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; padding: 9px 4px;
+  border-right: 1px solid rgba(255,255,255,0.07);
+}
+.mini-stat:last-child { border-right: none; }
+.mini-v {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px; font-weight: 700;
+  color: #22D3EE; letter-spacing: -0.5px;
+}
+.mini-l {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 9px; font-weight: 500;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: #8892A4; margin-top: 2px;
+}
+
+/* gauge */
+.score-row { display: flex; align-items: center; gap: 16px; margin-bottom: 14px; }
+.gauge-wrap { position: relative; width: 108px; height: 108px; flex-shrink: 0; }
+.gauge-wrap svg { transform: rotate(-90deg); display: block; }
+.g-track { fill: none; stroke: rgba(255,59,59,0.1); stroke-width: 5; }
+/* r=50, circumference ≈ 314.16 */
+.g-fill {
+  fill: none; stroke: #FF3B3B; stroke-width: 5; stroke-linecap: round;
+  stroke-dasharray: 314; stroke-dashoffset: 314;
+  transition: stroke-dashoffset 1.9s cubic-bezier(0.22,1,0.36,1);
+}
+.score-num {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 40px; font-weight: 700;
+  color: #FF3B3B; letter-spacing: -2px;
+}
+.score-meta { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.score-desc {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px; color: #8892A4; line-height: 1.5;
+}
+
+/* signals */
+.sigs { display: flex; flex-direction: column; margin-bottom: 12px; }
+.sig {
+  display: flex; align-items: center; gap: 9px;
+  padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.sig:last-child { border-bottom: none; }
+.dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.sn { font-family: 'Space Grotesk', sans-serif; font-size: 13px; color: #ECFEFF; flex: 1; }
+.sv { font-family: 'Space Grotesk', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.8px; }
+.sv-r { color: #FF3B3B; }
+.sv-o { color: #FF8C00; }
+.sv-d { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #8892A4; }
+
+/* typology chips */
+.chips {
+  display: flex; gap: 6px; flex-wrap: wrap;
+  padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.06);
+}
+.chip {
+  font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  color: #06B6D4;
+  background: rgba(6,182,212,0.07);
+  border: 1px solid rgba(6,182,212,0.2);
+  padding: 3px 8px; border-radius: 2px;
+}
+
+/* ══════════════════════════════════════════
+   SCENE 3 — Fund Flow Graph
+══════════════════════════════════════════ */
+#s3 { justify-content: flex-start; align-items: flex-start; padding-top: 26px; }
+
+#s3-head { width: 100%; margin-bottom: 12px; }
+#s3-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 24px; font-weight: 700;
+  color: #ECFEFF; letter-spacing: -0.5px;
+  margin: 5px 0 3px;
+}
+#s3-sub {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px; color: #8892A4;
+}
+
+#graph-wrap {
+  width: 100%; flex: 1;
+  background: #080B14;
+  border: 1px solid rgba(6,182,212,0.16);
+  border-radius: 4px;
+  display: flex; flex-direction: column;
+  min-height: 415px;
+}
+
+#graphSvg { flex: 1; width: 100%; display: block; }
+
+#graph-header {
+  padding: 11px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+#gmode-badge {
+  display: flex; align-items: center; gap: 6px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 9px; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; color: #22D3EE;
+}
+#gmode-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #06B6D4; box-shadow: 0 0 5px rgba(6,182,212,0.7);
+  animation: dotPulse 2s ease-in-out infinite;
+}
+@keyframes dotPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.6;transform:scale(0.85)} }
+#gmode-addr {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; color: #4A7A8A;
+}
+
+#stats-bar {
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding: 8px 14px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; color: #8892A4;
+  letter-spacing: 1px;
+  display: flex; gap: 14px; align-items: center;
+}
+.sc  { color: #22D3EE; }
+.sr  { color: #FF3B3B; }
+.sep { color: #3D4A5C; }
+
+/* ══════════════════════════════════════════
+   SCENE 4 — SAR Draft
+══════════════════════════════════════════ */
+#s4 { justify-content: flex-start; padding-top: 26px; }
+
+#s4-hrow {
+  width: 100%;
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+#s4-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 19px; font-weight: 700;
+  color: #ECFEFF; letter-spacing: -0.5px;
+}
+
+#s4-card {
+  width: 100%; flex: 1;
+  background: #080B14;
+  border: 1px solid rgba(6,182,212,0.2);
+  border-radius: 4px; padding: 18px;
+  display: flex; flex-direction: column;
+  min-height: 415px;
+}
+
+.sar-meta {
+  display: flex; gap: 20px;
+  padding-bottom: 12px; margin-bottom: 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.sf { display: flex; flex-direction: column; gap: 3px; }
+.sf-l {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 9px; font-weight: 600;
+  letter-spacing: 2px; text-transform: uppercase; color: #3D4A5C;
+}
+.sf-v {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; color: #8892A4;
+}
+
+/* sar-wrap is the flex item; text+cursor are both inline inside it */
+#sar-wrap {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px; color: #ECFEFF;
+  line-height: 1.75; white-space: pre-wrap; flex: 1;
+  overflow: hidden;
+}
+#sar-text { /* inline span — inherits everything */ }
+#sar-cur {
+  display: inline-block; width: 2px; height: 12px;
+  background: #22D3EE; margin-left: 1px;
+  vertical-align: text-bottom;
+  animation: blink 0.75s step-end infinite;
+}
+
+/* ══════════════════════════════════════════
+   SCENE 5 — SDKs
+══════════════════════════════════════════ */
+#s5 { justify-content: flex-start; padding-top: 26px; gap: 0; }
+
+#s5-head { width: 100%; margin-bottom: 16px; }
+#s5-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 22px; font-weight: 700;
+  color: #ECFEFF; letter-spacing: -0.5px; margin-bottom: 4px;
+}
+#s5-sub {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px; color: #8892A4;
+}
+
+.term {
+  width: 100%; margin-bottom: 12px;
+  background: #080B14;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 4px; overflow: hidden;
+}
+.term-bar {
+  background: #0D1220;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  padding: 8px 14px;
+  display: flex; align-items: center; gap: 10px;
+}
+.traf { display: flex; gap: 5px; }
+.traf-d { width: 8px; height: 8px; border-radius: 50%; }
+.term-lang {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 2px; text-transform: uppercase;
+}
+.py-c { color: #FFD60A; }
+.js-c { color: #22D3EE; }
+
+.term-body { padding: 12px 14px; display: flex; flex-direction: column; gap: 5px; }
+.tl {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; color: #8892A4; white-space: nowrap; min-height: 16px;
+}
+.tl .pr { color: #22D3EE; }
+.tl .ok { color: #06B6D4; }
+
+#s5-foot {
+  width: 100%; text-align: center; margin-top: 4px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px; color: #8892A4;
+}
+
+/* ══════════════════════════════════════════
+   SCENE 6 — CTA
+══════════════════════════════════════════ */
+#s6 { gap: 12px; }
+
+#cta-glow {
+  position: absolute; width: 240px; height: 240px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(6,182,212,0.1) 0%, transparent 70%);
+  animation: gPulse 2.2s ease-in-out infinite;
+}
+@keyframes gPulse { 0%,100%{transform:scale(1);opacity:.7} 50%{transform:scale(1.35);opacity:1} }
+
+#cta-mark {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 32px; font-weight: 700;
+  letter-spacing: 8px; text-transform: uppercase;
+  color: #22D3EE;
+  position: relative; z-index: 1;
+}
+
+#cta-tagline {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 22px; font-weight: 700;
+  color: #ECFEFF; letter-spacing: -0.5px; text-align: center;
+}
+
+#cta-url {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 16px; color: #06B6D4;
+  background: rgba(6,182,212,0.07);
+  border: 1px solid rgba(6,182,212,0.2);
+  padding: 8px 16px; border-radius: 3px;
+}
+
+#cta-free {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px; color: #8892A4;
+}
+#cta-nosig {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px; color: #3D4A5C;
+}
+</style>
+</head>
+<body>
+<div id="stage">
+
+<!-- ── BACKGROUND ── -->
+<div id="bg">
+  <svg width="390" height="693" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <!-- hex grid in site cyan -->
+      <pattern id="hexPat" x="0" y="0" width="38" height="44" patternUnits="userSpaceOnUse">
+        <polygon points="19,0 38,11 38,33 19,44 0,33 0,11"
+                 fill="none" stroke="#06B6D4" stroke-width="0.5" opacity="0.07"/>
+      </pattern>
+      <!-- soft cyan orbs -->
+      <radialGradient id="oA" cx="12%" cy="16%" r="55%">
+        <stop offset="0%" stop-color="#06B6D4" stop-opacity="0.08"/>
+        <stop offset="100%" stop-color="#06B6D4" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="oB" cx="90%" cy="85%" r="50%">
+        <stop offset="0%" stop-color="#06B6D4" stop-opacity="0.06"/>
+        <stop offset="100%" stop-color="#06B6D4" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <rect width="390" height="693" fill="url(#hexPat)"/>
+    <rect width="390" height="693" fill="url(#oA)"/>
+    <rect width="390" height="693" fill="url(#oB)"/>
+  </svg>
+</div>
+
+<!-- ══ SCENE 1: Brand / Hero ══ -->
+<div class="scene" id="s1">
+  <div id="s1-wordmark">CLEARCHAIN</div>
+
+  <div id="s1-herorow">
+    <span id="s1-hero">follow the money</span><span id="s1-cursor"></span>
+  </div>
+
+  <svg id="s1-usvg" width="300" height="3" viewBox="0 0 300 3">
+    <line id="s1-uline" x1="0" y1="1.5" x2="300" y2="1.5"
+          stroke="#22D3EE" stroke-width="2.5" stroke-linecap="round"/>
+  </svg>
+
+  <div id="s1-sub" class="fu">
+    SAR-ready AML intelligence for crypto teams.
+  </div>
+
+  <div id="s1-chips" class="fu">
+    <div class="s1-chip">OFAC Screening</div>
+    <div class="s1-chip">7 AML Typologies</div>
+    <div class="s1-chip">SAR Auto-Draft</div>
+    <div class="s1-chip">Investigation Mode</div>
+    <div class="s1-chip">Free Forever</div>
+  </div>
+</div>
+
+<!-- ══ SCENE 2: Wallet Analysis ══ -->
+<div class="scene" id="s2">
+  <div class="card fu" id="s2-card">
+    <div class="lbl">Wallet Analysis · ETH</div>
+    <div id="s2-addr">0x8589427373D6D84E98730D7795D8f6f8731FDA16</div>
+
+    <div class="mini-row">
+      <div class="mini-stat">
+        <div class="mini-v">23</div>
+        <div class="mini-l">Transactions</div>
+      </div>
+      <div class="mini-stat">
+        <div class="mini-v">847 ETH</div>
+        <div class="mini-l">Volume</div>
+      </div>
+      <div class="mini-stat">
+        <div class="mini-v">6 hrs</div>
+        <div class="mini-l">Timeframe</div>
+      </div>
+    </div>
+
+    <div class="score-row">
+      <div class="gauge-wrap">
+        <!-- r=50, circumference = 2π×50 ≈ 314.16 -->
+        <svg width="108" height="108" viewBox="0 0 108 108">
+          <circle class="g-track" cx="54" cy="54" r="50"/>
+          <circle class="g-fill" id="gFill" cx="54" cy="54" r="50"/>
+        </svg>
+        <div class="score-num"><span id="scoreNum">0</span></div>
+      </div>
+      <div class="score-meta">
+        <div class="badge b-red" id="critBadge" style="opacity:0;transition:opacity 0.3s ease;">CRITICAL</div>
+        <div class="score-desc">High-confidence AML indicators detected across multiple risk signals.</div>
+      </div>
+    </div>
+
+    <div class="sigs">
+      <div class="sig fu" id="sg1">
+        <div class="dot" style="background:#FF3B3B"></div>
+        <div class="sn">OFAC / SDN Match</div>
+        <div class="sv sv-r">TRIGGERED</div>
+      </div>
+      <div class="sig fu" id="sg2">
+        <div class="dot" style="background:#FF3B3B"></div>
+        <div class="sn">Mixer Interaction</div>
+        <div class="sv sv-d">Tornado Cash</div>
+      </div>
+      <div class="sig fu" id="sg3">
+        <div class="dot" style="background:#FF8C00"></div>
+        <div class="sn">Rapid Fund Movement</div>
+        <div class="sv sv-o">TRIGGERED</div>
+      </div>
+      <div class="sig fu" id="sg4">
+        <div class="dot" style="background:#FF8C00"></div>
+        <div class="sn">High-risk Counterparty</div>
+        <div class="sv sv-o">TRIGGERED</div>
+      </div>
+    </div>
+
+    <div class="chips fu" id="chips">
+      <div class="chip">Layering</div>
+      <div class="chip">Mixer Obfuscation</div>
+      <div class="chip">Hop Layering</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCENE 3: Fund Flow Graph ══ -->
+<div class="scene" id="s3">
+  <div id="s3-head" class="fu">
+    <div class="badge b-cyan">Fund Flow Graph</div>
+    <div id="s3-title">Trace every hop.</div>
+    <div id="s3-sub">Click any node to follow the money.</div>
+  </div>
+
+  <div id="graph-wrap" class="fu">
+    <div id="graph-header">
+      <div id="gmode-badge"><div id="gmode-dot"></div>Investigation Mode</div>
+      <div id="gmode-addr">0x8589...FDA16</div>
+    </div>
+    <svg id="graphSvg" viewBox="0 0 346 310"></svg>
+    <div id="stats-bar" class="fu">
+      <span><span class="sc">6</span>&nbsp;Nodes</span>
+      <span class="sep">·</span>
+      <span><span class="sc">5</span>&nbsp;Edges</span>
+      <span class="sep">·</span>
+      <span>Depth&nbsp;<span class="sc">1</span></span>
+      <span class="sep">·</span>
+      <span><span class="sr">2</span>&nbsp;High-Risk</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCENE 4: SAR Draft ══ -->
+<div class="scene" id="s4">
+  <div id="s4-hrow" class="fu">
+    <div id="s4-title">AI-Generated SAR Draft</div>
+    <div class="badge b-dim">via Claude</div>
+  </div>
+
+  <div id="s4-card" class="fu">
+    <div class="sar-meta">
+      <div class="sf">
+        <div class="sf-l">Case</div>
+        <div class="sf-v">#SAR-2024-4421</div>
+      </div>
+      <div class="sf">
+        <div class="sf-l">Risk</div>
+        <div class="badge b-red" style="font-size:9px;padding:2px 7px;margin-top:2px;">CRITICAL 87/100</div>
+      </div>
+      <div class="sf">
+        <div class="sf-l">Status</div>
+        <div class="sf-v">Draft</div>
+      </div>
+    </div>
+    <div id="sar-wrap"><span id="sar-text"></span><span id="sar-cur"></span></div>
+  </div>
+</div>
+
+<!-- ══ SCENE 5: SDKs ══ -->
+<div class="scene" id="s5">
+  <div id="s5-head" class="fu">
+    <div id="s5-title">Available as SDKs</div>
+    <div id="s5-sub">Integrate ClearChain into your stack.</div>
+  </div>
+
+  <div class="term fu" id="term-py">
+    <div class="term-bar">
+      <div class="traf">
+        <div class="traf-d" style="background:#FF5F57"></div>
+        <div class="traf-d" style="background:#FEBC2E"></div>
+        <div class="traf-d" style="background:#28C840"></div>
+      </div>
+      <div class="term-lang py-c">Python</div>
+    </div>
+    <div class="term-body">
+      <div class="tl"><span class="pr">$ </span><span id="py1"></span></div>
+      <div class="tl"><span id="py2"></span></div>
+      <div class="tl"><span class="ok" id="py3"></span></div>
+    </div>
+  </div>
+
+  <div class="term fu" id="term-js">
+    <div class="term-bar">
+      <div class="traf">
+        <div class="traf-d" style="background:#FF5F57"></div>
+        <div class="traf-d" style="background:#FEBC2E"></div>
+        <div class="traf-d" style="background:#28C840"></div>
+      </div>
+      <div class="term-lang js-c">JavaScript</div>
+    </div>
+    <div class="term-body">
+      <div class="tl"><span class="pr">$ </span><span id="js1"></span></div>
+      <div class="tl"><span id="js2"></span></div>
+      <div class="tl"><span class="ok" id="js3"></span></div>
+    </div>
+  </div>
+
+  <div id="s5-foot" class="fu">Works wherever your compliance stack lives.</div>
+</div>
+
+<!-- ══ SCENE 6: CTA ══ -->
+<div class="scene" id="s6">
+  <div id="cta-glow"></div>
+  <div id="cta-mark" class="fu">CLEARCHAIN</div>
+  <div id="cta-tagline" class="fu">Built for investigators,<br>not checkboxes.</div>
+  <div id="cta-url" class="fu">
+    clearchain.vercel.app<span style="display:inline-block;width:2px;height:14px;background:#06B6D4;margin-left:3px;vertical-align:middle;animation:blink 1s step-end infinite;"></span>
+  </div>
+  <div id="cta-free"  class="fu">Free. Open source. No signup required.</div>
+  <div id="cta-nosig" class="fu">ETH · BTC · TRX · SOL</div>
+</div>
+
+</div><!-- #stage -->
+
+<script>
+const $    = id => document.getElementById(id);
+const ns   = 'http://www.w3.org/2000/svg';
+const wait = (ms, fn) => setTimeout(fn, ms);
+
+function svgEl(tag, attrs) {
+  const el = document.createElementNS(ns, tag);
+  for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+  return el;
+}
+
+function show(id, delay) {
+  wait(delay || 0, () => $(id) && $(id).classList.add('in'));
+}
+
+function typeInto(elId, text, ms, cb) {
+  const el = $(elId); if (!el) return;
+  let i = 0;
+  function step() {
+    if (i < text.length) { el.textContent += text[i++]; wait(ms, step); }
+    else if (cb) cb();
+  }
+  step();
+}
+
+/* ── SCENE 1 ─────────────────────────────────── */
+function initS1() {
+  show('s1-wordmark', 200);
+
+  // hero fades up; cursor appears WITH the text
+  wait(900, () => {
+    $('s1-hero').classList.add('in');
+    $('s1-cursor').style.opacity = '1';  // show cursor only after text
+  });
+
+  // draw underline + fade cursor out once underline settles
+  wait(1800, () => {
+    $('s1-uline').style.strokeDashoffset = '0';
+    wait(900, () => { $('s1-cursor').style.opacity = '0'; });
+  });
+
+  show('s1-sub',   2500);
+  show('s1-chips', 3100);
+}
+
+/* ── SCENE 2 ─────────────────────────────────── */
+function initS2() {
+  show('s2-card', 150);
+
+  // r=50 → circumference = 2π×50 = 314.159
+  const circ = 2 * Math.PI * 50;
+  const fill = $('gFill');
+  fill.style.strokeDasharray  = circ;
+  fill.style.strokeDashoffset = circ;
+
+  wait(420, () => {
+    const t0 = performance.now(), dur = 1900;
+    function frame(now) {
+      const p = Math.min((now - t0) / dur, 1);
+      const e = 1 - Math.pow(1 - p, 3);
+      $('scoreNum').textContent = Math.round(e * 87);
+      fill.style.strokeDashoffset = circ * (1 - e * 0.87);
+      if (p > 0.65) $('critBadge').style.opacity = '1';
+      if (p < 1) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  });
+
+  ['sg1','sg2','sg3','sg4'].forEach((id, i) => show(id, 1200 + i * 380));
+  show('chips', 3200);
+}
+
+/* ── SCENE 3 ─────────────────────────────────── */
+let s3done = false;
+function initS3() {
+  if (s3done) return; s3done = true;
+  show('s3-head',   100);
+  show('graph-wrap', 360);
+  wait(640, drawGraph);
+}
+
+function drawGraph() {
+  const svg = $('graphSvg');
+  svg.innerHTML = '';
+  const eG = svgEl('g', {}); svg.appendChild(eG);
+  const nG = svgEl('g', {}); svg.appendChild(nG);
+
+  // Layout: root centered, 5 children spread — all labels verified within viewBox 346×310
+  const ROOT = { x: 173, y: 148, r: 26, fill: '#06B6D4', label: '0x8589...FDA16' };
+  const KIDS = [
+    { x: 278, y: 65,  r: 20, fill: '#FF3B3B', label: 'Tornado Cash', sub: 'OFAC · Mixer', delay: 400  },
+    { x: 306, y: 182, r: 16, fill: '#FF8C00', label: '0x3f2a...',    sub: 'High-Risk',    delay: 700  },
+    { x: 262, y: 248, r: 20, fill: '#FF3B3B', label: 'OFAC Match',   sub: 'SDN List',     delay: 1000 },
+    { x: 50,  y: 248, r: 13, fill: '#0D1220', label: '0x9c4b...',    sub: 'Unexpanded',   delay: 1300, unexpanded: true },
+    { x: 46,  y: 72,  r: 13, fill: '#0D1220', label: '0x7e1d...',    sub: 'Unexpanded',   delay: 1600, unexpanded: true },
+  ];
+
+  /* ─ Root node ─ */
+  const rc = svgEl('circle', { cx: ROOT.x, cy: ROOT.y, r: 0, fill: ROOT.fill });
+  nG.appendChild(rc);
+  // Root label sits ABOVE the node — keeps it clear of downward edges
+  const rt = svgEl('text', {
+    x: ROOT.x, y: ROOT.y - ROOT.r - 9, 'text-anchor': 'middle',
+    'font-family': 'JetBrains Mono, monospace', 'font-size': '8.5',
+    fill: '#22D3EE', 'font-weight': '600', opacity: '0'
+  });
+  rt.textContent = ROOT.label;
+  nG.appendChild(rt);
+
+  let rr = 0;
+  (function growRoot() {
+    rr += 2.4; rc.setAttribute('r', Math.min(rr, ROOT.r));
+    if (rr < ROOT.r) requestAnimationFrame(growRoot);
+    else {
+      rt.style.transition = 'opacity 0.5s';
+      rt.setAttribute('opacity', '0.9');
+      startSonar();
+    }
+  })();
+
+  function startSonar() {
+    const ring = svgEl('circle', {
+      cx: ROOT.x, cy: ROOT.y, r: ROOT.r,
+      fill: 'none', stroke: '#22D3EE', 'stroke-width': '1.5'
+    });
+    nG.insertBefore(ring, rc);
+    let f = 0;
+    (function ping() {
+      const t = (f % 65) / 65;
+      ring.setAttribute('r', ROOT.r + t * 40);
+      ring.setAttribute('stroke-opacity', (1 - t) * 0.45);
+      f++; requestAnimationFrame(ping);
+    })();
+  }
+
+  /* ─ Child nodes ─ */
+  KIDS.forEach(kid => {
+    wait(kid.delay, () => {
+      /* Curved bezier edge */
+      const cx = (ROOT.x + kid.x) / 2 + (kid.x > ROOT.x ? 30 : -30);
+      const cy = (ROOT.y + kid.y) / 2;
+      const pathD = `M ${ROOT.x} ${ROOT.y} Q ${cx} ${cy} ${kid.x} ${kid.y}`;
+
+      const edge = svgEl('path', {
+        d: pathD, fill: 'none',
+        stroke: kid.unexpanded ? '#243040' : kid.fill,
+        'stroke-width': '1.5',
+        'stroke-opacity': kid.unexpanded ? '0.4' : '0.45',
+        'stroke-dasharray': kid.unexpanded ? '5 4' : '0'
+      });
+      eG.appendChild(edge);
+
+      if (!kid.unexpanded) {
+        const len = edge.getTotalLength();
+        edge.style.strokeDasharray = len;
+        edge.style.strokeDashoffset = len;
+        requestAnimationFrame(() => {
+          edge.style.transition = 'stroke-dashoffset 0.6s ease';
+          edge.style.strokeDashoffset = '0';
+        });
+      }
+
+      /* Node circle */
+      const circ = svgEl('circle', {
+        cx: kid.x, cy: kid.y, r: 0,
+        fill: kid.fill,
+        opacity: kid.unexpanded ? '0.6' : '0.92'
+      });
+      nG.appendChild(circ);
+      let ck = 0;
+      (function grow() {
+        ck += 2; circ.setAttribute('r', Math.min(ck, kid.r));
+        if (ck < kid.r) requestAnimationFrame(grow);
+        else if (kid.unexpanded) addDashedRing();
+      })();
+
+      /* Dashed ring for unexpanded nodes — matches website's "gray dashed-ring" state */
+      function addDashedRing() {
+        const ring = svgEl('circle', {
+          cx: kid.x, cy: kid.y, r: kid.r + 7,
+          fill: 'none', stroke: '#3D5A78', 'stroke-width': '1.5',
+          'stroke-dasharray': '4 3', opacity: '0'
+        });
+        nG.insertBefore(ring, circ);
+        wait(80, () => {
+          ring.style.transition = 'opacity 0.5s';
+          ring.setAttribute('opacity', '1');
+        });
+      }
+
+      /* Primary label */
+      const lblFill = kid.unexpanded ? '#3D5A78' : kid.fill;
+      const lbl = svgEl('text', {
+        x: kid.x, y: kid.y + kid.r + 13, 'text-anchor': 'middle',
+        'font-family': 'JetBrains Mono, monospace', 'font-size': '8.5',
+        fill: lblFill, 'font-weight': kid.unexpanded ? '400' : '600',
+        opacity: '0'
+      });
+      lbl.textContent = kid.label;
+      nG.appendChild(lbl);
+
+      /* Sub-label (type/status line) */
+      const subFill = kid.unexpanded ? '#243040' : 'rgba(255,255,255,0.38)';
+      const sub = svgEl('text', {
+        x: kid.x, y: kid.y + kid.r + 24, 'text-anchor': 'middle',
+        'font-family': 'Space Grotesk, sans-serif', 'font-size': '7.5',
+        fill: subFill, opacity: '0'
+      });
+      sub.textContent = kid.sub;
+      nG.appendChild(sub);
+
+      wait(300, () => {
+        lbl.style.transition = 'opacity 0.45s';
+        sub.style.transition = 'opacity 0.45s';
+        lbl.setAttribute('opacity', '0.9');
+        sub.setAttribute('opacity', '0.85');
+      });
+    });
+  });
+
+  wait(2200, () => show('stats-bar'));
+}
+
+/* ── SCENE 4: SAR ────────────────────────────── */
+let s4done = false;
+function initS4() {
+  if (s4done) return; s4done = true;
+  show('s4-hrow',  100);
+  show('s4-card',  280);
+
+  // ~396 chars at 11ms = 4.4s; starts at 0.58s → finishes at ~5.0s (scene is 7.5s)
+  const sarText =
+`SAR DRAFT — CASE #2024-4421
+────────────────────────────
+SUBJECT:    0x8589...FDA16 (ETH)
+RISK SCORE: 87/100 — CRITICAL
+
+SUMMARY OF SUSPICIOUS ACTIVITY:
+Subject wallet executed 23 txns
+totaling 847 ETH (~$2.1M USD)
+within 6 hours. Funds were routed
+through Tornado Cash — an
+OFAC-designated mixer on the SDN
+list (Exec. Order 13694).
+
+TYPOLOGIES IDENTIFIED:
+  · Layering / Mixer Obfuscation
+  · Rapid Fund Movement (<6 hrs)
+  · Hop Layering (3+ hops)
+  · High-Risk Counterparty (OFAC)
+
+LEGAL BASIS:
+  FinCEN FIN-2019-A003
+  31 U.S.C. § 5318(g)
+
+ACTION: File SAR. Deadline: 30d.`;
+
+  const textEl = $('sar-text');
+  let ci = 0;
+  wait(580, () => {
+    function typeChar() {
+      if (ci < sarText.length) {
+        textEl.textContent += sarText[ci++];
+        wait(11, typeChar);
+      } else {
+        wait(800, () => { $('sar-cur').style.display = 'none'; });
+      }
+    }
+    typeChar();
+  });
+}
+
+/* ── SCENE 5: SDKs ───────────────────────────── */
+let s5done = false;
+function initS5() {
+  if (s5done) return; s5done = true;
+  show('s5-head', 100);
+
+  // Scene 5 is 2800ms. Timing budget at 22/16/14ms per char:
+  // py: ends ~2242ms  js: ends ~2476ms  both comfortably finish
+  wait(360, () => {
+    show('term-py');
+    wait(200, () => typeInto('py1', 'pip install clearchain', 22, () =>
+      wait(130, () => typeInto('py2', 'from clearchain import ClearChain', 16, () =>
+        wait(130, () => typeInto('py3', '✓ clearchain 1.0.0 ready', 14))
+      ))
+    ));
+  });
+
+  wait(660, () => {
+    show('term-js');
+    wait(200, () => typeInto('js1', 'npm install clearchain-sdk', 22, () =>
+      wait(130, () => typeInto('js2', "await analyze('0x8589...')", 16, () =>
+        wait(130, () => typeInto('js3', '✓ CRITICAL · score: 87', 14))
+      ))
+    ));
+  });
+
+  show('s5-foot', 2500);
+}
+
+/* ── SCENE 6: CTA ────────────────────────────── */
+let s6done = false;
+function initS6() {
+  if (s6done) return; s6done = true;
+  show('cta-mark',    150);
+  show('cta-tagline', 400);
+  show('cta-url',     680);
+  show('cta-free',    950);
+  show('cta-nosig',  1200);
+}
+
+/* ── TIMELINE ────────────────────────────────── */
+const SCENES = [
+  { id: 's1', from: 0,     to: 10000, init: initS1 },  // 10s — Brand + hero
+  { id: 's2', from: 10000, to: 22000, init: initS2 },  // 12s — Wallet analysis
+  { id: 's3', from: 22000, to: 33000, init: initS3 },  // 11s — Investigation graph
+  { id: 's4', from: 33000, to: 46000, init: initS4 },  // 13s — SAR draft
+  { id: 's5', from: 46000, to: 55000, init: initS5 },  // 9s  — SDKs
+  { id: 's6', from: 55000, to: 63000, init: initS6 },  // 8s  — CTA
+];
+
+let t0 = null, activeId = null;
+
+function tick(ts) {
+  if (!t0) t0 = ts;
+  const ms = ts - t0;
+
+  const cur = SCENES.find(s => ms >= s.from && ms < s.to);
+  if (cur && cur.id !== activeId) {
+    if (activeId) {
+      const old = $(activeId);
+      old.style.transition = 'opacity 0.28s ease';
+      old.style.opacity = '0';
+      wait(280, () => old.classList.remove('on'));
+    }
+    activeId = cur.id;
+    const el = $(cur.id);
+    el.style.opacity = '0';
+    el.classList.add('on');
+    wait(40, () => {
+      el.style.transition = 'opacity 0.36s ease';
+      el.style.opacity = '1';
+    });
+    cur.init();
+  }
+
+  if (ms < SCENES[SCENES.length - 1].to) requestAnimationFrame(tick);
+}
+
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>

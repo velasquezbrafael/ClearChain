@@ -12,6 +12,15 @@ _Nothing active. See Planned for next priorities._
 
 ## Recently shipped
 
+### ~~Wallet attribution showcase — homepage card + /docs section~~ [DONE]
+Homepage feature grid updated to 2×3 (6 cards). New "17,000+ Labeled Wallets" card links to /docs#attribution. New /docs section between Risk Patterns and Our Data: 2×2 category grid (Exchanges, Scams, Notable Wallets, Sanctioned Entities) with GitHub issues link. Sections renumbered.
+
+### ~~Attribution data — evm-labels integration~~ [DONE — commit 5277e3f]
+Integrated dawsbot's `evm-labels` npm package into `lib/labels.ts`. Coverage: 26 hardcoded → 17,462 labeled addresses. Datasets: exchange, tokenContract, genesis, phishHack (phishHack wins on conflicts — risk label always surfaces). Hardcoded entries (Tornado Cash, Lazarus, Vitalik, etc.) still take priority. `getLabel()` signature unchanged.
+
+### ~~B2C homepage copy~~ [DONE]
+Hero subheadline rewritten from compliance-team language to "check a wallet before you transact" positioning. Badge updated to FREE WALLET CHECKER.
+
 ### ~~Graph filtering — hide non-high-risk nodes~~ [DONE]
 Toggle button in Investigation Mode stats bar. Hides LOW/MEDIUM nodes and their edges without resetting D3 simulation. Label toggles HIDE LOW RISK ↔ SHOW ALL. Active state uses #ffd60a accent.
 
