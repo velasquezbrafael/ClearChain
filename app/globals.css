@@ -134,6 +134,63 @@ body {
   30%      { transform: translate(60px, -80px) scale(1.1); }
   60%      { transform: translate(-80px, 40px) scale(0.9); }
 }
+@keyframes auroraBlob4 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  45%       { transform: translate(-60px, 80px) scale(1.15); }
+  75%       { transform: translate(70px, -50px) scale(0.92); }
+}
+@keyframes auroraPulse1 {
+  0%, 100% { opacity: 0.55; }
+  50%       { opacity: 0.82; }
+}
+@keyframes auroraPulse2 {
+  0%, 100% { opacity: 0.45; }
+  50%       { opacity: 0.72; }
+}
+@keyframes auroraPulse3 {
+  0%, 100% { opacity: 0.58; }
+  50%       { opacity: 0.85; }
+}
+@keyframes auroraPulse4 {
+  0%, 100% { opacity: 0.32; }
+  50%       { opacity: 0.56; }
+}
+
+/* ── Northern Lights split hero layout ──────────────────────── */
+.hero-split {
+  display: flex;
+  min-height: 100vh;
+  align-items: stretch;
+}
+.hero-left {
+  flex: 0 0 55%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 80px 48px 60px 64px;
+  text-align: left;
+}
+.hero-right {
+  flex: 0 0 45%;
+  position: relative;
+  overflow: hidden;
+  background: #03040a;
+}
+
+@media (max-width: 768px) {
+  .hero-split {
+    flex-direction: column;
+    min-height: auto;
+  }
+  .hero-left {
+    flex: none;
+    padding: 72px 24px 40px;
+    text-align: left;
+  }
+  .hero-right {
+    display: none;
+  }
+}
 
 /* ── Glassmorphism card ─────────────────────────────────────── */
 .glass {
