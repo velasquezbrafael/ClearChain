@@ -1408,6 +1408,7 @@ function HeroContent({
           animationDelay: '0.6s',
         }}
       >
+        {/* Top 5 cards — 3-col grid, Simulator card spans 2 to fill row 2 */}
         <div
           className="feature-grid"
           style={{
@@ -1418,17 +1419,111 @@ function HeroContent({
             alignItems: 'stretch',
           }}
         >
-          {features.map(f => (
-            <div key={f.title} style={{ background: '#00080f', display: 'flex', alignItems: 'stretch' }}>
-              {f.href ? (
-                <a href={f.href} style={{ textDecoration: 'none', display: 'flex', alignItems: 'stretch', width: '100%' }}>
-                  <FeatureCard title={f.title} desc={f.desc} icon={f.icon} />
-                </a>
-              ) : (
-                <FeatureCard title={f.title} desc={f.desc} icon={f.icon} />
-              )}
+          {features.slice(0, 5).map((f, i) => (
+            <div
+              key={f.title}
+              style={{
+                background: '#00080f',
+                display: 'flex',
+                alignItems: 'stretch',
+                ...(i === 4 ? { gridColumn: 'span 2' } : {}),
+              }}
+            >
+              <FeatureCard title={f.title} desc={f.desc} icon={f.icon} />
             </div>
           ))}
+        </div>
+
+        {/* Attribution hero stat card — full width below grid */}
+        <div style={{ marginTop: 1, background: 'rgba(6,182,212,0.05)' }}>
+          <a href="/docs#attribution" style={{ textDecoration: 'none', display: 'block' }}>
+            <div
+              style={{
+                background: '#080b14',
+                borderLeft: '4px solid rgba(0,255,136,0.3)',
+                padding: '32px 40px',
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                gap: '32px 48px',
+              }}
+            >
+              {/* Stat */}
+              <div style={{ flex: '0 0 auto' }}>
+                <div
+                  style={{
+                    fontFamily: 'var(--font-jetbrains-mono)',
+                    fontSize: 48,
+                    fontWeight: 700,
+                    color: '#00ff88',
+                    lineHeight: 1,
+                    letterSpacing: '-0.02em',
+                  }}
+                >
+                  17,000+
+                </div>
+                <div
+                  style={{
+                    fontFamily: 'var(--font-jetbrains-mono)',
+                    fontSize: 10,
+                    letterSpacing: '0.2em',
+                    color: 'rgba(0,255,136,0.5)',
+                    textTransform: 'uppercase' as const,
+                    marginTop: 6,
+                  }}
+                >
+                  Labeled Wallets
+                </div>
+              </div>
+
+              {/* Description + pills */}
+              <div style={{ flex: '1 1 240px' }}>
+                <div
+                  style={{
+                    fontFamily: 'var(--font-space-grotesk)',
+                    fontSize: 15,
+                    color: '#94a3b8',
+                    lineHeight: 1.6,
+                    marginBottom: 16,
+                  }}
+                >
+                  Every analysis cross-references a database of known exchanges, scam wallets, phishing addresses, DeFi protocols, and flagged entities — so you know exactly who you&apos;re dealing with.
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {['Exchanges', 'Scam Wallets', 'DeFi Protocols', 'Phishing'].map(tag => (
+                    <span
+                      key={tag}
+                      style={{
+                        fontFamily: 'var(--font-jetbrains-mono)',
+                        fontSize: 11,
+                        color: 'rgba(0,255,136,0.7)',
+                        border: '1px solid rgba(0,255,136,0.2)',
+                        borderRadius: 20,
+                        padding: '3px 10px',
+                        letterSpacing: '0.05em',
+                      }}
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* CTA */}
+              <div style={{ flex: '0 0 auto' }}>
+                <span
+                  style={{
+                    fontFamily: 'var(--font-jetbrains-mono)',
+                    fontSize: 12,
+                    color: '#06b6d4',
+                    letterSpacing: '0.05em',
+                  }}
+                >
+                  Explore attribution data →
+                </span>
+              </div>
+            </div>
+          </a>
         </div>
       </div>
 
