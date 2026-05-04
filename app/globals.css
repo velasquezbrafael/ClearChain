@@ -175,6 +175,20 @@ input, textarea {
   caret-color: #06b6d4;
 }
 
+/* ── iOS: prevent auto-zoom on input focus (requires font-size >= 16px) ── */
+@media (max-width: 768px) {
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+}
+
+/* ── Touch targets: min 44px for all interactive elements on mobile ── */
+@media (max-width: 768px) {
+  button, [role="button"], a, select {
+    min-height: 44px;
+  }
+}
+
 /* Hero headline — single line on desktop */
 .hero-headline {
   font-size: clamp(3rem, 8vw, 6rem);

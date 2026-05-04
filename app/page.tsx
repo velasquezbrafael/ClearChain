@@ -1717,7 +1717,7 @@ function SaveToCaseButton({ address, analysisId }: { address: string; analysisId
           <select
             value={selectedCase}
             onChange={e => setSelectedCase(e.target.value)}
-            style={{ width: '100%', background: '#00080f', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 3, color: '#ecfeff', fontSize: 12, padding: '8px 10px', fontFamily: 'var(--font-jetbrains-mono)' }}
+            style={{ width: '100%', background: '#00080f', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 3, color: '#ecfeff', fontSize: 16, padding: '8px 10px', fontFamily: 'var(--font-jetbrains-mono)' }}
           >
             <option value="">Select a case...</option>
             {cases.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
@@ -1729,7 +1729,7 @@ function SaveToCaseButton({ address, analysisId }: { address: string; analysisId
             onChange={e => setNewTitle(e.target.value)}
             placeholder="Case name..."
             autoFocus
-            style={{ width: '100%', boxSizing: 'border-box', background: 'transparent', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.15)', color: '#ecfeff', fontSize: 13, padding: '6px 0', outline: 'none', fontFamily: 'var(--font-jetbrains-mono)' }}
+            style={{ width: '100%', boxSizing: 'border-box', background: 'transparent', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.15)', color: '#ecfeff', fontSize: 16, padding: '6px 0', outline: 'none', fontFamily: 'var(--font-jetbrains-mono)' }}
           />
         )}
       </div>
@@ -1967,7 +1967,7 @@ function ResultsAddressBar({
             border: 'none',
             outline: 'none',
             fontFamily: 'var(--font-jetbrains-mono)',
-            fontSize: 12,
+            fontSize: 16,
             color: 'var(--text-primary)',
             caretColor: '#06b6d4',
             width: 220,
@@ -2387,11 +2387,13 @@ export default function HomePage() {
           position: 'sticky',
           top: 0,
           zIndex: 50,
-          height: 56,
+          height: 'calc(56px + env(safe-area-inset-top))',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '0 32px',
+          paddingTop: 'env(safe-area-inset-top)',
+          paddingLeft: 32,
+          paddingRight: 32,
           borderBottom: '1px solid rgba(6,182,212,0.08)',
           background: 'rgba(0,8,15,0.75)',
           backdropFilter: 'blur(16px)',
