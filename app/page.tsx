@@ -886,9 +886,11 @@ function HeroContent({
           style={{
             fontFamily: 'var(--font-jetbrains-mono)',
             fontSize: 11,
-            letterSpacing: '0.25em',
+            letterSpacing: '0.3em',
             color: 'rgba(6,182,212,0.6)',
             marginBottom: 28,
+            borderLeft: '3px solid rgba(6,182,212,0.5)',
+            paddingLeft: 12,
             animation: 'fadeSlideUp 0.5s ease-out both',
             animationDelay: '0s',
           }}
@@ -907,7 +909,7 @@ function HeroContent({
               color: 'var(--text-primary)',
               letterSpacing: '0.02em',
               margin: '0 0 10px',
-              minHeight: 'clamp(3rem, 8vw, 6rem)',
+              minHeight: 'clamp(2.8rem, 6vw, 5.5rem)',
               paddingBottom: 6,
             }}
           >
@@ -931,10 +933,10 @@ function HeroContent({
         <p
           style={{
             fontFamily: 'var(--font-inter)',
-            fontSize: 17,
-            color: 'var(--text-secondary)',
-            lineHeight: 1.55,
-            margin: '0 0 48px',
+            fontSize: 18,
+            color: 'rgba(236,254,255,0.7)',
+            lineHeight: 1.65,
+            margin: '0 0 0',
             maxWidth: 620,
             animation: 'fadeSlideUp 0.5s ease-out both',
             animationDelay: '0.25s',
@@ -944,13 +946,16 @@ function HeroContent({
         </p>
 
         {/* Live stats */}
-        <StatsBar />
+        <div style={{ marginTop: 32, marginBottom: 40 }}>
+          <StatsBar />
+        </div>
 
         {/* Search bar */}
         <form
           onSubmit={onSubmit}
           style={{
             width: '100%',
+            maxWidth: 560,
             animation: 'fadeSlideUp 0.5s ease-out both',
             animationDelay: '0.4s',
           }}
@@ -1032,7 +1037,7 @@ function HeroContent({
                 border: 'none',
                 outline: 'none',
                 fontFamily: 'var(--font-jetbrains-mono)',
-                fontSize: 20,
+                fontSize: 15,
                 color: 'var(--text-primary)',
                 caretColor: '#06b6d4',
                 letterSpacing: '0.02em',
@@ -1286,13 +1291,13 @@ function HeroContent({
           {/* Blob 1 — primary cyan */}
           <div style={{
             position: 'absolute',
-            top: '5%',
-            left: '10%',
-            width: '70%',
-            height: '55%',
+            top: '15%',
+            left: '20%',
+            width: '80%',
+            height: '60%',
             borderRadius: '50%',
-            background: 'radial-gradient(ellipse at center, rgba(6,182,212,0.38) 0%, rgba(6,182,212,0.12) 45%, transparent 70%)',
-            filter: 'blur(32px)',
+            background: 'radial-gradient(ellipse at center, rgba(6,182,212,0.65) 0%, rgba(6,182,212,0.2) 45%, transparent 70%)',
+            filter: 'blur(48px)',
             animation: 'auroraBlob1 11s ease-in-out infinite, auroraPulse1 11s ease-in-out infinite',
             zIndex: 1,
           }} />
@@ -1300,40 +1305,52 @@ function HeroContent({
           <div style={{
             position: 'absolute',
             top: '40%',
-            left: '25%',
-            width: '60%',
-            height: '50%',
+            left: '35%',
+            width: '75%',
+            height: '55%',
             borderRadius: '50%',
-            background: 'radial-gradient(ellipse at center, rgba(34,211,238,0.28) 0%, rgba(34,211,238,0.08) 45%, transparent 70%)',
-            filter: 'blur(28px)',
+            background: 'radial-gradient(ellipse at center, rgba(34,211,238,0.50) 0%, rgba(34,211,238,0.14) 45%, transparent 70%)',
+            filter: 'blur(40px)',
             animation: 'auroraBlob2 14s ease-in-out infinite, auroraPulse2 14s ease-in-out infinite',
             zIndex: 1,
           }} />
           {/* Blob 3 — accent green */}
           <div style={{
             position: 'absolute',
-            top: '55%',
-            left: '5%',
-            width: '65%',
-            height: '45%',
+            top: '60%',
+            left: '10%',
+            width: '70%',
+            height: '50%',
             borderRadius: '50%',
-            background: 'radial-gradient(ellipse at center, rgba(0,255,136,0.2) 0%, rgba(0,255,136,0.06) 45%, transparent 70%)',
-            filter: 'blur(36px)',
+            background: 'radial-gradient(ellipse at center, rgba(0,255,136,0.38) 0%, rgba(0,255,136,0.10) 45%, transparent 70%)',
+            filter: 'blur(52px)',
             animation: 'auroraBlob3 9s ease-in-out infinite, auroraPulse3 9s ease-in-out infinite',
             zIndex: 1,
           }} />
           {/* Blob 4 — deep teal anchor glow */}
           <div style={{
             position: 'absolute',
-            top: '15%',
-            left: '35%',
-            width: '75%',
-            height: '65%',
+            top: '25%',
+            left: '45%',
+            width: '90%',
+            height: '70%',
             borderRadius: '50%',
-            background: 'radial-gradient(ellipse at center, rgba(13,36,51,0.85) 0%, rgba(6,182,212,0.14) 55%, transparent 78%)',
-            filter: 'blur(24px)',
+            background: 'radial-gradient(ellipse at center, rgba(13,36,51,0.7) 0%, rgba(6,182,212,0.45) 55%, transparent 78%)',
+            filter: 'blur(60px)',
             animation: 'auroraBlob4 16s ease-in-out infinite, auroraPulse4 16s ease-in-out infinite',
             zIndex: 1,
+          }} />
+          {/* Horizontal scan line */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 1,
+            background: 'rgba(6,182,212,0.15)',
+            animation: 'auroraScanner 8s linear infinite',
+            zIndex: 4,
+            pointerEvents: 'none',
           }} />
           {/* Left-edge fade — blends into page background */}
           <div style={{
@@ -1342,7 +1359,7 @@ function HeroContent({
             left: 0,
             bottom: 0,
             width: 100,
-            background: 'linear-gradient(to right, #03040a, transparent)',
+            background: 'linear-gradient(to right, #00080f, transparent)',
             zIndex: 3,
             pointerEvents: 'none',
           }} />
