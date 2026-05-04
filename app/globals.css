@@ -195,14 +195,14 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 120px 48px 80px 64px;
+  padding: 80px 48px 60px 64px;
 }
 
 .hero-right {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 120px 56px 80px 40px;
+  padding: 80px 56px 60px 40px;
 }
 
 @media (max-width: 900px) {

@@ -77,7 +77,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Bypass build CSS stripping — inject backdrop-filter directly */}
         <style dangerouslySetInnerHTML={{ __html: `.glass { backdrop-filter: blur(28px) !important; -webkit-backdrop-filter: blur(28px) !important; }` }} />
 
-        {/* Scan line — sweeps top→bottom every 8s */}
+        {/* Scan line — sweeps top→bottom every 8s, behind all page content */}
         <div
           aria-hidden="true"
           style={{
@@ -86,9 +86,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             left: 0,
             right: 0,
             height: 1,
-            background: 'linear-gradient(90deg, transparent 0%, rgba(6,182,212,0.6) 30%, rgba(34,211,238,0.4) 70%, transparent 100%)',
+            background: 'linear-gradient(90deg, transparent 0%, rgba(6,182,212,0.2) 30%, rgba(34,211,238,0.12) 70%, transparent 100%)',
             animation: 'auroraScanner 8s linear infinite',
-            zIndex: 9998,
+            zIndex: 0,
             pointerEvents: 'none',
           }}
         />

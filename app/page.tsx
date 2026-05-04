@@ -892,8 +892,17 @@ function HeroContent({
           FREE WALLET CHECKER
         </div>
 
-        {/* Glitch scramble headline */}
-        <div style={{ margin: '0 0 28px', animation: 'fadeSlideUp 0.5s ease-out both', animationDelay: '0.1s' }}>
+        {/* Glitch scramble headline — fixed height so scramble never shifts layout */}
+        <div style={{
+          height: 'clamp(4.2rem, 9vw, 8rem)',
+          margin: '0 0 28px',
+          animation: 'fadeSlideUp 0.5s ease-out both',
+          animationDelay: '0.1s',
+          overflow: 'visible',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'flex-start',
+        }}>
           <h1
             className="hero-headline"
             style={{
@@ -903,7 +912,7 @@ function HeroContent({
               color: 'var(--text-primary)',
               letterSpacing: '0.02em',
               margin: '0 0 10px',
-              minHeight: 'clamp(2.8rem, 6vw, 5.5rem)',
+              width: '100%',
               paddingBottom: 6,
             }}
           >
@@ -917,6 +926,8 @@ function HeroContent({
               color: 'var(--text-dim)',
               opacity: langVisible ? 1 : 0,
               transition: 'opacity 0.3s ease',
+              height: 16,
+              flexShrink: 0,
             }}
           >
             [ {currentLang} ]
