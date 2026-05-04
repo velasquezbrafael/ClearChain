@@ -5,7 +5,7 @@
  * Four sections with anchor nav: #scoring · #typologies · #sources · #sar
  */
 
-import { createClient } from '@/lib/supabase/server'
+import SiteNav from '@/components/SiteNav'
 
 // ---------------------------------------------------------------------------
 // Data
@@ -151,30 +151,13 @@ const SOURCES = [
 // ---------------------------------------------------------------------------
 
 export default async function DocsPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
   const mono = 'var(--font-jetbrains-mono)'
   const grotesk = 'var(--font-space-grotesk)'
 
   return (
     <div style={{ minHeight: '100vh', background: '#03040a', color: 'var(--text-primary)' }}>
 
-      {/* Nav */}
-      <nav style={{ position: 'sticky', top: 0, zIndex: 50, height: 52, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 32px', borderBottom: '1px solid rgba(6,182,212,0.08)', background: 'rgba(3,4,10,0.92)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-          <a href="/" style={{ fontFamily: mono, fontSize: 14, letterSpacing: '0.15em', color: '#22d3ee', textDecoration: 'none', fontWeight: 700 }}>CLEARCHAIN</a>
-          <span style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.1em', color: '#00ff88' }}>DOCS</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-          <a href="/api-docs" style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.1em', color: 'var(--text-dim)', textDecoration: 'none' }}>API DOCS</a>
-          <a href="/" style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.1em', color: 'var(--text-dim)', textDecoration: 'none' }}>TOOL →</a>
-          {user
-            ? <a href="/dashboard" style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.1em', color: '#00ff88', textDecoration: 'none' }}>DASHBOARD →</a>
-            : <a href="/auth/login" style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.1em', color: 'var(--text-dim)', textDecoration: 'none' }}>SIGN IN →</a>
-          }
-        </div>
-      </nav>
+      <SiteNav activePage="docs" />
 
       {/* Header */}
       <div style={{ borderBottom: '1px solid rgba(6,182,212,0.06)', padding: '56px 32px 48px', maxWidth: 900, margin: '0 auto' }}>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
+import SiteNav from '@/components/SiteNav';
 
 const BASE_URL = (
   process.env.NEXT_PUBLIC_BASE_URL ??
@@ -78,39 +78,7 @@ export default function ApiDocsPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#00080f', color: 'var(--text-primary)' }}>
-      {/* Nav */}
-      <nav
-        style={{
-          position: 'sticky', top: 0, zIndex: 50,
-          height: 56, display: 'flex', alignItems: 'center',
-          justifyContent: 'space-between', padding: '0 32px',
-          borderBottom: '1px solid rgba(6,182,212,0.05)',
-          background: 'rgba(3,4,10,0.92)', backdropFilter: 'blur(16px)',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-          <Link
-            href="/"
-            style={{
-              fontFamily: 'var(--font-space-grotesk)', fontSize: 15, fontWeight: 700,
-              letterSpacing: '0.12em', color: 'var(--text-primary)', textDecoration: 'none',
-            }}
-          >
-            CLEARCHAIN
-          </Link>
-          <Link href="/" style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>
-            ← Back to Tool
-          </Link>
-        </div>
-        <span
-          style={{
-            fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10,
-            letterSpacing: '0.12em', color: '#06b6d4',
-          }}
-        >
-          API REFERENCE
-        </span>
-      </nav>
+      <SiteNav activePage="api-docs" />
 
       <div style={{ maxWidth: 860, margin: '0 auto', padding: '64px 32px 96px' }}>
         {/* Page header */}
