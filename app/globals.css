@@ -192,14 +192,14 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 80px 360px 60px 64px;
+  padding: 80px 410px 60px 64px;
   overflow: hidden;
 }
 
 .hero-right {
   position: absolute;
   top: 80px;
-  right: 36px;
+  right: 80px;
   width: 300px;
 }
 
