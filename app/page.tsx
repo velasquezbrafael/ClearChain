@@ -2393,11 +2393,13 @@ export default function HomePage() {
   }
 
   function handleQuickFill(addr: string) {
+    if (!isAuthed) { setShowAuthModal(true); return; }
     setAddress(addr);
     runAnalysis(addr, selectedChain);
   }
 
   function handleSimulatorFill() {
+    if (!isAuthed) { setShowAuthModal(true); return; }
     pendingTabRef.current = 'SIMULATOR';
     setAddress(TORNADO_CASH);
     runAnalysis(TORNADO_CASH);
