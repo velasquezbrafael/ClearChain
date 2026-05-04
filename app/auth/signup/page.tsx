@@ -59,8 +59,11 @@ export default function SignupPage() {
           <div style={{ fontSize: 13, letterSpacing: '0.2em', color: '#06b6d4', fontFamily: 'var(--font-jetbrains-mono)', marginBottom: 8 }}>
             CLEARCHAIN
           </div>
+          <div style={{ fontSize: 14, color: '#7ec8d8', marginBottom: 16 }}>
+            Check any wallet before you send
+          </div>
           <div style={{ fontSize: 22, fontWeight: 600, color: '#ecfeff' }}>
-            Create your account
+            Create your free account
           </div>
         </div>
 
@@ -77,7 +80,7 @@ export default function SignupPage() {
             </div>
             <div style={{ color: '#7ec8d8', fontSize: 13 }}>
               We sent a confirmation link to <strong style={{ color: '#ecfeff' }}>{email}</strong>.
-              Click it to activate your account.
+              Click it and you&apos;ll be taken straight to your wallet check.
             </div>
             <div style={{ marginTop: 20 }}>
               <a href="/auth/login" style={{ color: '#06b6d4', fontSize: 13, textDecoration: 'none' }}>

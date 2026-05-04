@@ -30,7 +30,7 @@ export default function LoginPage() {
       return
     }
 
-    router.push('/dashboard')
+    router.push('/')
     router.refresh()
   }
 
@@ -48,6 +48,9 @@ export default function LoginPage() {
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
           <div style={{ fontSize: 13, letterSpacing: '0.2em', color: '#06b6d4', fontFamily: 'var(--font-jetbrains-mono)', marginBottom: 8 }}>
             CLEARCHAIN
+          </div>
+          <div style={{ fontSize: 14, color: '#7ec8d8', marginBottom: 16 }}>
+            Your wallet safety check is ready
           </div>
           <div style={{ fontSize: 22, fontWeight: 600, color: '#ecfeff' }}>
             Sign in to your account
