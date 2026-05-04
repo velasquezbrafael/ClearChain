@@ -186,12 +186,13 @@ body {
 .hero-section {
   position: relative;
   display: block;
+  min-height: 540px;
 }
 
 .hero-left {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   padding: 80px 410px 60px 64px;
   overflow: hidden;
 }

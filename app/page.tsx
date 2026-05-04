@@ -758,7 +758,7 @@ function HeroContent({
   const features = [
     {
       title: 'Risk Score',
-      desc: '0–100 weighted score across 6 signals. OFAC match, mixer interaction, peel chains, coinjoin detection. Every point explained — no black box.',
+      desc: 'A clear 0–100 safety score based on 6 signals. See instantly if a wallet is clean, suspicious, or flagged — with every reason explained.',
       icon: (
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
           <path d="M3 14 A8 8 0 0 1 17 14" stroke="#06b6d4" strokeWidth="1.5" strokeLinecap="round"/>
@@ -768,8 +768,8 @@ function HeroContent({
       ),
     },
     {
-      title: 'AML Typologies',
-      desc: '7 FATF/FinCEN typologies automatically matched: smurfing, layering, mixer obfuscation, hop layering, convergence, peel chain, coinjoin. With regulatory citations.',
+      title: 'Pattern Detection',
+      desc: '7 suspicious behavior patterns detected automatically: mixer usage, layering, hop chains, peel chains, coinjoin, smurfing, and convergence. Each match explains exactly what it means.',
       icon: (
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
           <circle cx="10" cy="4" r="2" stroke="#06b6d4" strokeWidth="1.5"/>
@@ -782,7 +782,7 @@ function HeroContent({
     },
     {
       title: 'Fund Flow Graph',
-      desc: 'Click any node to follow the money. Trace funds across hops, identify OFAC entities in red, detect when two wallets share a counterparty.',
+      desc: 'Click any node to follow the money. Trace funds across hops, spot risky connections in red, and see when two wallets share a counterparty.',
       icon: (
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
           <circle cx="10" cy="10" r="2" stroke="#06b6d4" strokeWidth="1.5"/>
@@ -798,8 +798,8 @@ function HeroContent({
       ),
     },
     {
-      title: 'SAR Draft',
-      desc: 'FinCEN-format Suspicious Activity Report generated in seconds. The work that takes compliance teams 2–3 hours — automated.',
+      title: 'Safety Report',
+      desc: 'A plain-language AI safety report generated in seconds. Download it, share it, or keep it as a record of your due diligence.',
       icon: (
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
           <rect x="4" y="2" width="12" height="16" rx="1" stroke="#06b6d4" strokeWidth="1.5"/>
@@ -811,7 +811,7 @@ function HeroContent({
     },
     {
       title: 'Simulator',
-      desc: 'Toggle any risk signal on or off to see exactly what\'s driving a score. Built for ruling out false positives — isolate a single flag, understand its impact, and decide whether it actually warrants escalation.',
+      desc: 'Toggle any risk signal on or off to see exactly what\'s driving a score. Isolate a single flag, understand its impact, and decide whether a wallet is actually risky or a false alarm.',
       icon: (
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
           <line x1="3" y1="5" x2="17" y2="5" stroke="#06b6d4" strokeWidth="1.5" strokeLinecap="round"/>
@@ -1299,17 +1299,17 @@ function HeroContent({
             {
               n: '01',
               title: 'SCREEN',
-              body: "Paste any ETH, BTC, TRX, or SOL address. ClearChain pulls on-chain history, cross-references OFAC’s SDN list, and scores risk across 6 signals in seconds.",
+              body: "Paste any ETH, BTC, TRX, or SOL address. ClearChain checks it against known scam wallets, sanctioned addresses, and on-chain risk signals in under 10 seconds.",
             },
             {
               n: '02',
               title: 'INVESTIGATE',
-              body: 'Click any node in the fund flow graph to trace money across hops. Identify mixers, layering patterns, and sanctioned counterparties up to 4 hops deep.',
+              body: 'See exactly who this wallet has been sending money to. Click any node in the fund flow graph to trace connections and spot risky wallets up to 4 hops deep.',
             },
             {
               n: '03',
-              title: 'FILE',
-              body: 'Export a FinCEN-formatted SAR narrative, pre-written by AI and ready for compliance review. No blank page. No 3-hour write-up.',
+              title: 'REPORT',
+              body: 'Download a clear AI-written safety summary in seconds. Share it, save it, or use it to make a confident decision before you send.',
             },
           ] as const).map(({ n, title, body }) => (
             <div
@@ -1369,7 +1369,7 @@ function HeroContent({
           }}
         >
           <span style={{ color: '#7ec8d8' }}>BUILT FOR:</span>
-          {' '}Crypto exchanges · Fintech compliance teams · Financial investigators · AML developers
+          {' '}Crypto holders · DeFi users · NFT traders · Anyone sending on-chain
         </div>
       </div>
 
@@ -1514,10 +1514,10 @@ function HeroContent({
               Why ClearChain
             </div>
             <h2 style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 36, fontWeight: 700, color: '#ecfeff', margin: '0 0 16px', letterSpacing: '-0.01em' }}>
-              Built for investigators, not checkboxes.
+              Know exactly what you&apos;re dealing with.
             </h2>
             <p style={{ fontFamily: 'var(--font-inter)', fontSize: 16, color: '#7ec8d8', margin: 0, lineHeight: 1.6, whiteSpace: 'nowrap' }}>
-              Most AML tools produce reports for regulators. ClearChain produces intelligence for analysts.
+              Most tools give you a number with no explanation. ClearChain shows you exactly why — and what to do about it.
             </p>
           </div>
 
@@ -1525,16 +1525,16 @@ function HeroContent({
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', marginBottom: 64 }}>
             {[
               {
-                left: { label: 'LEGACY TOOLS', body: 'Black-box scores. A number with no explanation. You file a SAR because the score said so.' },
+                left: { label: 'OTHER TOOLS', body: 'Black-box scores. A number with no explanation — no way to know if it\'s a false alarm.' },
                 right: { label: 'CLEARCHAIN', body: 'Every point explained. Six signals, each with detail. You know exactly why a wallet scored 65.' },
               },
               {
-                left: { label: 'LEGACY TOOLS', body: 'Ethereum-only, or multi-chain at 10× the price. Bitcoin, Tron, and Solana are afterthoughts.' },
+                left: { label: 'OTHER TOOLS', body: 'ETH only, or multi-chain at 10× the price. Bitcoin, Tron, and Solana are afterthoughts.' },
                 right: { label: 'CLEARCHAIN', body: 'ETH, BTC, TRX, and SOL in one tool. OFAC-designated addresses across all four chains. Free.' },
               },
               {
-                left: { label: 'LEGACY TOOLS', body: 'SAR generation is a separate workflow. Copy the report, open another tool, rewrite it.' },
-                right: { label: 'CLEARCHAIN', body: 'SAR draft generated automatically from the analysis. One click to download. BSA-formatted.' },
+                left: { label: 'OTHER TOOLS', body: 'Report generation is a separate step. Copy the data, open another tool, rewrite everything by hand.' },
+                right: { label: 'CLEARCHAIN', body: 'Safety report generated automatically from the analysis. One click to download. Plain language.' },
               },
             ].map((row, i) => (
               <>
@@ -1555,7 +1555,7 @@ function HeroContent({
             {[
               { value: '< 10s', label: 'average analysis time' },
               { value: '4 chains', label: 'ETH, BTC, TRX, SOL' },
-              { value: 'Free', label: 'no account required' },
+              { value: 'Free', label: 'sign up free' },
             ].map((stat, i) => (
               <>
                 {i > 0 && <div key={`div-${i}`} style={{ width: 1, height: 40, background: 'rgba(6,182,212,0.08)', margin: '0 48px' }} />}
@@ -2536,7 +2536,7 @@ export default function HomePage() {
                 borderLeft: '1px solid rgba(6,182,212,0.08)',
               }}
             >
-              Crypto Intelligence Platform
+              Know before you send
             </span>
           )}
         </div>
@@ -2898,7 +2898,7 @@ export default function HomePage() {
                   color: 'rgba(255,59,59,0.6)',
                 }}
               >
-                MANDATORY SAR CONSIDERATION REQUIRED
+                SANCTIONED ADDRESS — DO NOT SEND
               </span>
             </div>
           )}
@@ -3040,9 +3040,9 @@ export default function HomePage() {
               {displayTabs.map(tab => {
                 const isActive = activeTab === tab;
                 const tabTooltips: Record<string, string> = {
-                  'TYPOLOGIES': 'FATF and FinCEN-recognized money laundering patterns. Matched against your wallet\'s on-chain behavior. Each match includes the regulatory citation and the specific evidence found.',
-                  'NARRATIVE': 'An AI-generated chain-of-custody summary written for compliance review. Traces fund flow from origin to destination. Generated by Claude — verify before use in official filings.',
-                  'SAR DRAFT': 'A draft Suspicious Activity Report in FinCEN format. This is NOT a filed SAR — it must be reviewed and approved by a qualified BSA/AML compliance officer before submission.',
+                  'TYPOLOGIES': 'Suspicious behavior patterns detected in this wallet\'s on-chain activity. Each match includes the pattern type and the specific evidence found.',
+                  'NARRATIVE': 'An AI-generated summary of this wallet\'s activity. Traces fund flow from origin to destination. Generated by Claude — review before relying on it for important decisions.',
+                  'SAR DRAFT': 'An AI-written safety report summarizing risk findings. Download it or share it as a record of your review.',
                   'TRANSACTIONS': 'Raw on-chain transactions fetched from Alchemy. Includes ETH transfers, ERC-20 token transfers, and internal transactions. Sorted by timestamp.',
                   'SIMULATOR': 'Counterfactual scenario modeling — toggle risk signals on/off to see the score change in real time. Click Generate Scenario Narrative to get an AI description of what this wallet would look like under the simulated conditions.',
                   'FLOW': 'Visual Sankey diagram of inbound ETH flows. Shows where funds originated, ribbon thickness proportional to ETH volume. Red nodes = known mixers (OFAC-designated), orange = high-risk counterparties.',
@@ -3169,7 +3169,7 @@ export default function HomePage() {
                 color: 'var(--text-dim)',
               }}
             >
-              CLEARCHAIN v2 — Multi-chain AML intelligence. Not legal advice. SAR drafts require qualified BSA/AML officer review before filing.
+              CLEARCHAIN — Free wallet safety checks. Not financial or legal advice. Always do your own research before sending.
             </span>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
               <a
