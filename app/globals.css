@@ -162,39 +162,23 @@ body {
   100% { transform: translateY(100vh); opacity: 0; }
 }
 
-/* ── Northern Lights split hero layout ──────────────────────── */
-.hero-split {
-  display: flex;
+/* ── Full-page hero — content sits over fixed aurora background ── */
+.hero-section {
   min-height: 100vh;
-  align-items: stretch;
-}
-.hero-left {
-  flex: 0 0 55%;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 0px 48px 60px 64px;
-  text-align: left;
+  align-items: center;
+  padding: 120px 64px 80px;
 }
-.hero-right {
-  flex: 0 0 45%;
-  position: relative;
-  overflow: hidden;
-  background: #00080f;
+.hero-content {
+  width: 100%;
+  max-width: 680px;
 }
 
 @media (max-width: 768px) {
-  .hero-split {
-    flex-direction: column;
+  .hero-section {
     min-height: auto;
-  }
-  .hero-left {
-    flex: none;
-    padding: 60px 20px 40px;
-    text-align: left;
-  }
-  .hero-right {
-    display: none;
+    padding: 100px 24px 60px;
+    align-items: flex-start;
   }
 }
 

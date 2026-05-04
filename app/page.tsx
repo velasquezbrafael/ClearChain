@@ -876,11 +876,9 @@ function HeroContent({
         background: `radial-gradient(600px at ${spotlightPos.x}px ${spotlightPos.y}px, rgba(6,182,212,0.05), transparent 70%)`,
       }}
     >
-      {/* ── Northern Lights split layout ─────────────────────── */}
-      <div className="hero-split">
-
-        {/* LEFT COLUMN — text + scan form */}
-        <div className="hero-left">
+      {/* ── Hero — content over full-page aurora (layout.tsx fixed bg) ── */}
+      <div className="hero-section">
+        <div className="hero-content">
         {/* Label */}
         <div
           style={{
@@ -1275,97 +1273,8 @@ function HeroContent({
             ))}
           </div>
         )}
-        </div>{/* end hero-left */}
-
-        {/* RIGHT COLUMN — Aurora Borealis visual */}
-        <div className="hero-right">
-          {/* Particle / star layer */}
-          <div style={{
-            position: 'absolute',
-            inset: 0,
-            backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.12) 1px, transparent 1px)',
-            backgroundSize: '28px 28px',
-            opacity: 0.3,
-            zIndex: 0,
-          }} />
-          {/* Blob 1 — primary cyan */}
-          <div style={{
-            position: 'absolute',
-            top: '15%',
-            left: '20%',
-            width: '80%',
-            height: '60%',
-            borderRadius: '50%',
-            background: 'radial-gradient(ellipse at center, rgba(6,182,212,0.65) 0%, rgba(6,182,212,0.2) 45%, transparent 70%)',
-            filter: 'blur(48px)',
-            animation: 'auroraBlob1 11s ease-in-out infinite, auroraPulse1 11s ease-in-out infinite',
-            zIndex: 1,
-          }} />
-          {/* Blob 2 — bright cyan */}
-          <div style={{
-            position: 'absolute',
-            top: '40%',
-            left: '35%',
-            width: '75%',
-            height: '55%',
-            borderRadius: '50%',
-            background: 'radial-gradient(ellipse at center, rgba(34,211,238,0.50) 0%, rgba(34,211,238,0.14) 45%, transparent 70%)',
-            filter: 'blur(40px)',
-            animation: 'auroraBlob2 14s ease-in-out infinite, auroraPulse2 14s ease-in-out infinite',
-            zIndex: 1,
-          }} />
-          {/* Blob 3 — accent green */}
-          <div style={{
-            position: 'absolute',
-            top: '60%',
-            left: '10%',
-            width: '70%',
-            height: '50%',
-            borderRadius: '50%',
-            background: 'radial-gradient(ellipse at center, rgba(0,255,136,0.38) 0%, rgba(0,255,136,0.10) 45%, transparent 70%)',
-            filter: 'blur(52px)',
-            animation: 'auroraBlob3 9s ease-in-out infinite, auroraPulse3 9s ease-in-out infinite',
-            zIndex: 1,
-          }} />
-          {/* Blob 4 — deep teal anchor glow */}
-          <div style={{
-            position: 'absolute',
-            top: '25%',
-            left: '45%',
-            width: '90%',
-            height: '70%',
-            borderRadius: '50%',
-            background: 'radial-gradient(ellipse at center, rgba(13,36,51,0.7) 0%, rgba(6,182,212,0.45) 55%, transparent 78%)',
-            filter: 'blur(60px)',
-            animation: 'auroraBlob4 16s ease-in-out infinite, auroraPulse4 16s ease-in-out infinite',
-            zIndex: 1,
-          }} />
-          {/* Horizontal scan line */}
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 1,
-            background: 'rgba(6,182,212,0.15)',
-            animation: 'auroraScanner 8s linear infinite',
-            zIndex: 4,
-            pointerEvents: 'none',
-          }} />
-          {/* Left-edge fade — blends into page background */}
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            bottom: 0,
-            width: 100,
-            background: 'linear-gradient(to right, #00080f, transparent)',
-            zIndex: 3,
-            pointerEvents: 'none',
-          }} />
-        </div>{/* end hero-right */}
-
-      </div>{/* end hero-split */}
+        </div>{/* end hero-content */}
+      </div>{/* end hero-section */}
 
       {/* Email capture — above the fold, right after quick fills */}
       <WaitlistBar />

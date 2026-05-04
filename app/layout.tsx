@@ -76,7 +76,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: "if(window.history.scrollRestoration)window.history.scrollRestoration='manual';" }} />
         {/* Bypass build CSS stripping — inject backdrop-filter directly */}
         <style dangerouslySetInnerHTML={{ __html: `.glass { backdrop-filter: blur(28px) !important; -webkit-backdrop-filter: blur(28px) !important; }` }} />
-        {/* Aurora — fixed decorative blobs, z-index 0, no interaction */}
+        {/* Aurora — fixed full-page background, z-index 0, no interaction */}
         <div
           aria-hidden="true"
           style={{
@@ -87,33 +87,53 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             overflow: 'hidden',
           }}
         >
-          {/* Blob 1 — large cyan, top-left */}
+          {/* Blob 1 — large cyan anchor, top-left hero zone */}
           <div style={{
-            position: 'absolute', width: 800, height: 800, borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(6,182,212,0.22) 0%, transparent 70%)',
-            top: '-12%', left: '-8%',
+            position: 'absolute', width: 900, height: 900, borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(6,182,212,0.38) 0%, rgba(6,182,212,0.12) 45%, transparent 70%)',
+            filter: 'blur(72px)',
+            top: '-15%', left: '-12%',
             animation: 'auroraBlob1 20s ease-in-out infinite',
           }} />
-          {/* Blob 2 — violet, mid-right */}
+          {/* Blob 2 — bright cyan, upper-right */}
           <div style={{
-            position: 'absolute', width: 700, height: 700, borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(79,70,229,0.18) 0%, transparent 70%)',
-            top: '30%', right: '-10%',
+            position: 'absolute', width: 750, height: 750, borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(34,211,238,0.30) 0%, rgba(34,211,238,0.08) 50%, transparent 70%)',
+            filter: 'blur(64px)',
+            top: '5%', right: '-8%',
             animation: 'auroraBlob2 25s ease-in-out infinite',
           }} />
-          {/* Blob 3 — cyan, bottom-center */}
+          {/* Blob 3 — green accent, mid-left */}
           <div style={{
-            position: 'absolute', width: 600, height: 600, borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(34,211,238,0.16) 0%, transparent 70%)',
-            bottom: '-8%', left: '25%',
+            position: 'absolute', width: 650, height: 650, borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(0,255,136,0.22) 0%, rgba(0,255,136,0.06) 50%, transparent 70%)',
+            filter: 'blur(80px)',
+            top: '40%', left: '-5%',
             animation: 'auroraBlob3 30s ease-in-out infinite',
           }} />
-          {/* Blob 4 — deep violet, top-right — bleeds into results area */}
+          {/* Blob 4 — deep teal, center — bleeds through entire page scroll */}
           <div style={{
-            position: 'absolute', width: 500, height: 500, borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(99,102,241,0.14) 0%, transparent 70%)',
-            top: '10%', right: '15%',
-            animation: 'auroraBlob2 35s ease-in-out infinite reverse',
+            position: 'absolute', width: 800, height: 800, borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(6,182,212,0.20) 0%, rgba(79,70,229,0.12) 50%, transparent 70%)',
+            filter: 'blur(90px)',
+            top: '25%', left: '35%',
+            animation: 'auroraBlob4 35s ease-in-out infinite',
+          }} />
+          {/* Blob 5 — violet accent, bottom-right — reaches footer */}
+          <div style={{
+            position: 'absolute', width: 700, height: 700, borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(99,102,241,0.24) 0%, rgba(79,70,229,0.08) 50%, transparent 70%)',
+            filter: 'blur(70px)',
+            bottom: '5%', right: '-5%',
+            animation: 'auroraBlob2 28s ease-in-out infinite reverse',
+          }} />
+          {/* Blob 6 — cyan, mid-right — prevents dead zones mid-page */}
+          <div style={{
+            position: 'absolute', width: 550, height: 550, borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(34,211,238,0.18) 0%, transparent 70%)',
+            filter: 'blur(60px)',
+            top: '60%', right: '10%',
+            animation: 'auroraBlob1 22s ease-in-out infinite reverse',
           }} />
         </div>
         {/* Content above aurora */}
