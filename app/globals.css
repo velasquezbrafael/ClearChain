@@ -162,16 +162,16 @@ body {
   100% { transform: translateY(100vh); opacity: 0; }
 }
 
-/* ── Full-page hero — content sits over fixed aurora background ── */
+/* ── Full-page hero — content over fixed aurora+grid background ── */
 .hero-section {
   min-height: 100vh;
   display: flex;
   align-items: center;
   padding: 120px 64px 80px;
+  width: 100%;
 }
 .hero-content {
   width: 100%;
-  max-width: 680px;
 }
 
 @media (max-width: 768px) {

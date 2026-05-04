@@ -76,7 +76,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: "if(window.history.scrollRestoration)window.history.scrollRestoration='manual';" }} />
         {/* Bypass build CSS stripping — inject backdrop-filter directly */}
         <style dangerouslySetInnerHTML={{ __html: `.glass { backdrop-filter: blur(28px) !important; -webkit-backdrop-filter: blur(28px) !important; }` }} />
-        {/* Aurora — fixed full-page background, z-index 0, no interaction */}
+
+        {/* Layer 0 — Subtle grid lines across entire page */}
         <div
           aria-hidden="true"
           style={{
@@ -84,60 +85,93 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             inset: 0,
             zIndex: 0,
             pointerEvents: 'none',
+            backgroundImage: `
+              linear-gradient(rgba(6,182,212,0.05) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(6,182,212,0.05) 1px, transparent 1px)
+            `,
+            backgroundSize: '64px 64px',
+          }}
+        />
+
+        {/* Layer 1 — Aurora blobs, full-page fixed */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 1,
+            pointerEvents: 'none',
             overflow: 'hidden',
           }}
         >
-          {/* Blob 1 — large cyan anchor, top-left hero zone */}
+          {/* Blob 1 — large cyan, top-left, dominant hero glow */}
           <div style={{
-            position: 'absolute', width: 900, height: 900, borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(6,182,212,0.38) 0%, rgba(6,182,212,0.12) 45%, transparent 70%)',
-            filter: 'blur(72px)',
-            top: '-15%', left: '-12%',
+            position: 'absolute', width: 1000, height: 1000, borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(6,182,212,0.55) 0%, rgba(6,182,212,0.22) 40%, transparent 70%)',
+            filter: 'blur(40px)',
+            top: '-20%', left: '-15%',
             animation: 'auroraBlob1 20s ease-in-out infinite',
           }} />
           {/* Blob 2 — bright cyan, upper-right */}
           <div style={{
-            position: 'absolute', width: 750, height: 750, borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(34,211,238,0.30) 0%, rgba(34,211,238,0.08) 50%, transparent 70%)',
-            filter: 'blur(64px)',
-            top: '5%', right: '-8%',
+            position: 'absolute', width: 850, height: 850, borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(34,211,238,0.45) 0%, rgba(34,211,238,0.15) 45%, transparent 70%)',
+            filter: 'blur(50px)',
+            top: '-8%', right: '-12%',
             animation: 'auroraBlob2 25s ease-in-out infinite',
           }} />
-          {/* Blob 3 — green accent, mid-left */}
+          {/* Blob 3 — green, mid-left */}
           <div style={{
-            position: 'absolute', width: 650, height: 650, borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(0,255,136,0.22) 0%, rgba(0,255,136,0.06) 50%, transparent 70%)',
-            filter: 'blur(80px)',
-            top: '40%', left: '-5%',
+            position: 'absolute', width: 750, height: 750, borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(0,255,136,0.38) 0%, rgba(0,255,136,0.12) 50%, transparent 70%)',
+            filter: 'blur(55px)',
+            top: '35%', left: '-10%',
             animation: 'auroraBlob3 30s ease-in-out infinite',
           }} />
-          {/* Blob 4 — deep teal, center — bleeds through entire page scroll */}
+          {/* Blob 4 — violet/indigo, center-right */}
           <div style={{
-            position: 'absolute', width: 800, height: 800, borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(6,182,212,0.20) 0%, rgba(79,70,229,0.12) 50%, transparent 70%)',
-            filter: 'blur(90px)',
-            top: '25%', left: '35%',
+            position: 'absolute', width: 950, height: 950, borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(79,70,229,0.40) 0%, rgba(6,182,212,0.18) 50%, transparent 70%)',
+            filter: 'blur(60px)',
+            top: '15%', right: '-18%',
             animation: 'auroraBlob4 35s ease-in-out infinite',
           }} />
-          {/* Blob 5 — violet accent, bottom-right — reaches footer */}
+          {/* Blob 5 — violet, bottom-right — footer coverage */}
           <div style={{
-            position: 'absolute', width: 700, height: 700, borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(99,102,241,0.24) 0%, rgba(79,70,229,0.08) 50%, transparent 70%)',
-            filter: 'blur(70px)',
-            bottom: '5%', right: '-5%',
+            position: 'absolute', width: 800, height: 800, borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(99,102,241,0.42) 0%, rgba(79,70,229,0.14) 50%, transparent 70%)',
+            filter: 'blur(45px)',
+            bottom: '-12%', right: '-10%',
             animation: 'auroraBlob2 28s ease-in-out infinite reverse',
           }} />
-          {/* Blob 6 — cyan, mid-right — prevents dead zones mid-page */}
+          {/* Blob 6 — cyan, mid-page — no dead zones mid-scroll */}
           <div style={{
-            position: 'absolute', width: 550, height: 550, borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(34,211,238,0.18) 0%, transparent 70%)',
-            filter: 'blur(60px)',
-            top: '60%', right: '10%',
+            position: 'absolute', width: 650, height: 650, borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(34,211,238,0.32) 0%, rgba(6,182,212,0.10) 55%, transparent 70%)',
+            filter: 'blur(48px)',
+            top: '58%', right: '8%',
             animation: 'auroraBlob1 22s ease-in-out infinite reverse',
           }} />
         </div>
-        {/* Content above aurora */}
-        <div style={{ position: 'relative', zIndex: 1 }}>
+
+        {/* Layer 2 — Horizontal scan line sweeping top→bottom on loop */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 1,
+            background: 'linear-gradient(90deg, transparent 0%, rgba(6,182,212,0.5) 30%, rgba(34,211,238,0.35) 70%, transparent 100%)',
+            animation: 'auroraScanner 8s linear infinite',
+            zIndex: 2,
+            pointerEvents: 'none',
+          }}
+        />
+
+        {/* Layer 3 — Page content */}
+        <div style={{ position: 'relative', zIndex: 3 }}>
           {children}
         </div>
       </body>
