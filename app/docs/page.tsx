@@ -229,6 +229,32 @@ export default async function DocsPage() {
             </p>
           </div>
 
+          {/* False positive reduction */}
+          <h3 style={{ fontFamily: grotesk, fontSize: 20, fontWeight: 700, color: '#ecfeff', margin: '0 0 20px' }}>How ClearChain reduces false positives</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 48 }}>
+            <div style={{ border: '1px solid rgba(6,182,212,0.08)', borderRadius: 4, padding: '22px 24px', background: '#080b14' }}>
+              <div style={{ fontFamily: mono, fontSize: 12, fontWeight: 700, color: '#ecfeff', marginBottom: 8 }}>Contextual signal gating</div>
+              <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.75, margin: 0 }}>
+                Rapid fund movement only fires alongside sanctions or mixer flags. Exchange hot wallets and DeFi protocols move large amounts quickly by design — without this gate, they&apos;d all score HIGH incorrectly.
+              </p>
+            </div>
+            <div style={{ border: '1px solid rgba(6,182,212,0.08)', borderRadius: 4, padding: '22px 24px', background: '#080b14' }}>
+              <div style={{ fontFamily: mono, fontSize: 12, fontWeight: 700, color: '#ecfeff', marginBottom: 8 }}>17,000+ labeled wallets</div>
+              <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.75, margin: 0 }}>
+                Known exchanges (Binance, Coinbase), DeFi protocols (Uniswap, Aave), and public wallets (Vitalik Buterin) are pre-labeled so their activity doesn&apos;t get misread. If a wallet is Binance&apos;s hot wallet, it won&apos;t trigger a high-risk counterparty flag just because it moves a lot of ETH.
+              </p>
+            </div>
+            <div style={{ border: '1px solid rgba(6,182,212,0.08)', borderRadius: 4, padding: '22px 24px', background: '#080b14' }}>
+              <div style={{ fontFamily: mono, fontSize: 12, fontWeight: 700, color: '#ecfeff', marginBottom: 8 }}>Counterfactual Simulator</div>
+              <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.75, margin: 0 }}>
+                Every analysis includes a signal simulator — toggle individual risk signals on or off to see exactly what&apos;s driving the score. If a wallet scores HIGH primarily because of a single mixer interaction two years ago, you can isolate that and decide whether it warrants escalation. Run an analysis and scroll to the Simulator tab to try it.
+              </p>
+            </div>
+          </div>
+          <p style={{ fontSize: 13, color: 'var(--text-dim)', lineHeight: 1.65, margin: '0 0 48px' }}>
+            Current limitation: mixer and coinjoin signals are binary today — timing, transaction size, and frequency aren&apos;t factored into the signal weight yet. This is on the roadmap.
+          </p>
+
           {/* Risk tiers */}
           <h3 style={{ fontFamily: grotesk, fontSize: 20, fontWeight: 700, color: '#ecfeff', margin: '0 0 20px' }}>What the risk levels mean</h3>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 12, marginBottom: 8 }}>

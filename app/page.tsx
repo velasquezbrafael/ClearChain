@@ -817,7 +817,7 @@ function HeroContent({
     },
     {
       title: 'Simulator',
-      desc: 'Toggle risk factors and watch the score update in real time. The only AML tool with what-if scenario modeling.',
+      desc: 'Toggle any risk signal on or off to see exactly what\'s driving a score. Built for ruling out false positives — isolate a single flag, understand its impact, and decide whether it actually warrants escalation.',
       icon: (
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
           <line x1="3" y1="5" x2="17" y2="5" stroke="#06b6d4" strokeWidth="1.5" strokeLinecap="round"/>
