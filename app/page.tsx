@@ -894,7 +894,7 @@ function HeroContent({
 
         {/* Glitch scramble headline — fixed height so scramble never shifts layout */}
         <div style={{
-          height: 'clamp(4.2rem, 9vw, 8rem)',
+          height: 'clamp(2.4rem, 8vw, 8rem)',
           margin: '0 0 28px',
           animation: 'fadeSlideUp 0.5s ease-out both',
           animationDelay: '0.1s',
