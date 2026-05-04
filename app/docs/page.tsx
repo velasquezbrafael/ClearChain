@@ -1,8 +1,8 @@
 /**
  * ClearChain — Documentation Hub (/docs)
  *
- * Static server component. Four sections with anchor nav:
- * #scoring · #typologies · #sources · #sar
+ * Written for everyone — regular crypto users first, compliance professionals second.
+ * Four sections with anchor nav: #scoring · #typologies · #sources · #sar
  */
 
 import { createClient } from '@/lib/supabase/server'
@@ -13,40 +13,40 @@ import { createClient } from '@/lib/supabase/server'
 
 const SIGNALS = [
   {
-    name: 'OFAC / SDN Match',
+    name: 'OFAC / Sanctions Match',
     max: 40,
-    detects: 'US Treasury sanctions exposure',
-    trigger: 'Wallet address appears directly on the OFAC Specially Designated Nationals (SDN) list. Covers ETH, BTC, TRX, and SOL addresses published in the OFAC SDN XML feed.',
+    plain: 'This wallet is on a US government blacklist.',
+    detail: 'OFAC (the US Treasury) publishes a list of wallets linked to sanctioned individuals, criminal organizations, and foreign governments. If a wallet appears on this list, transacting with it may be illegal — regardless of whether you knew.',
   },
   {
     name: 'Mixer Interaction',
     max: 25,
-    detects: 'Cryptocurrency mixing / tumbling',
-    trigger: 'Wallet IS a known mixer contract (e.g. Tornado Cash, OFAC-designated 08/08/2022) or has directly transacted with one. Even a single deposit or withdrawal is a mandatory SAR trigger for covered institutions.',
+    plain: 'This wallet has used a crypto mixer to hide transaction trails.',
+    detail: 'Crypto mixers (like Tornado Cash) are services designed to break the link between a sending and receiving wallet. They\'re used to obscure where money came from. The US government has sanctioned Tornado Cash. Any wallet that has deposited into or withdrawn from a mixer raises serious red flags.',
   },
   {
     name: 'Rapid Fund Movement',
     max: 15,
-    detects: 'Layering through intermediary wallets',
-    trigger: '3 or more outbound transactions within 24 hours, each moving ≥ 80% of received balance. CONTEXTUAL GATE: this signal only fires when OFAC or Mixer also triggered — prevents false positives on legitimate high-volume wallets like exchange hot wallets that move funds quickly by design.',
+    plain: 'Large amounts moved out very quickly — a common money laundering pattern.',
+    detail: 'If a wallet receives a large sum and immediately sends most of it out to another wallet (and repeats this multiple times in a short window), that\'s a pattern associated with "layering" — a technique used to make dirty money harder to trace. Note: this signal only counts if the wallet also has a sanctions or mixer flag, so normal high-volume wallets like exchanges don\'t get penalized.',
   },
   {
     name: 'High-Risk Counterparty',
     max: 10,
-    detects: 'Known-bad address in transaction history',
-    trigger: 'At least one counterparty in the wallet\'s transaction history is labeled as OFAC-designated, known-malicious, or a known mixer — even if the queried wallet itself is not sanctioned.',
+    plain: 'This wallet has sent or received funds from a known bad actor.',
+    detail: 'Even if a wallet isn\'t directly flagged, who it\'s been transacting with matters. If one of its counterparties is a sanctioned address, a mixer, or a labeled scam wallet, that connection is a risk signal — similar to how a bank would flag transactions with known fraudulent accounts.',
   },
   {
     name: 'Volume Anomaly',
     max: 5,
-    detects: 'Transaction volume inconsistent with wallet age',
-    trigger: 'Total ETH transaction volume exceeds 100 ETH in a wallet less than 30 days old. Threshold is conservative — legitimate businesses (DeFi protocols, CEX hot wallets) are typically identified by label and excluded.',
+    plain: 'This wallet is moving an unusually large amount of crypto for how new it is.',
+    detail: 'A brand new wallet handling hundreds of thousands of dollars in crypto without any other history is worth a second look. It could be legitimate, but it\'s a signal worth noting — especially if combined with other flags.',
   },
   {
     name: 'Community Red Flags',
     max: 5,
-    detects: 'Crowdsourced address intelligence',
-    trigger: 'Wallet or its direct counterparties carry red-flag labels from the open-source eth-labels community dataset (github.com/dawsbot/eth-labels). Labels include scam, phishing, exploit, and rug-pull categories.',
+    plain: 'This wallet has been publicly reported as suspicious.',
+    detail: 'The crypto community maintains open-source databases of wallets known to be involved in scams, phishing attacks, rug pulls, and exploits. If a wallet or anyone it\'s transacted with shows up in these lists, it\'s flagged here.',
   },
 ]
 
@@ -55,111 +55,94 @@ const RISK_LEVELS = [
     level: 'LOW',
     range: '0–24',
     color: '#22d3ee',
-    meaning: 'No significant risk indicators detected. Standard monitoring applies. Appropriate for most normal wallets — personal wallets, DeFi users, NFT collectors. No EDD required, but keep in standard transaction monitoring.',
+    plain: 'Looks clean.',
+    meaning: 'No significant flags detected. This doesn\'t guarantee the wallet is legitimate — no tool can — but there\'s nothing in the data that stands out as concerning.',
   },
   {
     level: 'MEDIUM',
     range: '25–49',
     color: '#ffd60a',
-    meaning: 'Elevated risk indicators present. Enhanced due diligence (EDD) is warranted. Common causes: one minor signal triggered (e.g. volume anomaly alone), or indirect exposure to a flagged counterparty. Monitor for continued activity.',
+    plain: 'Proceed with caution.',
+    meaning: 'Something minor triggered — an indirect connection to a flagged wallet, or an unusual transaction pattern. Not necessarily a problem, but worth doing a bit more research before transacting.',
   },
   {
     level: 'HIGH',
     range: '50–74',
     color: '#ff8c00',
-    meaning: 'Significant red flags detected. Source-of-funds inquiry required. Typically indicates mixer interaction, multiple signals co-triggering, or direct counterparty with known-bad address. Consider whether a SAR is warranted.',
+    plain: 'Significant red flags — don\'t ignore this.',
+    meaning: 'Multiple risk signals fired, or a serious one like mixer interaction. We\'d recommend against transacting with this wallet until you understand what\'s behind the score.',
   },
   {
     level: 'CRITICAL',
     range: '75–100',
     color: '#ff3b3b',
-    meaning: 'Immediate escalation required. OFAC sanctions exposure confirmed or mixer interaction alongside other signals. SAR filing should be considered for covered institutions. Do not proceed with the transaction until compliance review is complete.',
+    plain: 'Stop — this wallet has serious sanctions or criminal exposure.',
+    meaning: 'The wallet is either directly sanctioned by the US government, has direct mixer exposure alongside other flags, or both. Transacting with a sanctioned wallet can have legal consequences. Do not proceed without legal guidance.',
   },
 ]
 
 const TYPOLOGIES = [
   {
-    id: 'smurfing',
-    name: 'Structuring / Smurfing',
-    ref: 'FinCEN 31 CFR § 1010.314',
-    pattern: 'Repeated transactions with amounts just below round-number thresholds (e.g. 0.99 ETH, 9.9 ETH, 99 ETH). Amounts cluster suspiciously below reporting cutoffs, indicating deliberate intent to avoid automated monitoring.',
-    why: 'Breaking up transactions is a federal crime under US law regardless of the source of funds. In crypto it\'s identifiable by the statistical clustering of amounts just below round numbers across many counterparties.',
-    threshold: '3+ transactions within 2% below a round-number threshold',
+    name: 'Structuring (Smurfing)',
+    simple: 'Breaking up large transactions into smaller ones to avoid detection.',
+    detail: 'Instead of sending $10,000 at once (which triggers reporting requirements), someone might send $990 ten times across different wallets. On-chain, this shows up as many transactions clustered just below round-number thresholds. It\'s illegal under US law regardless of whether the underlying funds are legitimate.',
   },
   {
-    id: 'layering_dex',
-    name: 'Layering via Decentralized Exchange',
-    ref: 'FinCEN FIN-2019-A003; FATF Virtual Assets Report 2021',
-    pattern: 'Rapid token swaps across DEX protocols (Uniswap, SushiSwap, Curve) to change asset type multiple times in succession — USDC → ETH → WBTC → DAI — before off-ramping, exploiting the lack of KYC on DEXs.',
-    why: 'Each token swap severs the asset trail. Regulators cannot easily cross-reference swap records across decentralized protocols the way they can with centralized exchange records.',
-    threshold: 'Detection requires DEX token swap graph — currently in v2 (not yet live)',
-  },
-  {
-    id: 'mixer_obfuscation',
     name: 'Mixer / Tumbler Obfuscation',
-    ref: 'OFAC SDN designation 08/08/2022; FinCEN Advisory FIN-2022-NTC2',
-    pattern: 'Direct interaction with Tornado Cash or other cryptocurrency mixing services. Mixers pool deposits and return equivalent amounts to withdrawal addresses, severing the on-chain link between source and destination.',
-    why: 'Tornado Cash was designated by OFAC under E.O. 13694 for laundering over $7 billion for criminal groups including the Lazarus Group (DPRK). Any interaction — deposit or withdrawal — constitutes a mandatory SAR trigger for US covered institutions.',
-    threshold: 'Any direct transaction to/from a known mixer contract address',
+    simple: 'Using a mixing service to erase the trail between a sender and receiver.',
+    detail: 'Crypto mixers pool deposits from many users and send back equivalent amounts from different wallets — making it nearly impossible to trace where the money originally came from. Tornado Cash, the most well-known Ethereum mixer, was sanctioned by the US government in 2022 for laundering over $7 billion.',
   },
   {
-    id: 'rapid_hop_layering',
-    name: 'Rapid Fund Movement / Hop Layering',
-    ref: 'FATF Virtual Assets Report 2021 §5; FinCEN FIN-2019-A003',
-    pattern: 'Funds move through 3+ wallets in under 24 hours, with each hop forwarding ≥ 80% of received balance to a new address. Intermediate wallets have no prior history (burner addresses). The transaction graph forms a straight chain rather than a fan.',
-    why: 'This directly mirrors wire-stripping in traditional banking fraud. Each hop adds distance between the source and destination, exploiting the difficulty of real-time blockchain monitoring at each intermediary.',
-    threshold: '3+ sequential outbound txns in 24h, each forwarding ≥ 80% of received funds. Contextual gate: also requires OFAC or mixer signal.',
+    name: 'Rapid Hop Layering',
+    simple: 'Bouncing funds through multiple wallets in quick succession to obscure their origin.',
+    detail: 'Money moves through a chain of wallets — each one immediately forwarding almost all of the received funds to the next — before reaching its final destination. The intermediate wallets are typically burner addresses used only once. This mirrors a technique called "wire stripping" in traditional banking fraud.',
   },
   {
-    id: 'convergence_pattern',
-    name: 'Fund Convergence / Integration Aggregation',
-    ref: 'FATF Risk-Based Approach: Virtual Assets 2019 Annex A; FATF Typologies 2020',
-    pattern: '5+ distinct inbound source wallets funneling funds into a single destination wallet, followed by a large outbound transfer within 72 hours. Characteristic of the integration phase: fragmented proceeds from a hack or rug pull aggregated before off-ramping.',
-    why: 'Proceeds are often fragmented during the placement and layering phases to avoid detection. Convergence into a single wallet signals the final consolidation before cash-out.',
-    threshold: '5+ distinct inbound sources; outbound transfer ≥ 50% of total inbound within 72h',
+    name: 'Layering via Decentralized Exchange',
+    simple: 'Using crypto swaps to change the asset type multiple times, making funds harder to trace.',
+    detail: 'By rapidly swapping ETH → USDC → WBTC → DAI across decentralized exchanges (which don\'t require identity verification), the trail of funds gets increasingly difficult to follow. Each swap changes the asset, the contract, and the counterparties involved.',
   },
   {
-    id: 'peel_chain',
+    name: 'Fund Convergence',
+    simple: 'Multiple wallets funneling money into a single wallet right before a large payout.',
+    detail: 'Proceeds from a hack or scam are often split across dozens of wallets first (to avoid detection), then gradually consolidated back into one wallet before being cashed out. This pattern — many inputs, one output, followed by a large outbound transfer — is a classic integration-phase indicator.',
+  },
+  {
     name: 'Peel Chain',
-    ref: 'FATF Virtual Assets Report 2021; FinCEN FIN-2021-A002',
-    pattern: 'Sequential transactions where each step forwards the bulk of funds to a new address while "peeling off" a small residual amount. Each intermediate address appears only once (burner wallets). The total volume obscured can be enormous despite each individual transaction appearing small.',
-    why: 'Named for its visual appearance in transaction graphs — a long chain with small branches at each step. Widely used in ransomware payment processing and exchange hack cash-outs to obscure the total volume and ultimate destination.',
-    threshold: '5+ sequential outbound txns; linear chain with unique addresses; generally declining amounts per hop',
+    simple: 'A long chain of wallets, each one peeling off a small amount and passing the rest forward.',
+    detail: 'Each wallet in the chain receives funds and sends most of it on, keeping a small "peel." The wallets are all new and used only once. This technique is common in ransomware payment processing and crypto exchange hacks — it makes the total amount being laundered hard to see and trace.',
   },
   {
-    id: 'high_volume_anomaly',
     name: 'High Volume Anomaly',
-    ref: 'FATF Risk-Based Approach: Virtual Assets 2019 Annex A §7; FinCEN CDD Rule 31 CFR § 1010.230',
-    pattern: 'Transaction volume grossly inconsistent with the wallet\'s operational age. A wallet created days ago moving 100+ ETH has no obvious legitimate explanation in most contexts.',
-    why: 'This is a "red flag" indicator, not a laundering pattern in itself. It signals that source-of-funds inquiry is urgently required. Legitimate explanations (DeFi yield, NFT sale, CEX hot wallet) should be documented.',
-    threshold: 'Total volume > 100 ETH in a wallet < 30 days old',
+    simple: 'A brand new wallet handling an unusually large amount of money.',
+    detail: 'A wallet that\'s only a few days old moving hundreds of thousands in crypto is worth flagging for a closer look. There may be a legitimate explanation — but it should be documented, especially if combined with any of the above patterns.',
   },
 ]
 
 const SOURCES = [
   {
-    name: 'OFAC SDN List',
-    who: 'US Department of the Treasury, Office of Foreign Assets Control',
+    name: 'OFAC Sanctions List',
+    who: 'US Department of the Treasury',
     link: 'https://ofac.treasury.gov',
-    description: 'The authoritative list of individuals, entities, and cryptocurrency addresses under US sanctions. ClearChain screens against the OFAC SDN XML feed, which covers ETH, BTC, TRX, and SOL addresses. The OFAC list is updated continuously; ClearChain refreshes in the background.',
+    description: 'The official US government list of sanctioned individuals, companies, and crypto wallet addresses. ClearChain checks every wallet against this list in real time. The list covers ETH, BTC, TRX, and SOL addresses and is refreshed continuously in the background.',
   },
   {
     name: 'Alchemy',
-    who: 'Alchemy (alchemy.com) — blockchain infrastructure provider',
+    who: 'alchemy.com — blockchain data infrastructure',
     link: 'https://alchemy.com',
-    description: 'On-chain data provider for all four supported chains: Ethereum, Bitcoin, Tron, and Solana. Alchemy supplies transaction history, asset transfers, token balances, and ENS resolution used in every wallet analysis.',
+    description: 'ClearChain uses Alchemy to retrieve live on-chain data: full transaction history, token transfers, wallet balances, and ENS name resolution (e.g. vitalik.eth → its address). Alchemy supports all four chains ClearChain covers: Ethereum, Bitcoin, Tron, and Solana.',
   },
   {
     name: 'eth-labels (Community Dataset)',
-    who: 'Open-source community project maintained by dawsbot',
+    who: 'Open-source, maintained by the community',
     link: 'https://github.com/dawsbot/eth-labels',
-    description: 'A community-maintained dataset of labeled Ethereum addresses. Integrated into ClearChain via lib/labels.ts. Labels cover scams, phishing wallets, known protocols, exchanges, and notable public wallets. Updated with each ClearChain release.',
+    description: 'A publicly maintained database of labeled Ethereum addresses — covering scams, phishing wallets, known protocols, exchanges, and more. Integrated into ClearChain to catch community-flagged addresses that may not appear on official government lists.',
   },
   {
-    name: 'Hardcoded Wallet Labels',
-    who: 'ClearChain (open-source, lib/labels.ts)',
-    link: 'https://github.com/velasquezbrafael/ClearChain/blob/main/lib/labels.ts',
-    description: 'A curated set of well-known addresses with verified labels: Tornado Cash contracts, Lazarus Group wallets, major exchange hot wallets (Binance, Coinbase), and notable public wallets (Vitalik Buterin). All labels are publicly verifiable and cited in comments.',
+    name: 'ClearChain Wallet Labels',
+    who: 'Maintained in the open-source repo',
+    link: 'https://github.com/velasquezbrafael-source/ClearChain/blob/main/lib/labels.ts',
+    description: 'A curated list of well-known addresses with verified labels: Tornado Cash contracts, Lazarus Group wallets (linked to North Korea), major exchange hot wallets (Binance, Coinbase), and notable public addresses. All labels are publicly verifiable — nothing is hidden.',
   },
 ]
 
@@ -173,13 +156,12 @@ export default async function DocsPage() {
 
   const mono = 'var(--font-jetbrains-mono)'
   const grotesk = 'var(--font-space-grotesk)'
-  const inter = 'var(--font-inter)'
 
   return (
     <div style={{ minHeight: '100vh', background: '#03040a', color: 'var(--text-primary)' }}>
 
       {/* Nav */}
-      <nav style={{ position: 'sticky', top: 0, zIndex: 50, height: 52, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 32px', borderBottom: '1px solid rgba(6,182,212,0.08)', background: 'rgba(3,4,10,0.85)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
+      <nav style={{ position: 'sticky', top: 0, zIndex: 50, height: 52, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 32px', borderBottom: '1px solid rgba(6,182,212,0.08)', background: 'rgba(3,4,10,0.92)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
           <a href="/" style={{ fontFamily: mono, fontSize: 14, letterSpacing: '0.15em', color: '#22d3ee', textDecoration: 'none', fontWeight: 700 }}>CLEARCHAIN</a>
           <span style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.1em', color: '#00ff88' }}>DOCS</span>
@@ -195,27 +177,27 @@ export default async function DocsPage() {
       </nav>
 
       {/* Header */}
-      <div style={{ borderBottom: '1px solid rgba(6,182,212,0.06)', padding: '48px 32px 40px', maxWidth: 960, margin: '0 auto' }}>
-        <div style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.18em', color: '#00ff88', marginBottom: 16 }}>METHODOLOGY</div>
-        <h1 style={{ fontFamily: grotesk, fontSize: 36, fontWeight: 700, color: '#ecfeff', margin: '0 0 16px', letterSpacing: '-0.02em' }}>
-          How ClearChain Works
+      <div style={{ borderBottom: '1px solid rgba(6,182,212,0.06)', padding: '56px 32px 48px', maxWidth: 900, margin: '0 auto' }}>
+        <div style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.18em', color: '#00ff88', marginBottom: 16 }}>HOW IT WORKS</div>
+        <h1 style={{ fontFamily: grotesk, fontSize: 34, fontWeight: 700, color: '#ecfeff', margin: '0 0 16px', letterSpacing: '-0.02em' }}>
+          Understanding Your Results
         </h1>
-        <p style={{ fontFamily: inter, fontSize: 15, color: 'var(--text-secondary)', lineHeight: 1.7, margin: '0 0 32px', maxWidth: 640 }}>
-          Every score, signal, and SAR draft is fully explained below. No black boxes. All data sources are public, all detection logic is open-source under MIT.
+        <p style={{ fontSize: 16, color: 'var(--text-secondary)', lineHeight: 1.75, margin: '0 0 32px', maxWidth: 580 }}>
+          ClearChain analyzes crypto wallets for financial risk. This page explains exactly what each score, signal, and flag means — in plain English, no finance background required.
         </p>
 
         {/* Anchor nav */}
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {[
-            { href: '#scoring', label: 'Risk Scoring' },
-            { href: '#typologies', label: 'Typologies' },
-            { href: '#sources', label: 'Data Sources' },
+            { href: '#scoring', label: 'Risk Scores' },
+            { href: '#typologies', label: 'Risk Patterns' },
+            { href: '#sources', label: 'Our Data' },
             { href: '#sar', label: 'SAR Drafts' },
           ].map(({ href, label }) => (
             <a
               key={href}
               href={href}
-              style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.1em', color: '#06b6d4', textDecoration: 'none', padding: '6px 14px', border: '1px solid rgba(6,182,212,0.2)', borderRadius: 3, background: 'rgba(6,182,212,0.04)', transition: 'background 0.15s' }}
+              style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.1em', color: '#06b6d4', textDecoration: 'none', padding: '7px 16px', border: '1px solid rgba(6,182,212,0.2)', borderRadius: 3, background: 'rgba(6,182,212,0.04)' }}
             >
               {label} →
             </a>
@@ -224,60 +206,56 @@ export default async function DocsPage() {
       </div>
 
       {/* Content */}
-      <div style={{ maxWidth: 960, margin: '0 auto', padding: '0 32px 80px' }}>
+      <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 32px 96px' }}>
 
         {/* ---------------------------------------------------------------- */}
         {/* SECTION 1 — Risk Scoring                                         */}
         {/* ---------------------------------------------------------------- */}
-        <section id="scoring" style={{ paddingTop: 64 }}>
-          <div style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.18em', color: '#06b6d4', marginBottom: 12 }}>01</div>
-          <h2 style={{ fontFamily: grotesk, fontSize: 26, fontWeight: 700, color: '#ecfeff', margin: '0 0 8px' }}>Risk Scoring Methodology</h2>
-          <p style={{ fontFamily: inter, fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.7, margin: '0 0 32px', maxWidth: 600 }}>
-            Every wallet receives a score from 0–100. Every point is earned by a weighted signal — scores are fully deterministic and reproducible given the same transaction data.
+        <section id="scoring" style={{ paddingTop: 72 }}>
+          <div style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.18em', color: '#06b6d4', marginBottom: 12 }}>01 — RISK SCORES</div>
+          <h2 style={{ fontFamily: grotesk, fontSize: 26, fontWeight: 700, color: '#ecfeff', margin: '0 0 12px' }}>How the score is calculated</h2>
+          <p style={{ fontSize: 15, color: 'var(--text-secondary)', lineHeight: 1.75, margin: '0 0 40px', maxWidth: 580 }}>
+            Every wallet gets a score from 0 to 100. The score is based on six signals — each one weighted by how serious it is. Here&apos;s what each signal means and how many points it can add.
           </p>
 
-          {/* Signals table */}
-          <div style={{ border: '1px solid rgba(6,182,212,0.1)', borderRadius: 4, overflow: 'hidden', marginBottom: 40 }}>
-            {/* Header */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px 1fr 1fr', gap: 0, background: '#080b14', borderBottom: '1px solid rgba(6,182,212,0.1)', padding: '10px 20px' }}>
-              {['Signal', 'Max pts', 'What It Detects', 'What Triggers It'].map(h => (
-                <div key={h} style={{ fontFamily: mono, fontSize: 9, letterSpacing: '0.15em', color: 'var(--text-dim)' }}>{h}</div>
-              ))}
-            </div>
-            {SIGNALS.map((s, i) => (
-              <div
-                key={s.name}
-                style={{ display: 'grid', gridTemplateColumns: '1fr 80px 1fr 1fr', gap: 0, padding: '16px 20px', background: i % 2 === 0 ? 'transparent' : 'rgba(6,182,212,0.02)', borderBottom: i < SIGNALS.length - 1 ? '1px solid rgba(6,182,212,0.05)' : 'none', alignItems: 'start' }}
-              >
-                <div style={{ fontFamily: mono, fontSize: 11, color: 'var(--text-primary)', fontWeight: 700, paddingRight: 12 }}>{s.name}</div>
-                <div style={{ fontFamily: mono, fontSize: 13, color: '#00ff88', fontWeight: 700 }}>{s.max}</div>
-                <div style={{ fontFamily: inter, fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.55, paddingRight: 16 }}>{s.detects}</div>
-                <div style={{ fontFamily: inter, fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.55 }}>{s.trigger}</div>
+          {/* Signals — cards instead of table for readability */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 48 }}>
+            {SIGNALS.map((s) => (
+              <div key={s.name} style={{ border: '1px solid rgba(6,182,212,0.08)', borderRadius: 4, padding: '20px 24px', background: '#080b14' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 8, flexWrap: 'wrap' }}>
+                  <div>
+                    <div style={{ fontFamily: mono, fontSize: 12, fontWeight: 700, color: '#ecfeff', marginBottom: 4 }}>{s.name}</div>
+                    <div style={{ fontSize: 14, color: '#00ff88', fontWeight: 600 }}>{s.plain}</div>
+                  </div>
+                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                    <div style={{ fontFamily: mono, fontSize: 22, fontWeight: 700, color: '#00ff88', lineHeight: 1 }}>{s.max}</div>
+                    <div style={{ fontFamily: mono, fontSize: 9, color: 'var(--text-dim)', letterSpacing: '0.1em', marginTop: 2 }}>MAX PTS</div>
+                  </div>
+                </div>
+                <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.7, margin: 0 }}>{s.detail}</p>
               </div>
             ))}
           </div>
 
-          {/* Contextual gate callout */}
-          <div style={{ border: '1px solid rgba(6,182,212,0.15)', borderLeft: '3px solid #06b6d4', borderRadius: 4, padding: '16px 20px', background: 'rgba(6,182,212,0.04)', marginBottom: 40 }}>
-            <div style={{ fontFamily: mono, fontSize: 9, letterSpacing: '0.15em', color: '#06b6d4', marginBottom: 8 }}>CONTEXTUAL GATE — RAPID FUND MOVEMENT</div>
-            <p style={{ fontFamily: inter, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.7, margin: 0 }}>
-              The Rapid Fund Movement signal (15 pts) only fires when the OFAC Match or Mixer Interaction signal is also triggered.
-              Without this gate, high-volume legitimate wallets — exchange hot wallets, DeFi protocol vaults, market makers — would score HIGH incorrectly because
-              they genuinely move large sums quickly. The contextual gate prevents false positives: rapid movement alone is only suspicious
-              when paired with evidence of sanctions exposure or mixing.
+          {/* Contextual gate note */}
+          <div style={{ border: '1px solid rgba(6,182,212,0.15)', borderLeft: '3px solid #06b6d4', borderRadius: 4, padding: '18px 22px', background: 'rgba(6,182,212,0.04)', marginBottom: 48 }}>
+            <div style={{ fontFamily: mono, fontSize: 9, letterSpacing: '0.15em', color: '#06b6d4', marginBottom: 8 }}>IMPORTANT NOTE — RAPID FUND MOVEMENT</div>
+            <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.75, margin: 0 }}>
+              The &quot;Rapid Fund Movement&quot; signal only activates if the wallet also has a sanctions flag or mixer interaction. This is intentional — exchanges and DeFi protocols move huge amounts of crypto quickly by design. Without this rule, they&apos;d all score HIGH unfairly.
             </p>
           </div>
 
-          {/* Risk levels */}
-          <h3 style={{ fontFamily: grotesk, fontSize: 18, fontWeight: 700, color: '#ecfeff', margin: '0 0 20px' }}>Risk Tiers</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 40 }}>
+          {/* Risk tiers */}
+          <h3 style={{ fontFamily: grotesk, fontSize: 20, fontWeight: 700, color: '#ecfeff', margin: '0 0 20px' }}>What the risk levels mean</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 12, marginBottom: 8 }}>
             {RISK_LEVELS.map(r => (
-              <div key={r.level} style={{ border: `1px solid ${r.color}22`, borderRadius: 4, padding: '16px 18px', background: `${r.color}08` }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                  <span style={{ fontFamily: mono, fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', color: r.color, padding: '3px 8px', border: `1px solid ${r.color}44`, borderRadius: 2 }}>{r.level}</span>
-                  <span style={{ fontFamily: mono, fontSize: 10, color: 'var(--text-dim)' }}>{r.range} pts</span>
+              <div key={r.level} style={{ border: `1px solid ${r.color}33`, borderRadius: 4, padding: '18px 20px', background: `${r.color}0a` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                  <span style={{ fontFamily: mono, fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', color: r.color, padding: '3px 8px', border: `1px solid ${r.color}55`, borderRadius: 2 }}>{r.level}</span>
+                  <span style={{ fontFamily: mono, fontSize: 10, color: 'var(--text-dim)' }}>{r.range}</span>
                 </div>
-                <p style={{ fontFamily: inter, fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>{r.meaning}</p>
+                <div style={{ fontSize: 13, fontWeight: 600, color: r.color, marginBottom: 8 }}>{r.plain}</div>
+                <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.65, margin: 0 }}>{r.meaning}</p>
               </div>
             ))}
           </div>
@@ -286,40 +264,22 @@ export default async function DocsPage() {
         {/* ---------------------------------------------------------------- */}
         {/* SECTION 2 — Typologies                                           */}
         {/* ---------------------------------------------------------------- */}
-        <section id="typologies" style={{ paddingTop: 64 }}>
-          <div style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.18em', color: '#06b6d4', marginBottom: 12 }}>02</div>
-          <h2 style={{ fontFamily: grotesk, fontSize: 26, fontWeight: 700, color: '#ecfeff', margin: '0 0 8px' }}>Typology Detection</h2>
-          <p style={{ fontFamily: inter, fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.7, margin: '0 0 8px', maxWidth: 600 }}>
-            Beyond the risk score, ClearChain maps on-chain patterns to named FATF and FinCEN typologies. A typology tells a compliance analyst not just that something is suspicious, but what type of money laundering pattern the evidence is consistent with.
+        <section id="typologies" style={{ paddingTop: 72 }}>
+          <div style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.18em', color: '#06b6d4', marginBottom: 12 }}>02 — RISK PATTERNS</div>
+          <h2 style={{ fontFamily: grotesk, fontSize: 26, fontWeight: 700, color: '#ecfeff', margin: '0 0 12px' }}>Recognizing suspicious patterns</h2>
+          <p style={{ fontSize: 15, color: 'var(--text-secondary)', lineHeight: 1.75, margin: '0 0 12px', maxWidth: 580 }}>
+            Beyond a simple score, ClearChain identifies specific behavioral patterns on-chain. These are based on internationally recognized money laundering techniques published by FATF (the global financial crime watchdog) and FinCEN (US financial intelligence).
           </p>
-          <p style={{ fontFamily: inter, fontSize: 12, color: 'var(--text-dim)', lineHeight: 1.6, margin: '0 0 32px' }}>
-            Typology definitions follow{' '}
-            <a href="https://www.fatf-gafi.org" target="_blank" rel="noopener noreferrer" style={{ color: '#06b6d4' }}>FATF guidance</a>
-            {' '}and FinCEN advisories. Detection logic is in{' '}
-            <a href="https://github.com/velasquezbrafael/ClearChain/blob/main/lib/typology.ts" target="_blank" rel="noopener noreferrer" style={{ color: '#06b6d4' }}>lib/typology.ts</a>.
+          <p style={{ fontSize: 13, color: 'var(--text-dim)', lineHeight: 1.65, margin: '0 0 36px' }}>
+            These patterns don&apos;t automatically mean a wallet is doing something illegal — but they&apos;re the same red flags that trained investigators look for.
           </p>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {TYPOLOGIES.map((t) => (
-              <div key={t.id} style={{ border: '1px solid rgba(6,182,212,0.08)', borderRadius: 4, padding: '20px 24px', background: '#080b14' }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 12, flexWrap: 'wrap' }}>
-                  <h3 style={{ fontFamily: grotesk, fontSize: 16, fontWeight: 700, color: '#ecfeff', margin: 0 }}>{t.name}</h3>
-                  <span style={{ fontFamily: mono, fontSize: 9, color: 'var(--text-dim)', letterSpacing: '0.06em', flexShrink: 0, paddingTop: 2 }}>{t.ref}</span>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 12 }}>
-                  <div>
-                    <div style={{ fontFamily: mono, fontSize: 9, letterSpacing: '0.12em', color: '#06b6d4', marginBottom: 6 }}>ON-CHAIN PATTERN</div>
-                    <p style={{ fontFamily: inter, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.65, margin: 0 }}>{t.pattern}</p>
-                  </div>
-                  <div>
-                    <div style={{ fontFamily: mono, fontSize: 9, letterSpacing: '0.12em', color: '#06b6d4', marginBottom: 6 }}>WHY IT'S SUSPICIOUS</div>
-                    <p style={{ fontFamily: inter, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.65, margin: 0 }}>{t.why}</p>
-                  </div>
-                </div>
-                <div style={{ borderTop: '1px solid rgba(6,182,212,0.06)', paddingTop: 10 }}>
-                  <span style={{ fontFamily: mono, fontSize: 9, letterSpacing: '0.1em', color: 'var(--text-dim)' }}>DETECTION THRESHOLD: </span>
-                  <span style={{ fontFamily: mono, fontSize: 9, color: 'var(--text-secondary)', letterSpacing: '0.04em' }}>{t.threshold}</span>
-                </div>
+              <div key={t.name} style={{ border: '1px solid rgba(6,182,212,0.08)', borderRadius: 4, padding: '22px 24px', background: '#080b14' }}>
+                <div style={{ fontFamily: mono, fontSize: 12, fontWeight: 700, color: '#ecfeff', marginBottom: 6 }}>{t.name}</div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: '#06b6d4', marginBottom: 12 }}>{t.simple}</div>
+                <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.75, margin: 0 }}>{t.detail}</p>
               </div>
             ))}
           </div>
@@ -328,56 +288,59 @@ export default async function DocsPage() {
         {/* ---------------------------------------------------------------- */}
         {/* SECTION 3 — Data Sources                                         */}
         {/* ---------------------------------------------------------------- */}
-        <section id="sources" style={{ paddingTop: 64 }}>
-          <div style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.18em', color: '#06b6d4', marginBottom: 12 }}>03</div>
-          <h2 style={{ fontFamily: grotesk, fontSize: 26, fontWeight: 700, color: '#ecfeff', margin: '0 0 8px' }}>Data Sources</h2>
-          <p style={{ fontFamily: inter, fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.7, margin: '0 0 8px', maxWidth: 600 }}>
-            All sources are open, publicly citable, and non-proprietary. No black-box databases. No vendor-only threat intelligence.
+        <section id="sources" style={{ paddingTop: 72 }}>
+          <div style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.18em', color: '#06b6d4', marginBottom: 12 }}>03 — OUR DATA</div>
+          <h2 style={{ fontFamily: grotesk, fontSize: 26, fontWeight: 700, color: '#ecfeff', margin: '0 0 12px' }}>Where the data comes from</h2>
+          <p style={{ fontSize: 15, color: 'var(--text-secondary)', lineHeight: 1.75, margin: '0 0 12px', maxWidth: 580 }}>
+            Every piece of data ClearChain uses is from a public, verifiable source. No black-box threat databases. No proprietary scores you can&apos;t trace back.
           </p>
-          <p style={{ fontFamily: inter, fontSize: 12, color: 'var(--text-dim)', lineHeight: 1.6, margin: '0 0 32px' }}>
-            Attribution philosophy: if a compliance analyst needs to justify a finding in a SAR, every data point in ClearChain can be traced to a public source.
+          <p style={{ fontSize: 13, color: 'var(--text-dim)', lineHeight: 1.65, margin: '0 0 36px' }}>
+            This means if a wallet gets flagged, you can go check the source yourself.
           </p>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {SOURCES.map((s) => (
-              <div key={s.name} style={{ border: '1px solid rgba(6,182,212,0.08)', borderRadius: 4, padding: '20px 24px', background: '#080b14', marginBottom: 12 }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 10, flexWrap: 'wrap' }}>
-                  <h3 style={{ fontFamily: grotesk, fontSize: 16, fontWeight: 700, color: '#ecfeff', margin: 0 }}>{s.name}</h3>
-                  <a href={s.link} target="_blank" rel="noopener noreferrer" style={{ fontFamily: mono, fontSize: 9, color: '#06b6d4', letterSpacing: '0.06em', textDecoration: 'none', flexShrink: 0, paddingTop: 2 }}>
+              <div key={s.name} style={{ border: '1px solid rgba(6,182,212,0.08)', borderRadius: 4, padding: '22px 24px', background: '#080b14' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 6, flexWrap: 'wrap' }}>
+                  <div style={{ fontFamily: mono, fontSize: 12, fontWeight: 700, color: '#ecfeff' }}>{s.name}</div>
+                  <a href={s.link} target="_blank" rel="noopener noreferrer" style={{ fontFamily: mono, fontSize: 9, color: '#06b6d4', letterSpacing: '0.06em', textDecoration: 'none', flexShrink: 0 }}>
                     {s.link.replace('https://', '')} →
                   </a>
                 </div>
-                <div style={{ fontFamily: mono, fontSize: 10, color: 'var(--text-dim)', marginBottom: 10 }}>{s.who}</div>
-                <p style={{ fontFamily: inter, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.65, margin: 0 }}>{s.description}</p>
+                <div style={{ fontFamily: mono, fontSize: 10, color: 'var(--text-dim)', marginBottom: 12 }}>{s.who}</div>
+                <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.75, margin: 0 }}>{s.description}</p>
               </div>
             ))}
           </div>
         </section>
 
         {/* ---------------------------------------------------------------- */}
-        {/* SECTION 4 — SAR Draft Generation                                 */}
+        {/* SECTION 4 — SAR Drafts                                           */}
         {/* ---------------------------------------------------------------- */}
-        <section id="sar" style={{ paddingTop: 64 }}>
-          <div style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.18em', color: '#06b6d4', marginBottom: 12 }}>04</div>
-          <h2 style={{ fontFamily: grotesk, fontSize: 26, fontWeight: 700, color: '#ecfeff', margin: '0 0 8px' }}>SAR Draft Generation</h2>
-          <p style={{ fontFamily: inter, fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.7, margin: '0 0 32px', maxWidth: 600 }}>
-            ClearChain generates a FinCEN-style Suspicious Activity Report draft automatically for every wallet analysis.
+        <section id="sar" style={{ paddingTop: 72 }}>
+          <div style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.18em', color: '#06b6d4', marginBottom: 12 }}>04 — SAR DRAFTS</div>
+          <h2 style={{ fontFamily: grotesk, fontSize: 26, fontWeight: 700, color: '#ecfeff', margin: '0 0 12px' }}>What is a SAR draft?</h2>
+          <p style={{ fontSize: 15, color: 'var(--text-secondary)', lineHeight: 1.75, margin: '0 0 12px', maxWidth: 580 }}>
+            A SAR (Suspicious Activity Report) is an official document that financial institutions are required to file with the US government when they detect potential money laundering or financial crime.
+          </p>
+          <p style={{ fontSize: 15, color: 'var(--text-secondary)', lineHeight: 1.75, margin: '0 0 36px', maxWidth: 580 }}>
+            ClearChain automatically generates a SAR <em>draft</em> — a pre-filled starting point that a compliance professional can review, edit, and submit. Think of it as a first pass, written by AI, based on everything found in the analysis.
           </p>
 
-          <div style={{ border: '1px solid rgba(6,182,212,0.08)', borderRadius: 4, padding: '24px', background: '#080b14', marginBottom: 24 }}>
-            <h3 style={{ fontFamily: grotesk, fontSize: 16, fontWeight: 700, color: '#ecfeff', margin: '0 0 16px' }}>How It Works</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ border: '1px solid rgba(6,182,212,0.08)', borderRadius: 4, padding: '24px', background: '#080b14', marginBottom: 20 }}>
+            <h3 style={{ fontFamily: grotesk, fontSize: 17, fontWeight: 700, color: '#ecfeff', margin: '0 0 20px' }}>What goes into the draft</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
               {[
-                { n: '1', title: 'Analysis runs', body: 'On-chain data is fetched, OFAC is screened, risk signals are scored, and typologies are matched.' },
-                { n: '2', title: 'Claude Haiku generates the narrative', body: 'Anthropic\'s Claude Haiku model receives the wallet\'s signals, typologies, risk score, and transaction data. It produces a structured, plain-English compliance narrative and a FinCEN-style SAR draft in a single call.' },
-                { n: '3', title: 'SAR structure', body: 'The draft covers: Subject Wallet (address, chain, risk score), Risk Summary (signal breakdown), Suspicious Activity Description (narrative tying signals to typologies), and Recommended Action (SAR filing, EDD, transaction blocking).' },
-                { n: '4', title: 'Download and edit', body: 'The SAR draft is downloadable as a .txt file. Compliance teams use it as a starting point — edit, validate, and file through your institution\'s SAR filing system.' },
+                { n: '1', title: 'Wallet analysis runs', body: 'ClearChain fetches live on-chain data, checks against the OFAC list, calculates the risk score, and identifies any suspicious patterns.' },
+                { n: '2', title: 'AI writes the narrative', body: 'Claude (Anthropic\'s AI model) takes all the findings and writes a structured, plain-English report covering what was found and why it\'s concerning.' },
+                { n: '3', title: 'The draft is structured like a real SAR', body: 'It includes the wallet address and chain, a risk summary, a description of the suspicious activity, and a recommended action (file a SAR, do more research, or clear the wallet).' },
+                { n: '4', title: 'Download and use it', body: 'The draft downloads as a .txt file. A compliance team can then edit it, add their own context, and file it through the official government system.' },
               ].map(({ n, title, body }) => (
                 <div key={n} style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-                  <div style={{ fontFamily: mono, fontSize: 13, color: '#06b6d4', fontWeight: 700, flexShrink: 0, width: 20 }}>{n}.</div>
+                  <div style={{ fontFamily: mono, fontSize: 14, color: '#06b6d4', fontWeight: 700, flexShrink: 0, width: 22 }}>{n}.</div>
                   <div>
-                    <div style={{ fontFamily: grotesk, fontSize: 14, fontWeight: 700, color: '#ecfeff', marginBottom: 4 }}>{title}</div>
-                    <p style={{ fontFamily: inter, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.65, margin: 0 }}>{body}</p>
+                    <div style={{ fontFamily: grotesk, fontSize: 15, fontWeight: 700, color: '#ecfeff', marginBottom: 5 }}>{title}</div>
+                    <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.7, margin: 0 }}>{body}</p>
                   </div>
                 </div>
               ))}
@@ -385,14 +348,12 @@ export default async function DocsPage() {
           </div>
 
           {/* Disclaimer */}
-          <div style={{ border: '1px solid rgba(255,140,0,0.4)', borderRadius: 4, padding: '20px 24px', background: 'rgba(255,140,0,0.08)' }}>
-            <div style={{ fontFamily: mono, fontSize: 9, letterSpacing: '0.15em', color: '#ff8c00', marginBottom: 12 }}>IMPORTANT DISCLAIMER</div>
-            <p style={{ fontFamily: inter, fontSize: 13, color: 'rgba(255,200,150,0.85)', lineHeight: 1.7, margin: 0 }}>
-              AI-generated SAR drafts are starting points only. All drafts must be reviewed, validated, and filed by a qualified compliance professional.
-              ClearChain does not provide legal or regulatory advice. FinCEN requires SARs to be filed within 30 days of detecting suspicious activity
-              (or 60 days if no suspect is identified). The SAR draft does not constitute a filed SAR — it must be submitted through your institution&apos;s
-              BSA E-Filing account at{' '}
-              <a href="https://bsaefiling.fincen.treas.gov" target="_blank" rel="noopener noreferrer" style={{ color: '#ff8c00' }}>bsaefiling.fincen.treas.gov</a>.
+          <div style={{ border: '1px solid rgba(255,140,0,0.35)', borderRadius: 4, padding: '20px 24px', background: 'rgba(255,140,0,0.07)' }}>
+            <div style={{ fontFamily: mono, fontSize: 9, letterSpacing: '0.15em', color: '#ff8c00', marginBottom: 12 }}>HEADS UP</div>
+            <p style={{ fontSize: 14, color: 'rgba(255,210,160,0.85)', lineHeight: 1.75, margin: 0 }}>
+              SAR drafts generated by ClearChain are a starting point — not a finished, legally compliant filing. All drafts should be reviewed and validated by a qualified compliance professional before submission. ClearChain does not provide legal or regulatory advice. If a SAR needs to be filed, it must be submitted through the official FinCEN BSA E-Filing system at{' '}
+              <a href="https://bsaefiling.fincen.treas.gov" target="_blank" rel="noopener noreferrer" style={{ color: '#ff8c00' }}>bsaefiling.fincen.treas.gov</a>
+              . FinCEN requires SARs to be filed within 30 days of detecting suspicious activity.
             </p>
           </div>
         </section>
@@ -400,8 +361,8 @@ export default async function DocsPage() {
         {/* Footer */}
         <div style={{ marginTop: 80, paddingTop: 32, borderTop: '1px solid rgba(6,182,212,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
           <div style={{ fontFamily: mono, fontSize: 10, color: 'var(--text-dim)', letterSpacing: '0.08em' }}>
-            CLEARCHAIN — Open source, MIT licensed.{' '}
-            <a href="https://github.com/velasquezbrafael/ClearChain" target="_blank" rel="noopener noreferrer" style={{ color: '#06b6d4', textDecoration: 'none' }}>View source on GitHub →</a>
+            CLEARCHAIN is open source under MIT.{' '}
+            <a href="https://github.com/velasquezbrafael-source/ClearChain" target="_blank" rel="noopener noreferrer" style={{ color: '#06b6d4', textDecoration: 'none' }}>View source on GitHub →</a>
           </div>
           <a href="/" style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.1em', color: '#00ff88', textDecoration: 'none' }}>
             ← Back to Tool
