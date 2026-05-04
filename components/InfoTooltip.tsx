@@ -9,19 +9,34 @@ interface InfoTooltipProps {
 
 export default function InfoTooltip({ text }: InfoTooltipProps) {
   const [visible, setVisible] = useState(false);
-  const [pos, setPos] = useState({ top: 0, left: 0 });
+  const [pos, setPos] = useState({ top: 0, left: 0, showBelow: false, arrowOffset: 0 });
   const [mounted, setMounted] = useState(false);
   const iconRef = useRef<HTMLSpanElement>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Only portal after hydration
   useEffect(() => { setMounted(true); }, []);
 
   function show() {
     if (timerRef.current) clearTimeout(timerRef.current);
     if (iconRef.current) {
       const rect = iconRef.current.getBoundingClientRect();
-      setPos({ top: rect.top, left: rect.left + rect.width / 2 });
+      const TOOLTIP_MAX_W = 280;
+      const TOOLTIP_APPROX_H = 80;
+      const MARGIN = 10;
+
+      // Centre the tooltip on the icon
+      let left = rect.left + rect.width / 2;
+      // Clamp so tooltip doesn't bleed off either edge
+      const minLeft = TOOLTIP_MAX_W / 2 + MARGIN;
+      const maxLeft = window.innerWidth - TOOLTIP_MAX_W / 2 - MARGIN;
+      const clampedLeft = Math.max(minLeft, Math.min(left, maxLeft));
+      // Track how far we had to shift so the arrow still points at the icon
+      const arrowOffset = left - clampedLeft;
+
+      // Flip below if not enough room above
+      const showBelow = rect.top < TOOLTIP_APPROX_H + MARGIN;
+
+      setPos({ top: rect.top, left: clampedLeft, showBelow, arrowOffset });
     }
     setVisible(true);
   }
@@ -35,35 +50,38 @@ export default function InfoTooltip({ text }: InfoTooltipProps) {
         <div
           style={{
             position: 'fixed',
-            top: pos.top,
+            top: pos.showBelow ? pos.top + 20 : pos.top,
             left: pos.left,
-            // go above the icon: shift up by 100% of self + 10px gap
-            transform: 'translateX(-50%) translateY(calc(-100% - 10px))',
+            transform: pos.showBelow
+              ? 'translateX(-50%)'
+              : 'translateX(-50%) translateY(calc(-100% - 10px))',
             background: '#001f2e',
             border: '1px solid rgba(6,182,212,0.25)',
             borderRadius: 4,
             padding: '10px 14px',
-            maxWidth: 300,
+            maxWidth: 280,
             width: 'max-content',
             zIndex: 9999,
             pointerEvents: 'none',
-            opacity: 1,
             animation: 'tooltipFadeIn 0.12s ease-out both',
           }}
         >
-          {/* Down-pointing arrow */}
+          {/* Arrow — offset-corrected to always point at icon */}
           <div
             style={{
               position: 'absolute',
-              bottom: -5,
-              left: '50%',
+              ...(pos.showBelow
+                ? { top: -5, bottom: 'auto' }
+                : { bottom: -5, top: 'auto' }),
+              left: `calc(50% + ${pos.arrowOffset}px)`,
               transform: 'translateX(-50%) rotate(45deg)',
               width: 8,
               height: 8,
               background: '#001f2e',
               border: '1px solid rgba(6,182,212,0.25)',
-              borderTop: 'none',
-              borderLeft: 'none',
+              ...(pos.showBelow
+                ? { borderBottom: 'none', borderRight: 'none' }
+                : { borderTop: 'none', borderLeft: 'none' }),
             }}
           />
           <p
