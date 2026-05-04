@@ -12,6 +12,23 @@ _Nothing active. See Planned for next priorities._
 
 ## Recently shipped
 
+### ~~Graph filtering — hide non-high-risk nodes~~ [DONE]
+Toggle button in Investigation Mode stats bar. Hides LOW/MEDIUM nodes and their edges without resetting D3 simulation. Label toggles HIDE LOW RISK ↔ SHOW ALL. Active state uses #ffd60a accent.
+
+### ~~Documentation hub — /docs~~ [DONE]
+New `/docs` route with 4 sections: Risk Scoring Methodology, Typology Detection, Data Sources, SAR Draft Generation. Anchor nav at top. Inline ⓘ tooltips added to RiskScoreCard.tsx signal rows linking back to /docs#scoring. Matches ClearChain design system.
+
+### ~~iOS formatting fixes~~ [DONE — commit 4962da6]
+- `app/layout.tsx` — Viewport export with `viewportFit: 'cover'`
+- Nav safe area insets for notch/Dynamic Island
+- All inputs bumped to `fontSize: 16` (kills iOS auto-zoom)
+- `globals.css` — `min-height: 44px` touch targets + `font-size: 16px` global mobile override
+- tsc exit 0
+
+---
+
+## Recently shipped (older)
+
 ### ~~SDK publish prep + waitlist copy~~ [DONE — chore: sdk publish prep + waitlist copy update]
 - `sdks/js/package.json`: added `repository`, `homepage`, `bugs`, `publishConfig`, `prepublishOnly` script
 - `sdks/python/pyproject.toml`: fixed Homepage URL to GitHub, added `authors`, added 5 PyPI classifiers
