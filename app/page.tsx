@@ -2195,7 +2195,7 @@ export default function HomePage() {
 
   const displayTabs: Tab[] = hasFlowData ? [...BASE_TABS, 'FLOW'] : [...BASE_TABS];
 
-  // Check auth state for nav + analyze gate
+  // Check auth state for nav + analyze gate; handles URL auto-analyze after auth resolves
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -2205,27 +2205,31 @@ export default function HomePage() {
       });
     });
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setIsAuthed(!!session);
-    });
-  }, []);
+      const authed = !!session;
+      setIsAuthed(authed);
 
-  // Auto-analyze from ?address= on load — supports ETH, BTC, and TRX
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const urlAddr = params.get('address');
-    const urlChain = params.get('chain');
-    const chain: 'ETH' | 'BTC' | 'TRX' | 'SOL' =
-      urlChain === 'BTC' ? 'BTC' :
-      urlChain === 'TRX' ? 'TRX' :
-      urlChain === 'SOL' ? 'SOL' : 'ETH';
-    if (!urlAddr) return;
-    const isEth = /^0x[a-fA-F0-9]{40}$/.test(urlAddr) || urlAddr.includes('.');
-    const isBtc = /^(1|3)[a-km-zA-HJ-NP-Z1-9]{25,34}$/.test(urlAddr) || /^bc1[a-z0-9]{39,59}$/.test(urlAddr);
-    const isTrx = /^T[a-zA-Z0-9]{33}$/.test(urlAddr);
-    const isSol = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(urlAddr);
-    if (isEth || isBtc || isTrx || isSol) {
-      runAnalysis(urlAddr, chain);
-    }
+      const params = new URLSearchParams(window.location.search);
+      const urlAddr = params.get('address');
+      if (!urlAddr) return;
+
+      if (!authed) {
+        setShowAuthModal(true);
+        return;
+      }
+
+      const urlChain = params.get('chain');
+      const chain: 'ETH' | 'BTC' | 'TRX' | 'SOL' =
+        urlChain === 'BTC' ? 'BTC' :
+        urlChain === 'TRX' ? 'TRX' :
+        urlChain === 'SOL' ? 'SOL' : 'ETH';
+      const isEth = /^0x[a-fA-F0-9]{40}$/.test(urlAddr) || urlAddr.includes('.');
+      const isBtc = /^(1|3)[a-km-zA-HJ-NP-Z1-9]{25,34}$/.test(urlAddr) || /^bc1[a-z0-9]{39,59}$/.test(urlAddr);
+      const isTrx = /^T[a-zA-Z0-9]{33}$/.test(urlAddr);
+      const isSol = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(urlAddr);
+      if (isEth || isBtc || isTrx || isSol) {
+        runAnalysis(urlAddr, chain);
+      }
+    });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
