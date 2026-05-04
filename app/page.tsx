@@ -235,14 +235,12 @@ function riskColor(level: RiskLevel): string {
 // ---------------------------------------------------------------------------
 
 const slogans = [
-  { text: 'follow the money', lang: 'english' },
-  { text: 'sigue el dinero', lang: 'spanish' },
-  { text: "suivez l'argent", lang: 'french' },
-  { text: 'folge dem geld', lang: 'german' },
-  { text: 'segui i soldi', lang: 'italian' },
-  { text: 'siga o dinheiro', lang: 'portuguese' },
-  { text: 'volg het geld', lang: 'dutch' },
-  { text: 'följ pengarna', lang: 'swedish' },
+  'follow the money',
+  'trace the trail',
+  'connect the dots',
+  'on-chain never lies',
+  'money leaves tracks',
+  'expose the network',
 ];
 
 const CHARS = 'abcdefghijklmnopqrstuvwxyz@#$%&*';
@@ -800,32 +798,19 @@ function HeroContent({
   history: HistoryEntry[];
   onRemoveHistory: (addr: string) => void;
 }) {
-  const [displayText, setDisplayText] = useState(slogans[0].text);
-  const [currentLang, setCurrentLang] = useState(slogans[0].lang);
+  const [displayText, setDisplayText] = useState(slogans[0]);
   const [nextIdx, setNextIdx] = useState(1);
-  const [langVisible, setLangVisible] = useState(true);
-  const isFirstLangRender = useRef(true);
   const [spotlightPos, setSpotlightPos] = useState({ x: -999, y: -999 });
   const heroWrapperRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (isFirstLangRender.current) { isFirstLangRender.current = false; return; }
-    setLangVisible(false);
-    const t = setTimeout(() => setLangVisible(true), 150);
-    return () => clearTimeout(t);
-  }, [currentLang]);
 
   useEffect(() => {
     const timer = setInterval(() => {
       const next = slogans[nextIdx];
       scrambleToWord(
         displayText,
-        next.text,
+        next,
         (val) => setDisplayText(val),
-        () => {
-          setCurrentLang(next.lang);
-          setNextIdx((i) => (i + 1) % slogans.length);
-        }
+        () => setNextIdx((i) => (i + 1) % slogans.length),
       );
     }, 5000);
     return () => clearInterval(timer);
@@ -992,20 +977,6 @@ function HeroContent({
           >
             {displayText}
           </h1>
-          <div
-            style={{
-              fontFamily: 'var(--font-jetbrains-mono)',
-              fontSize: 10,
-              letterSpacing: '0.15em',
-              color: 'var(--text-dim)',
-              opacity: langVisible ? 1 : 0,
-              transition: 'opacity 0.3s ease',
-              height: 16,
-              flexShrink: 0,
-            }}
-          >
-            [ {currentLang} ]
-          </div>
         </div>
 
         {/* Subhead */}
