@@ -561,6 +561,7 @@ export default function TransactionGraph({
   const [expandedTrail, setExpandedTrail] = useState<string[]>([]);
   const [invSelectedAddr, setInvSelectedAddr] = useState<string | null>(null);
   const [resetCount, setResetCount] = useState(0);
+  const [filterLowRisk, setFilterLowRisk] = useState(false);
   const invCardUpdateRef = useRef<InvD3Update | null>(null);
   const invCardStopRef = useRef<(() => void) | null>(null);
   const invFullUpdateRef = useRef<InvD3Update | null>(null);
@@ -723,6 +724,30 @@ export default function TransactionGraph({
     });
     return () => { cancelAnimationFrame(raf); if (invFullStopRef.current) { invFullStopRef.current(); invFullStopRef.current = null; invFullUpdateRef.current = null; } };
   }, [isFullscreen, investigationMode, queriedAddress]); // intentionally omit invNodeMap — snapshot at open, then hot-update handles changes
+
+  // HIDE LOW RISK filter — toggles D3 node/edge visibility without restarting sim
+  useEffect(() => {
+    if (!investigationMode) return;
+    const hiddenIds = new Set<string>();
+    if (filterLowRisk) {
+      for (const n of Object.values(invNodeMap)) {
+        if (n.state !== 'root' && !n.isMixer && !n.isHighRisk && !n.isOfac) {
+          hiddenIds.add(n.id);
+        }
+      }
+    }
+    function applyFilter(svgEl: SVGSVGElement | null) {
+      if (!svgEl) return;
+      const svg = d3.select(svgEl);
+      svg.selectAll<SVGGElement, InvNode>('g.inv-node')
+        .style('opacity', (d) => hiddenIds.has(d.id) ? '0' : null)
+        .style('pointer-events', (d) => hiddenIds.has(d.id) ? 'none' : null);
+      svg.selectAll<SVGLineElement, { source: string; target: string }>('g.inv-links line')
+        .style('opacity', (d) => (hiddenIds.has(d.source) && hiddenIds.has(d.target)) ? '0' : null);
+    }
+    applyFilter(svgRef.current);
+    if (isFullscreen) applyFilter(fullSvgRef.current);
+  }, [filterLowRisk, invNodeMap, investigationMode, isFullscreen]);
 
   // Esc closes fullscreen
   useEffect(() => {
@@ -925,9 +950,19 @@ export default function TransactionGraph({
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
               {!investigationMode && hasHopData && hopToggle}
               {investigationMode && (
-                <button onClick={resetGraph} style={{ background: 'none', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 3, color: 'var(--text-dim)', cursor: 'pointer', padding: '5px 12px', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.1em' }}>
-                  RESET GRAPH
-                </button>
+                <>
+                  {expandedTrail.length > 0 && (
+                    <button
+                      onClick={() => setFilterLowRisk(f => !f)}
+                      style={{ background: filterLowRisk ? 'rgba(255,214,10,0.1)' : 'none', border: filterLowRisk ? '1px solid rgba(255,214,10,0.4)' : '1px solid rgba(255,255,255,0.08)', borderRadius: 3, color: filterLowRisk ? '#ffd60a' : 'var(--text-dim)', cursor: 'pointer', padding: '5px 12px', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.1em', transition: 'background 0.15s, border-color 0.15s, color 0.15s' }}
+                    >
+                      {filterLowRisk ? 'SHOW ALL' : 'HIDE LOW RISK'}
+                    </button>
+                  )}
+                  <button onClick={resetGraph} style={{ background: 'none', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 3, color: 'var(--text-dim)', cursor: 'pointer', padding: '5px 12px', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.1em' }}>
+                    RESET GRAPH
+                  </button>
+                </>
               )}
               <button onClick={() => { setIsFullscreen(false); setSelectedNode(null); }} style={{ background: 'none', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 3, color: 'var(--text-secondary)', cursor: 'pointer', padding: '5px 12px', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.1em' }}>
                 ESC / CLOSE
@@ -1092,12 +1127,22 @@ export default function TransactionGraph({
               {invRiskCount > 0 ? <span style={{ color: '#ff3b3b' }}>{invRiskCount} HIGH-RISK</span> : <span>0 RISK</span>}
               {invOverlapCount > 0 && <>&nbsp;·&nbsp;<span style={{ color: '#ffd60a' }}>{invOverlapCount} OVERLAP</span></>}
             </div>
-            <button onClick={resetGraph}
-              style={{ background: 'rgba(6,182,212,0.04)', border: '1px solid rgba(6,182,212,0.2)', borderRadius: 3, color: '#06b6d4', cursor: 'pointer', padding: '3px 10px', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 8, letterSpacing: '0.1em', transition: 'background 0.15s, border-color 0.15s' }}
-              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(6,182,212,0.1)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(6,182,212,0.4)'; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(6,182,212,0.04)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(6,182,212,0.2)'; }}>
-              ⟳ RESET
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              {expandedTrail.length > 0 && (
+                <button
+                  onClick={() => setFilterLowRisk(f => !f)}
+                  style={{ background: filterLowRisk ? 'rgba(255,214,10,0.1)' : 'rgba(6,182,212,0.04)', border: filterLowRisk ? '1px solid rgba(255,214,10,0.4)' : '1px solid rgba(6,182,212,0.2)', borderRadius: 3, color: filterLowRisk ? '#ffd60a' : '#06b6d4', cursor: 'pointer', padding: '3px 10px', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 8, letterSpacing: '0.1em', transition: 'background 0.15s, border-color 0.15s, color 0.15s' }}
+                >
+                  {filterLowRisk ? 'SHOW ALL' : 'HIDE LOW RISK'}
+                </button>
+              )}
+              <button onClick={resetGraph}
+                style={{ background: 'rgba(6,182,212,0.04)', border: '1px solid rgba(6,182,212,0.2)', borderRadius: 3, color: '#06b6d4', cursor: 'pointer', padding: '3px 10px', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 8, letterSpacing: '0.1em', transition: 'background 0.15s, border-color 0.15s' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(6,182,212,0.1)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(6,182,212,0.4)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(6,182,212,0.04)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(6,182,212,0.2)'; }}>
+                ⟳ RESET
+              </button>
+            </div>
           </div>
         )}
       </div>
