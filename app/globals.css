@@ -136,7 +136,7 @@ body {
   .dash-greeting-row              { flex-direction: column !important; align-items: flex-start !important; gap: 16px !important; margin-bottom: 24px !important; }
   /* Greeting heading — smaller on mobile */
   .dash-greeting-h1               { font-size: 22px !important; }
-  /* Stats grid — 2 cols on mobile */
+  /* Stats grid — 2×2 on mobile */
   .dash-stats-grid                { grid-template-columns: repeat(2, 1fr) !important; }
   /* Stat numbers — more compact on mobile (fits time strings like "0m ago") */
   .dash-stat-number               { font-size: 22px !important; }
@@ -165,6 +165,11 @@ body {
 }
 @media (min-width: 641px) and (max-width: 900px) {
   .feature-grid { grid-template-columns: repeat(2, 1fr) !important; }
+}
+
+/* Dashboard stat cards — drop to 2×2 at mid-range viewports before hitting mobile breakpoint */
+@media (min-width: 768px) and (max-width: 1060px) {
+  .dash-stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
 }
 
 ::-webkit-scrollbar {
@@ -234,7 +239,7 @@ body {
 .hero-section {
   position: relative;
   display: block;
-  min-height: 540px;
+  min-height: 720px;
 }
 
 .hero-left {
@@ -253,6 +258,7 @@ body {
   width: 300px;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
 }
 
 @media (max-width: 900px) {
