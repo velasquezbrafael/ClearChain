@@ -2064,12 +2064,6 @@ function HeroContent({
                       <p style={{ flex: 1, fontFamily: 'var(--font-inter)', fontSize: 14, color: '#7ec8d8', lineHeight: 1.7, margin: 0, paddingTop: 2 }}>{uc.body}</p>
                     )}
 
-                    {/* Expand chevron */}
-                    <div style={{ flexShrink: 0, marginLeft: 'auto' }}>
-                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ transform: expandedCase === uc.scenario ? 'rotate(180deg)' : 'none', transition: 'transform 0.25s' }}>
-                        <path d="M3 6l5 5 5-5" stroke="#1e4d5c" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </div>
                   </div>
 
                   {/* Body text on mobile */}
@@ -2079,9 +2073,21 @@ function HeroContent({
 
                   {/* SEE WHY THIS MATTERS label */}
                   {expandedCase !== uc.scenario && (
-                    <div style={{ marginTop: 14, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.1em', color: '#1e4d5c', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <div style={{
+                      marginTop: 16,
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      gap: 8,
+                      paddingTop: 14,
+                      borderTop: '1px solid rgba(6,182,212,0.06)',
+                      fontFamily: 'var(--font-jetbrains-mono)',
+                      fontSize: 11,
+                      letterSpacing: '0.14em',
+                      color: 'rgba(6,182,212,0.5)',
+                    }}>
                       <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                        <path d="M1.5 3.5l3.5 3.5 3.5-3.5" stroke="#1e4d5c" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M1.5 3.5l3.5 3.5 3.5-3.5" stroke="rgba(6,182,212,0.5)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
                       SEE WHY THIS MATTERS
                     </div>
