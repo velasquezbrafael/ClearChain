@@ -764,6 +764,57 @@ function StatsBar() {
 }
 
 // ---------------------------------------------------------------------------
+// Quick fill rich card helpers
+// ---------------------------------------------------------------------------
+
+type QFStyle = 'red' | 'green' | 'blue' | 'orange';
+
+interface RichCard {
+  badge: string;
+  score: number;
+  signals: readonly string[];
+  color: string;
+  displayAddr: string;
+}
+
+const ETH_CARD_OVERRIDES: Record<string, RichCard> = {
+  'Tornado Cash': {
+    badge: 'CRITICAL', score: 95, color: '#ff3b3b',
+    signals: ['OFAC SDN', 'MIXER', 'HIGH VOLUME', 'RAPID MOVEMENT'],
+    displayAddr: '0xd90e2f9...4F31b',
+  },
+  'Lazarus Group': {
+    badge: 'HIGH RISK', score: 72, color: '#ff8c00',
+    signals: ['DPRK', 'OFAC SDN', 'STATE ACTOR'],
+    displayAddr: '0x098B71...2f96',
+  },
+  'Vitalik.eth': {
+    badge: 'CLEAN', score: 0, color: '#00ff88',
+    signals: ['ENS RESOLVED', 'NO FLAGS', 'KNOWN ENTITY'],
+    displayAddr: 'vitalik.eth',
+  },
+};
+
+const QF_STYLE_BASE: Record<QFStyle, { badge: string; score: number; color: string }> = {
+  red:    { badge: 'HIGH RISK', score: 70, color: '#ff8c00' },
+  green:  { badge: 'CLEAN',     score: 0,  color: '#00ff88' },
+  blue:   { badge: 'EXCHANGE',  score: 15, color: '#60a5fa' },
+  orange: { badge: 'EXCHANGE',  score: 15, color: '#ff8c00' },
+};
+
+function getRichCard(
+  label: string,
+  address: string,
+  style: QFStyle,
+  chain: 'ETH' | 'BTC' | 'TRX' | 'SOL',
+): RichCard {
+  if (chain === 'ETH' && ETH_CARD_OVERRIDES[label]) return ETH_CARD_OVERRIDES[label];
+  const base = QF_STYLE_BASE[style];
+  const short = address.length > 14 ? `${address.slice(0, 8)}...${address.slice(-5)}` : address;
+  return { ...base, signals: ['SCREENED', `${chain} CHAIN`], displayAddr: short };
+}
+
+// ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 // Hero state
 // ---------------------------------------------------------------------------
@@ -1281,53 +1332,50 @@ function HeroContent({
 
             {/* Quick fill rows */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {visibleQuickFills.map(({ label, sub, address: addr, style: qStyle }) => {
-                const riskColor = qStyle === 'red' ? '#ff3b3b' : qStyle === 'green' ? '#06b6d4' : qStyle === 'blue' ? '#60a5fa' : '#ff8c00';
-                const riskLabel = qStyle === 'red' ? 'HIGH RISK' : qStyle === 'green' ? 'CLEAN' : qStyle === 'blue' ? 'EXCHANGE' : 'EXCHANGE';
+              {visibleQuickFills.map(({ label, address: addr, style: qStyle, chain: qChain }) => {
+                const rc = getRichCard(label, addr, qStyle, qChain);
                 return (
                   <button
                     key={label}
+                    type="button"
                     onClick={() => onQuickFill(addr)}
                     disabled={loading}
                     style={{
                       display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '10px 14px',
+                      flexDirection: 'column',
+                      gap: 8,
+                      padding: '14px 16px',
                       border: '1px solid rgba(255,255,255,0.06)',
                       borderRadius: 3,
-                      background: 'rgba(255,255,255,0.02)',
+                      background: '#0d1220',
                       cursor: loading ? 'default' : 'pointer',
                       width: '100%',
                       textAlign: 'left' as const,
-                      transition: 'border-color 0.2s, background 0.2s',
+                      transition: 'border-color 0.2s',
                     }}
-                    onTouchStart={e => { e.currentTarget.style.borderColor = 'rgba(6,182,212,0.25)'; e.currentTarget.style.background = 'rgba(6,182,212,0.04)'; }}
-                    onTouchEnd={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; }}
+                    onTouchStart={e => { e.currentTarget.style.borderColor = 'rgba(0,255,136,0.2)'; }}
+                    onTouchEnd={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; }}
                   >
-                    <div>
-                      <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: 'var(--text-primary)', marginBottom: 2 }}>
-                        {label}
-                      </div>
-                      {sub && (
-                        <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: 'var(--text-dim)', letterSpacing: '0.08em' }}>
-                          {sub}
-                        </div>
-                      )}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                      <span style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 13, fontWeight: 700, color: '#f0f4ff' }}>{label}</span>
+                      <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.1em', color: rc.color, border: `1px solid ${rc.color}44`, borderRadius: 2, padding: '2px 6px', background: `${rc.color}0a`, flexShrink: 0 }}>{rc.badge}</span>
                     </div>
-                    <span style={{
-                      fontFamily: 'var(--font-jetbrains-mono)',
-                      fontSize: 8,
-                      letterSpacing: '0.12em',
-                      color: riskColor,
-                      border: `1px solid ${riskColor}`,
-                      borderRadius: 2,
-                      padding: '2px 6px',
-                      opacity: 0.8,
-                      flexShrink: 0,
-                    }}>
-                      {riskLabel}
-                    </span>
+                    <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#3d4a5c' }}>{rc.displayAddr}</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                      {rc.signals.map(sig => (
+                        <span key={sig} style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#8892a4', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 2, padding: '2px 7px' }}>{sig}</span>
+                      ))}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 10 }}>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 3, flexShrink: 0 }}>
+                        <span style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 28, fontWeight: 700, color: rc.color, lineHeight: 1 }}>{rc.score}</span>
+                        <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#3d4a5c' }}>/100</span>
+                      </div>
+                      <div style={{ flex: 1, height: 3, background: 'rgba(255,255,255,0.06)' }}>
+                        <div style={{ width: `${rc.score}%`, height: '100%', background: rc.color }} />
+                      </div>
+                      <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.1em', color: rc.color, border: `1px solid ${rc.color}59`, borderRadius: 3, padding: '5px 12px', background: `${rc.color}0f`, flexShrink: 0 }}>ANALYZE</span>
+                    </div>
                   </button>
                 );
               })}
@@ -1402,55 +1450,52 @@ function HeroContent({
               TRY AN EXAMPLE
             </div>
 
-            {/* Quick fill buttons — stacked vertically with risk badge */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {visibleQuickFills.map(({ label, sub, address: addr, style: qStyle }) => {
-                const riskColor = qStyle === 'red' ? '#ff3b3b' : qStyle === 'green' ? '#06b6d4' : qStyle === 'blue' ? '#60a5fa' : '#ff8c00';
-                const riskLabel = qStyle === 'red' ? 'HIGH RISK' : qStyle === 'green' ? 'CLEAN' : qStyle === 'blue' ? 'EXCHANGE' : 'EXCHANGE';
+            {/* Quick fill cards */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
+              {visibleQuickFills.map(({ label, address: addr, style: qStyle, chain: qChain }) => {
+                const rc = getRichCard(label, addr, qStyle, qChain);
                 return (
                   <button
                     key={label}
+                    type="button"
                     onClick={() => onQuickFill(addr)}
                     disabled={loading}
                     style={{
                       display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '12px 16px',
+                      flexDirection: 'column',
+                      gap: 8,
+                      padding: '14px 16px',
                       border: '1px solid rgba(255,255,255,0.06)',
                       borderRadius: 3,
-                      background: 'rgba(255,255,255,0.02)',
+                      background: '#0d1220',
                       cursor: loading ? 'default' : 'pointer',
                       width: '100%',
                       textAlign: 'left' as const,
-                      transition: 'border-color 0.2s, background 0.2s',
+                      transition: 'border-color 0.2s',
                     }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(6,182,212,0.25)'; e.currentTarget.style.background = 'rgba(6,182,212,0.04)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(0,255,136,0.2)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; }}
                   >
-                    <div>
-                      <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: 'var(--text-primary)', marginBottom: 2 }}>
-                        {label}
-                      </div>
-                      {sub && (
-                        <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: 'var(--text-dim)', letterSpacing: '0.08em' }}>
-                          {sub}
-                        </div>
-                      )}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                      <span style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 13, fontWeight: 700, color: '#f0f4ff' }}>{label}</span>
+                      <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.1em', color: rc.color, border: `1px solid ${rc.color}44`, borderRadius: 2, padding: '2px 6px', background: `${rc.color}0a`, flexShrink: 0 }}>{rc.badge}</span>
                     </div>
-                    <span style={{
-                      fontFamily: 'var(--font-jetbrains-mono)',
-                      fontSize: 8,
-                      letterSpacing: '0.12em',
-                      color: riskColor,
-                      border: `1px solid ${riskColor}`,
-                      borderRadius: 2,
-                      padding: '2px 6px',
-                      opacity: 0.8,
-                      flexShrink: 0,
-                    }}>
-                      {riskLabel}
-                    </span>
+                    <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#3d4a5c' }}>{rc.displayAddr}</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                      {rc.signals.map(sig => (
+                        <span key={sig} style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#8892a4', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 2, padding: '2px 7px' }}>{sig}</span>
+                      ))}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 10 }}>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 3, flexShrink: 0 }}>
+                        <span style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 28, fontWeight: 700, color: rc.color, lineHeight: 1 }}>{rc.score}</span>
+                        <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#3d4a5c' }}>/100</span>
+                      </div>
+                      <div style={{ flex: 1, height: 3, background: 'rgba(255,255,255,0.06)' }}>
+                        <div style={{ width: `${rc.score}%`, height: '100%', background: rc.color }} />
+                      </div>
+                      <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.1em', color: rc.color, border: `1px solid ${rc.color}59`, borderRadius: 3, padding: '5px 12px', background: `${rc.color}0f`, flexShrink: 0 }}>ANALYZE</span>
+                    </div>
                   </button>
                 );
               })}
