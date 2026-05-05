@@ -780,7 +780,7 @@ interface RichCard {
 const ETH_CARD_OVERRIDES: Record<string, RichCard> = {
   'Tornado Cash': {
     badge: 'CRITICAL', score: 95, color: '#ff3b3b',
-    signals: ['OFAC SDN', 'MIXER', 'HIGH VOLUME', 'RAPID MOVEMENT'],
+    signals: ['OFAC SDN', 'MIXER', 'RAPID MOVEMENT'],
     displayAddr: '0xd90e2f9...4F31b',
   },
   'Lazarus Group': {
@@ -790,7 +790,7 @@ const ETH_CARD_OVERRIDES: Record<string, RichCard> = {
   },
   'Vitalik.eth': {
     badge: 'CLEAN', score: 0, color: '#00ff88',
-    signals: ['ENS RESOLVED', 'NO FLAGS', 'KNOWN ENTITY'],
+    signals: ['ENS RESOLVED', 'NO FLAGS'],
     displayAddr: 'vitalik.eth',
   },
 };
@@ -1305,6 +1305,10 @@ function HeroContent({
               marginTop: 32,
               animation: 'fadeSlideUp 0.5s ease-out both',
               animationDelay: '0.6s',
+              background: 'rgba(6,182,212,0.03)',
+              border: '1px solid rgba(6,182,212,0.1)',
+              borderRadius: 4,
+              padding: '20px 16px',
             }}
           >
             {/* Header */}
@@ -1410,6 +1414,30 @@ function HeroContent({
                 RUN THE SIMULATOR
               </button>
             )}
+
+            {/* Chain selector — inside the box on mobile */}
+            <div style={{ display: 'flex', gap: 6, marginTop: 16, paddingTop: 14, borderTop: '1px solid rgba(6,182,212,0.06)' }}>
+              {(['ETH', 'BTC', 'TRX', 'SOL'] as const).map(c => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => { setSelectedChain(c); setAddress(''); }}
+                  style={{
+                    padding: '3px 10px',
+                    fontFamily: 'var(--font-jetbrains-mono)',
+                    fontSize: 9,
+                    letterSpacing: '0.1em',
+                    border: `1px solid ${selectedChain === c ? 'rgba(6,182,212,0.4)' : 'rgba(255,255,255,0.08)'}`,
+                    borderRadius: 2,
+                    background: selectedChain === c ? 'rgba(6,182,212,0.08)' : 'transparent',
+                    color: selectedChain === c ? '#06b6d4' : 'var(--text-dim)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
           </div>
         )}
         </div>{/* end hero-left */}
@@ -1423,7 +1451,6 @@ function HeroContent({
             padding: '32px 28px',
             backdropFilter: 'blur(12px)',
             WebkitBackdropFilter: 'blur(12px)',
-            height: '100%',
             display: 'flex',
             flexDirection: 'column',
           }}>
@@ -1451,7 +1478,7 @@ function HeroContent({
             </div>
 
             {/* Quick fill cards */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {visibleQuickFills.map(({ label, address: addr, style: qStyle, chain: qChain }) => {
                 const rc = getRichCard(label, addr, qStyle, qChain);
                 return (
