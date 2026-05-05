@@ -1281,7 +1281,7 @@ function HeroContent({
             animationDelay: '0.55s',
           }}
         >
-          {['OFAC Screening', 'Scam Detection', 'Risk Report', 'ETH · BTC · TRX · SOL', 'Free Forever'].map(label => (
+          {['OFAC Screening', 'Scam Detection', 'Risk Report', 'ETH · BTC · TRX · SOL'].map(label => (
             <span
               key={label}
               style={{
@@ -4115,8 +4115,8 @@ export default function HomePage() {
           letterSpacing: '0.05em',
         }}
       >
-        Enterprise AML tools cost $50,000+/year. ClearChain is{' '}
-        <span style={{ color: '#06b6d4' }}>always free</span>.
+        Enterprise AML tools cost $50,000+/year. ClearChain starts{' '}
+        <span style={{ color: '#06b6d4' }}>free</span>.
       </div>
     </div>
   );
