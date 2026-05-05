@@ -1557,52 +1557,159 @@ function HeroContent({
         }
 
         const useCaseDiagrams: Record<string, React.ReactNode> = {
+
           incoming: (
-            <svg viewBox="0 0 240 120" fill="none" style={{ width: '100%', maxWidth: 320, height: 'auto' }}>
-              <rect x="160" y="40" width="60" height="40" rx="4" stroke="#06b6d4" strokeWidth="1.5" strokeDasharray="4 2"/>
-              <rect x="20" y="40" width="60" height="40" rx="4" stroke="rgba(6,182,212,0.4)" strokeWidth="1.5"/>
-              <path d="M80 60h60" stroke="#06b6d4" strokeWidth="1.5" strokeLinecap="round"/>
-              <path d="M126 52l14 8-14 8" stroke="#06b6d4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              <text x="36" y="64" fontFamily="monospace" fontSize="8" fill="rgba(6,182,212,0.5)">THEM</text>
-              <text x="174" y="64" fontFamily="monospace" fontSize="8" fill="#06b6d4">YOU</text>
-              <circle cx="140" cy="60" r="3" fill="#ff3b3b"/>
-              <text x="128" y="54" fontFamily="monospace" fontSize="6" fill="#ff3b3b">?</text>
+            <svg viewBox="0 0 320 140" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', maxWidth: 340, height: 'auto' }}>
+              <rect width="320" height="140" fill="rgba(0,8,15,0.4)" rx="4"/>
+              <line x1="0" y1="70" x2="320" y2="70" stroke="rgba(6,182,212,0.04)" strokeWidth="0.5"/>
+              <line x1="160" y1="0" x2="160" y2="140" stroke="rgba(6,182,212,0.04)" strokeWidth="0.5"/>
+              <rect x="12" y="44" width="72" height="52" rx="4" fill="rgba(255,59,59,0.04)" stroke="rgba(255,59,59,0.55)" strokeWidth="1.5"/>
+              <rect x="12" y="44" width="72" height="14" rx="4" fill="rgba(255,59,59,0.07)"/>
+              <line x1="12" y1="58" x2="84" y2="58" stroke="rgba(255,59,59,0.15)" strokeWidth="0.5"/>
+              <rect x="22" y="66" width="30" height="4" rx="2" fill="rgba(255,59,59,0.22)"/>
+              <rect x="22" y="75" width="20" height="3" rx="1.5" fill="rgba(255,59,59,0.13)"/>
+              <rect x="22" y="83" width="25" height="3" rx="1.5" fill="rgba(255,59,59,0.08)"/>
+              <circle cx="83" cy="44" r="9" fill="#00080f" stroke="#ff3b3b" strokeWidth="1.5"/>
+              <line x1="83" y1="39" x2="83" y2="45" stroke="#ff3b3b" strokeWidth="1.8" strokeLinecap="round"/>
+              <circle cx="83" cy="49" r="1.3" fill="#ff3b3b"/>
+              <text x="48" y="112" textAnchor="middle" fill="rgba(255,59,59,0.55)" fontFamily="monospace" fontSize="8" letterSpacing="1.5">UNKNOWN</text>
+              <text x="48" y="123" textAnchor="middle" fill="rgba(255,59,59,0.28)" fontFamily="monospace" fontSize="7">0x7f3a...d2c</text>
+              <line x1="86" y1="70" x2="114" y2="70" stroke="rgba(255,100,0,0.35)" strokeWidth="1.2" strokeDasharray="3 3"/>
+              <polygon points="110,63 103,70 110,74.5 117,70" fill="rgba(255,140,0,0.15)" stroke="rgba(255,140,0,0.8)" strokeWidth="1.2" strokeLinejoin="round"/>
+              <line x1="103" y1="70" x2="117" y2="70" stroke="rgba(255,140,0,0.35)" strokeWidth="0.8"/>
+              <rect x="126" y="36" width="68" height="68" rx="4" fill="rgba(6,182,212,0.04)" stroke="rgba(6,182,212,0.4)" strokeWidth="1.5"/>
+              {[48,57,83,92].map(y => (
+                <line key={y} x1="134" y1={y} x2="186" y2={y} stroke="rgba(6,182,212,0.07)" strokeWidth="0.5"/>
+              ))}
+              <line x1="134" y1="70" x2="186" y2="70" stroke="rgba(6,182,212,0.55)" strokeWidth="1"/>
+              <circle cx="134" cy="70" r="2" fill="#06b6d4" opacity="0.8"/>
+              <circle cx="186" cy="70" r="2" fill="#06b6d4" opacity="0.8"/>
+              <text x="160" y="76" textAnchor="middle" fill="#ff8c00" fontFamily="monospace" fontSize="22" fontWeight="700">65</text>
+              <rect x="126" y="18" width="68" height="15" rx="3" fill="rgba(255,59,59,0.07)" stroke="rgba(255,59,59,0.4)" strokeWidth="1"/>
+              <text x="160" y="29.5" textAnchor="middle" fill="#ff3b3b" fontFamily="monospace" fontSize="7.5" letterSpacing="1.2">HIGH RISK</text>
+              <text x="160" y="118" textAnchor="middle" fill="rgba(6,182,212,0.4)" fontFamily="monospace" fontSize="7" letterSpacing="1.5">CLEARCHAIN</text>
+              <line x1="196" y1="70" x2="218" y2="70" stroke="rgba(6,182,212,0.6)" strokeWidth="1.5"/>
+              <path d="M212 64l8 6-8 6" fill="none" stroke="#06b6d4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <rect x="224" y="44" width="72" height="52" rx="4" fill="rgba(6,182,212,0.04)" stroke="#06b6d4" strokeWidth="1.5"/>
+              <rect x="224" y="44" width="72" height="14" rx="4" fill="rgba(6,182,212,0.09)"/>
+              <line x1="224" y1="58" x2="296" y2="58" stroke="rgba(6,182,212,0.15)" strokeWidth="0.5"/>
+              <rect x="234" y="66" width="30" height="4" rx="2" fill="rgba(6,182,212,0.2)"/>
+              <rect x="234" y="75" width="20" height="3" rx="1.5" fill="rgba(6,182,212,0.12)"/>
+              <rect x="234" y="83" width="25" height="3" rx="1.5" fill="rgba(6,182,212,0.07)"/>
+              <circle cx="295" cy="44" r="9" fill="#00080f" stroke="#06b6d4" strokeWidth="1.5"/>
+              <path d="M290 44l3.5 3.5L301 40" fill="none" stroke="#06b6d4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <text x="260" y="112" textAnchor="middle" fill="#06b6d4" fontFamily="monospace" fontSize="8" letterSpacing="2">YOU</text>
             </svg>
           ),
+
           outgoing: (
-            <svg viewBox="0 0 240 120" fill="none" style={{ width: '100%', maxWidth: 320, height: 'auto' }}>
-              <rect x="20" y="40" width="60" height="40" rx="4" stroke="#06b6d4" strokeWidth="1.5"/>
-              <rect x="160" y="40" width="60" height="40" rx="4" stroke="rgba(255,59,59,0.5)" strokeWidth="1.5" strokeDasharray="4 2"/>
-              <path d="M80 60h60" stroke="#06b6d4" strokeWidth="1.5" strokeLinecap="round"/>
-              <path d="M126 52l14 8-14 8" stroke="#06b6d4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              <text x="36" y="64" fontFamily="monospace" fontSize="8" fill="#06b6d4">YOU</text>
-              <text x="168" y="64" fontFamily="monospace" fontSize="8" fill="rgba(255,59,59,0.7)">?????</text>
-              <circle cx="140" cy="60" r="3" fill="#ff8c00"/>
+            <svg viewBox="0 0 320 140" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', maxWidth: 340, height: 'auto' }}>
+              <rect width="320" height="140" fill="rgba(0,8,15,0.4)" rx="4"/>
+              <line x1="0" y1="70" x2="320" y2="70" stroke="rgba(6,182,212,0.04)" strokeWidth="0.5"/>
+              <rect x="12" y="44" width="72" height="52" rx="4" fill="rgba(6,182,212,0.04)" stroke="#06b6d4" strokeWidth="1.5"/>
+              <rect x="12" y="44" width="72" height="14" rx="4" fill="rgba(6,182,212,0.09)"/>
+              <line x1="12" y1="58" x2="84" y2="58" stroke="rgba(6,182,212,0.15)" strokeWidth="0.5"/>
+              <rect x="22" y="66" width="30" height="4" rx="2" fill="rgba(6,182,212,0.2)"/>
+              <rect x="22" y="75" width="20" height="3" rx="1.5" fill="rgba(6,182,212,0.12)"/>
+              <rect x="22" y="83" width="25" height="3" rx="1.5" fill="rgba(6,182,212,0.07)"/>
+              <text x="48" y="112" textAnchor="middle" fill="#06b6d4" fontFamily="monospace" fontSize="8" letterSpacing="2">YOU</text>
+              <line x1="86" y1="70" x2="116" y2="70" stroke="rgba(6,182,212,0.5)" strokeWidth="1.2"/>
+              <path d="M160 34l26 10v18c0 16-26 28-26 28S134 78 134 62V44l26-10z" fill="rgba(6,182,212,0.06)" stroke="#06b6d4" strokeWidth="1.5" strokeLinejoin="round"/>
+              <circle cx="160" cy="68" r="12" fill="rgba(6,182,212,0.08)" stroke="rgba(6,182,212,0.3)" strokeWidth="1"/>
+              <circle cx="157" cy="66" r="6" stroke="#06b6d4" strokeWidth="1.5"/>
+              <line x1="162" y1="71" x2="167" y2="76" stroke="#06b6d4" strokeWidth="1.8" strokeLinecap="round"/>
+              <text x="160" y="106" textAnchor="middle" fill="rgba(6,182,212,0.4)" fontFamily="monospace" fontSize="7" letterSpacing="1.5">VERIFY FIRST</text>
+              <line x1="186" y1="70" x2="206" y2="70" stroke="rgba(255,59,59,0.4)" strokeWidth="1.2" strokeDasharray="4 3"/>
+              <path d="M200 64l8 6-8 6" fill="none" stroke="rgba(255,59,59,0.6)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+              <rect x="210" y="44" width="76" height="52" rx="4" fill="rgba(255,59,59,0.03)" stroke="rgba(255,59,59,0.5)" strokeWidth="1.5" strokeDasharray="5 3"/>
+              <rect x="210" y="44" width="76" height="14" rx="4" fill="rgba(255,59,59,0.05)"/>
+              <line x1="210" y1="58" x2="286" y2="58" stroke="rgba(255,59,59,0.12)" strokeWidth="0.5"/>
+              <text x="248" y="74" textAnchor="middle" fill="rgba(255,59,59,0.3)" fontFamily="monospace" fontSize="14">????</text>
+              <text x="248" y="91" textAnchor="middle" fill="rgba(255,59,59,0.2)" fontFamily="monospace" fontSize="10">????</text>
+              <circle cx="285" cy="44" r="9" fill="#00080f" stroke="#ff3b3b" strokeWidth="1.5"/>
+              <line x1="285" y1="39" x2="285" y2="45" stroke="#ff3b3b" strokeWidth="1.8" strokeLinecap="round"/>
+              <circle cx="285" cy="49" r="1.3" fill="#ff3b3b"/>
+              <text x="248" y="112" textAnchor="middle" fill="rgba(255,59,59,0.5)" fontFamily="monospace" fontSize="8" letterSpacing="1">UNKNOWN DEST</text>
             </svg>
           ),
+
           inbound: (
-            <svg viewBox="0 0 240 120" fill="none" style={{ width: '100%', maxWidth: 320, height: 'auto' }}>
-              <rect x="90" y="60" width="60" height="40" rx="4" stroke="#06b6d4" strokeWidth="1.5"/>
-              <rect x="20" y="10" width="50" height="32" rx="4" stroke="rgba(255,59,59,0.5)" strokeWidth="1.5" strokeDasharray="4 2"/>
-              <rect x="170" y="10" width="50" height="32" rx="4" stroke="rgba(255,59,59,0.5)" strokeWidth="1.5" strokeDasharray="4 2"/>
-              <path d="M45 42l75 28M195 42l-75 28" stroke="rgba(255,59,59,0.5)" strokeWidth="1" strokeLinecap="round"/>
-              <text x="105" y="85" fontFamily="monospace" fontSize="8" fill="#06b6d4">YOU</text>
+            <svg viewBox="0 0 320 140" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', maxWidth: 340, height: 'auto' }}>
+              <rect width="320" height="140" fill="rgba(0,8,15,0.4)" rx="4"/>
+              <rect x="220" y="44" width="72" height="52" rx="4" fill="rgba(6,182,212,0.04)" stroke="#06b6d4" strokeWidth="1.5"/>
+              <rect x="220" y="44" width="72" height="14" rx="4" fill="rgba(6,182,212,0.09)"/>
+              <line x1="220" y1="58" x2="292" y2="58" stroke="rgba(6,182,212,0.15)" strokeWidth="0.5"/>
+              <rect x="230" y="66" width="30" height="4" rx="2" fill="rgba(6,182,212,0.2)"/>
+              <rect x="230" y="75" width="20" height="3" rx="1.5" fill="rgba(6,182,212,0.12)"/>
+              <rect x="230" y="83" width="25" height="3" rx="1.5" fill="rgba(6,182,212,0.07)"/>
+              <text x="256" y="112" textAnchor="middle" fill="#06b6d4" fontFamily="monospace" fontSize="8" letterSpacing="2">YOU</text>
+              <rect x="16" y="10" width="56" height="38" rx="3" fill="rgba(6,182,212,0.03)" stroke="rgba(6,182,212,0.4)" strokeWidth="1.2"/>
+              <rect x="16" y="10" width="56" height="10" rx="3" fill="rgba(6,182,212,0.06)"/>
+              <rect x="23" y="26" width="22" height="3" rx="1.5" fill="rgba(6,182,212,0.18)"/>
+              <rect x="23" y="33" width="14" height="2.5" rx="1" fill="rgba(6,182,212,0.1)"/>
+              <text x="44" y="60" textAnchor="middle" fill="rgba(6,182,212,0.4)" fontFamily="monospace" fontSize="7">CLEAN</text>
+              <line x1="74" y1="29" x2="218" y2="62" stroke="rgba(6,182,212,0.4)" strokeWidth="1.2"/>
+              <path d="M210 59l10 4-6 7" fill="none" stroke="rgba(6,182,212,0.4)" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+              <rect x="16" y="51" width="56" height="38" rx="3" fill="rgba(255,140,0,0.03)" stroke="rgba(255,140,0,0.4)" strokeWidth="1.2"/>
+              <rect x="16" y="51" width="56" height="10" rx="3" fill="rgba(255,140,0,0.05)"/>
+              <rect x="23" y="67" width="22" height="3" rx="1.5" fill="rgba(255,140,0,0.18)"/>
+              <rect x="23" y="74" width="14" height="2.5" rx="1" fill="rgba(255,140,0,0.1)"/>
+              <text x="44" y="101" textAnchor="middle" fill="rgba(255,140,0,0.45)" fontFamily="monospace" fontSize="7">UNKNOWN</text>
+              <line x1="74" y1="70" x2="218" y2="70" stroke="rgba(255,140,0,0.45)" strokeWidth="1.2" strokeDasharray="4 3"/>
+              <path d="M212 64l8 6-8 6" fill="none" stroke="rgba(255,140,0,0.6)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+              <rect x="16" y="92" width="56" height="38" rx="3" fill="rgba(255,59,59,0.03)" stroke="rgba(255,59,59,0.5)" strokeWidth="1.2"/>
+              <rect x="16" y="92" width="56" height="10" rx="3" fill="rgba(255,59,59,0.05)"/>
+              <rect x="23" y="108" width="22" height="3" rx="1.5" fill="rgba(255,59,59,0.18)"/>
+              <rect x="23" y="115" width="14" height="2.5" rx="1" fill="rgba(255,59,59,0.1)"/>
+              <circle cx="71" cy="92" r="7" fill="#00080f" stroke="#ff3b3b" strokeWidth="1.2"/>
+              <line x1="71" y1="88" x2="71" y2="93" stroke="#ff3b3b" strokeWidth="1.5" strokeLinecap="round"/>
+              <circle cx="71" cy="96.5" r="1" fill="#ff3b3b"/>
+              <text x="44" y="140" textAnchor="middle" fill="rgba(255,59,59,0.5)" fontFamily="monospace" fontSize="7">FLAGGED</text>
+              <line x1="74" y1="111" x2="218" y2="78" stroke="rgba(255,59,59,0.5)" strokeWidth="1.2"/>
+              <path d="M210 74l10 5-7 6" fill="none" stroke="rgba(255,59,59,0.6)" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+              <rect x="118" y="56" width="62" height="14" rx="3" fill="rgba(255,59,59,0.07)" stroke="rgba(255,59,59,0.3)" strokeWidth="1"/>
+              <text x="149" y="66.5" textAnchor="middle" fill="#ff3b3b" fontFamily="monospace" fontSize="7" letterSpacing="1">TAINTED SOURCE</text>
             </svg>
           ),
+
           protocol: (
-            <svg viewBox="0 0 240 120" fill="none" style={{ width: '100%', maxWidth: 320, height: 'auto' }}>
-              <circle cx="120" cy="55" r="28" stroke="#06b6d4" strokeWidth="1.5" strokeDasharray="4 2"/>
-              <circle cx="120" cy="55" r="8" stroke="#06b6d4" strokeWidth="1.5"/>
-              <circle cx="60" cy="30" r="6" stroke="rgba(255,59,59,0.6)" strokeWidth="1.5"/>
-              <circle cx="180" cy="30" r="6" stroke="rgba(255,59,59,0.6)" strokeWidth="1.5"/>
-              <circle cx="60" cy="80" r="6" stroke="rgba(6,182,212,0.4)" strokeWidth="1.5"/>
-              <circle cx="180" cy="80" r="6" stroke="rgba(6,182,212,0.4)" strokeWidth="1.5"/>
-              <line x1="66" y1="34" x2="113" y2="50" stroke="rgba(255,59,59,0.4)" strokeWidth="1"/>
-              <line x1="174" y1="34" x2="127" y2="50" stroke="rgba(255,59,59,0.4)" strokeWidth="1"/>
-              <line x1="66" y1="76" x2="113" y2="60" stroke="rgba(6,182,212,0.3)" strokeWidth="1"/>
-              <line x1="174" y1="76" x2="127" y2="60" stroke="rgba(6,182,212,0.3)" strokeWidth="1"/>
+            <svg viewBox="0 0 320 140" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', maxWidth: 340, height: 'auto' }}>
+              <rect width="320" height="140" fill="rgba(0,8,15,0.4)" rx="4"/>
+              <polygon points="160,38 180,49 180,71 160,82 140,71 140,49" fill="rgba(6,182,212,0.05)" stroke="#06b6d4" strokeWidth="1.5"/>
+              <polygon points="160,48 172,55 172,69 160,76 148,69 148,55" fill="rgba(6,182,212,0.03)" stroke="rgba(6,182,212,0.3)" strokeWidth="0.8"/>
+              <text x="160" y="63" textAnchor="middle" fill="rgba(6,182,212,0.6)" fontFamily="monospace" fontSize="7" letterSpacing="0.5">CONTRACT</text>
+              <text x="160" y="73" textAnchor="middle" fill="rgba(6,182,212,0.35)" fontFamily="monospace" fontSize="6">0x4a2...f</text>
+              <rect x="130" y="4" width="60" height="26" rx="3" fill="rgba(6,182,212,0.04)" stroke="#06b6d4" strokeWidth="1.5" strokeDasharray="4 2"/>
+              <rect x="130" y="4" width="60" height="9" rx="3" fill="rgba(6,182,212,0.07)"/>
+              <text x="160" y="24" textAnchor="middle" fill="#06b6d4" fontFamily="monospace" fontSize="7.5" letterSpacing="1">YOU →</text>
+              <line x1="160" y1="30" x2="160" y2="38" stroke="#06b6d4" strokeWidth="1.2" strokeDasharray="3 2"/>
+              <circle cx="60" cy="60" r="16" fill="rgba(6,182,212,0.03)" stroke="rgba(6,182,212,0.35)" strokeWidth="1.2"/>
+              <text x="60" y="58" textAnchor="middle" fill="rgba(6,182,212,0.4)" fontFamily="monospace" fontSize="7">0x2f</text>
+              <text x="60" y="67" textAnchor="middle" fill="rgba(6,182,212,0.25)" fontFamily="monospace" fontSize="6">clean</text>
+              <line x1="76" y1="60" x2="140" y2="60" stroke="rgba(6,182,212,0.25)" strokeWidth="1"/>
+              <circle cx="260" cy="60" r="16" fill="rgba(6,182,212,0.03)" stroke="rgba(6,182,212,0.35)" strokeWidth="1.2"/>
+              <text x="260" y="58" textAnchor="middle" fill="rgba(6,182,212,0.4)" fontFamily="monospace" fontSize="7">0x9a</text>
+              <text x="260" y="67" textAnchor="middle" fill="rgba(6,182,212,0.25)" fontFamily="monospace" fontSize="6">clean</text>
+              <line x1="244" y1="60" x2="180" y2="60" stroke="rgba(6,182,212,0.25)" strokeWidth="1"/>
+              <circle cx="88" cy="118" r="16" fill="rgba(255,59,59,0.05)" stroke="rgba(255,59,59,0.6)" strokeWidth="1.5"/>
+              <text x="88" y="116" textAnchor="middle" fill="rgba(255,59,59,0.6)" fontFamily="monospace" fontSize="7">0x7c</text>
+              <text x="88" y="125" textAnchor="middle" fill="rgba(255,59,59,0.35)" fontFamily="monospace" fontSize="6">hacker</text>
+              <circle cx="103" cy="104" r="7" fill="#00080f" stroke="#ff3b3b" strokeWidth="1.2"/>
+              <line x1="103" y1="100" x2="103" y2="105" stroke="#ff3b3b" strokeWidth="1.4" strokeLinecap="round"/>
+              <circle cx="103" cy="108" r="1" fill="#ff3b3b"/>
+              <line x1="100" y1="107" x2="148" y2="71" stroke="rgba(255,59,59,0.5)" strokeWidth="1.2"/>
+              <circle cx="232" cy="118" r="16" fill="rgba(255,59,59,0.05)" stroke="rgba(255,59,59,0.6)" strokeWidth="1.5"/>
+              <text x="232" y="116" textAnchor="middle" fill="rgba(255,59,59,0.6)" fontFamily="monospace" fontSize="7">0xd3</text>
+              <text x="232" y="125" textAnchor="middle" fill="rgba(255,59,59,0.35)" fontFamily="monospace" fontSize="6">mixer</text>
+              <circle cx="217" cy="104" r="7" fill="#00080f" stroke="#ff3b3b" strokeWidth="1.2"/>
+              <line x1="217" y1="100" x2="217" y2="105" stroke="#ff3b3b" strokeWidth="1.4" strokeLinecap="round"/>
+              <circle cx="217" cy="108" r="1" fill="#ff3b3b"/>
+              <line x1="220" y1="107" x2="172" y2="71" stroke="rgba(255,59,59,0.5)" strokeWidth="1.2"/>
+              <rect x="108" y="120" width="104" height="14" rx="3" fill="rgba(255,59,59,0.06)" stroke="rgba(255,59,59,0.25)" strokeWidth="0.8"/>
+              <text x="160" y="130.5" textAnchor="middle" fill="rgba(255,59,59,0.5)" fontFamily="monospace" fontSize="7" letterSpacing="1">HIDDEN CONNECTIONS</text>
             </svg>
           ),
+
         };
 
         const useCases: UseCase[] = [
