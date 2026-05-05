@@ -2595,7 +2595,7 @@ export default function HomePage() {
         </div>
 
         {/* Nav links */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 16 : 24 }}>
           {!isMobile && (
             <>
               <a
@@ -2655,8 +2655,7 @@ export default function HomePage() {
             </>
           )}
 
-          {/* Auth nav */}
-          {/* Sound toggle */}
+          {/* Sound toggle — icon only on mobile */}
           <button
             onClick={() => {
               const next = !soundEnabled;
@@ -2668,20 +2667,58 @@ export default function HomePage() {
               background: 'none',
               border: 'none',
               cursor: 'pointer',
-              padding: 0,
+              padding: isMobile ? '4px' : 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: soundEnabled ? 'var(--text-dim)' : 'rgba(6,182,212,0.2)',
+              transition: 'color 0.15s',
               fontFamily: 'var(--font-jetbrains-mono)',
               fontSize: 10,
               letterSpacing: '0.1em',
-              color: soundEnabled ? 'var(--text-dim)' : 'rgba(6,182,212,0.2)',
-              transition: 'color 0.15s',
             }}
             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = soundEnabled ? 'var(--text-secondary)' : 'rgba(6,182,212,0.4)'; }}
             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = soundEnabled ? 'var(--text-dim)' : 'rgba(6,182,212,0.2)'; }}
           >
-            {soundEnabled ? '[SFX]' : '[---]'}
+            {isMobile ? (
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                {soundEnabled ? (
+                  <>
+                    <path d="M3 5.5H1v5h2l4 3V2.5L3 5.5z" fill="currentColor" opacity="0.7"/>
+                    <path d="M10 5a4 4 0 0 1 0 6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+                    <path d="M12 3a7 7 0 0 1 0 10" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+                  </>
+                ) : (
+                  <>
+                    <path d="M3 5.5H1v5h2l4 3V2.5L3 5.5z" fill="currentColor" opacity="0.4"/>
+                    <line x1="10" y1="6" x2="14" y2="10" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+                    <line x1="14" y1="6" x2="10" y2="10" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+                  </>
+                )}
+              </svg>
+            ) : (
+              soundEnabled ? '[SFX]' : '[---]'
+            )}
           </button>
 
+          {/* Auth — simplified on mobile */}
           {navUser ? (
+            isMobile ? (
+              <a
+                href="/dashboard"
+                style={{
+                  fontFamily: 'var(--font-jetbrains-mono)',
+                  fontSize: 11,
+                  letterSpacing: '0.08em',
+                  color: '#06b6d4',
+                  textDecoration: 'none',
+                  paddingLeft: 12,
+                  borderLeft: '1px solid rgba(6,182,212,0.08)',
+                }}
+              >
+                {navUser.name.split(' ')[0].toLowerCase()} ↗
+              </a>
+            ) : (
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingLeft: 12, borderLeft: '1px solid rgba(6,182,212,0.08)' }}>
               <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, letterSpacing: '0.08em', color: '#06b6d4' }}>
                 {navUser.name.split(' ')[0].toLowerCase()} ↗
@@ -2702,14 +2739,23 @@ export default function HomePage() {
                 SIGN OUT
               </button>
             </div>
+            )
           ) : (
             <a
               href="/auth/login"
-              style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.1em', color: 'var(--text-dim)', textDecoration: 'none', paddingLeft: 12, borderLeft: '1px solid rgba(6,182,212,0.08)' }}
+              style={{
+                fontFamily: 'var(--font-jetbrains-mono)',
+                fontSize: 10,
+                letterSpacing: '0.1em',
+                color: 'var(--text-dim)',
+                textDecoration: 'none',
+                paddingLeft: isMobile ? 8 : 12,
+                borderLeft: '1px solid rgba(6,182,212,0.08)',
+              }}
               onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-secondary)'; }}
               onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-dim)'; }}
             >
-              SIGN IN →
+              {isMobile ? 'LOG IN' : 'SIGN IN →'}
             </a>
           )}
         </div>
