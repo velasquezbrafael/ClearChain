@@ -1696,59 +1696,86 @@ function HeroContent({
                 Crypto moves fast. These are the moments where a 10-second check can save you.
               </p>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: 12 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {useCases.map(uc => (
                 <div
                   key={uc.scenario}
                   className="glass"
-                  style={{ borderRadius: 6, padding: isMobile ? '20px' : '28px 32px', cursor: 'pointer', transition: 'border-color 0.2s', borderColor: expandedCase === uc.scenario ? 'rgba(6,182,212,0.3)' : undefined }}
+                  style={{
+                    borderRadius: 6,
+                    cursor: 'pointer',
+                    transition: 'border-color 0.2s',
+                    borderColor: expandedCase === uc.scenario ? 'rgba(6,182,212,0.3)' : undefined,
+                    padding: isMobile ? '20px' : '24px 32px',
+                  }}
                   onClick={() => setExpandedCase(prev => prev === uc.scenario ? null : uc.scenario)}
                 >
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, marginBottom: 16 }}>
-                    <div style={{ flexShrink: 0, lineHeight: 1 }}>{uc.icon}</div>
-                    <div>
-                      <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.15em', color: '#06b6d4', marginBottom: 6, textTransform: 'uppercase' as const }}>{uc.tag}</div>
-                      <div style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: isMobile ? 15 : 17, fontWeight: 700, color: '#ecfeff', lineHeight: 1.2, marginBottom: 4 }}>{uc.scenario}</div>
-                      <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#1e4d5c', letterSpacing: '0.08em' }}>{uc.who}</div>
+                  {/* Top row — always visible */}
+                  <div style={{ display: 'flex', gap: isMobile ? 16 : 32, alignItems: 'flex-start' }}>
+                    {/* Left: icon + title */}
+                    <div style={{ flex: '0 0 auto', width: isMobile ? 'auto' : 260, display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+                      <div style={{ flexShrink: 0, marginTop: 2 }}>{uc.icon}</div>
+                      <div>
+                        <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.15em', color: '#06b6d4', marginBottom: 6, textTransform: 'uppercase' as const }}>{uc.tag}</div>
+                        <div style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: isMobile ? 15 : 18, fontWeight: 700, color: '#ecfeff', lineHeight: 1.2, marginBottom: 4 }}>{uc.scenario}</div>
+                        <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#1e4d5c', letterSpacing: '0.08em' }}>{uc.who}</div>
+                      </div>
+                    </div>
+
+                    {/* Right: body text — desktop only */}
+                    {!isMobile && (
+                      <p style={{ flex: 1, fontFamily: 'var(--font-inter)', fontSize: 14, color: '#7ec8d8', lineHeight: 1.7, margin: 0, paddingTop: 2 }}>{uc.body}</p>
+                    )}
+
+                    {/* Expand chevron */}
+                    <div style={{ flexShrink: 0, marginLeft: 'auto', paddingTop: 4 }}>
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ transform: expandedCase === uc.scenario ? 'rotate(180deg)' : 'none', transition: 'transform 0.25s' }}>
+                        <path d="M3 6l5 5 5-5" stroke="#1e4d5c" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
                     </div>
                   </div>
-                  <p style={{ fontFamily: 'var(--font-inter)', fontSize: isMobile ? 13 : 14, color: '#7ec8d8', lineHeight: 1.7, margin: 0 }}>{uc.body}</p>
 
-                  {/* Expand indicator */}
-                  <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.1em', color: '#1e4d5c' }}>
-                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ transform: expandedCase === uc.scenario ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
-                      <path d="M2 4l4 4 4-4" stroke="#1e4d5c" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                    {expandedCase === uc.scenario ? 'CLOSE' : 'SEE WHY THIS MATTERS'}
-                  </div>
+                  {/* Body text on mobile */}
+                  {isMobile && (
+                    <p style={{ fontFamily: 'var(--font-inter)', fontSize: 13, color: '#7ec8d8', lineHeight: 1.7, margin: '12px 0 0' }}>{uc.body}</p>
+                  )}
 
-                  {/* Deep dive */}
+                  {/* SEE WHY THIS MATTERS label */}
+                  {expandedCase !== uc.scenario && (
+                    <div style={{ marginTop: 14, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.1em', color: '#1e4d5c', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                        <path d="M1.5 3.5l3.5 3.5 3.5-3.5" stroke="#1e4d5c" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      SEE WHY THIS MATTERS
+                    </div>
+                  )}
+
+                  {/* Deep dive — expanded state */}
                   {expandedCase === uc.scenario && (
                     <div
                       style={{ marginTop: 20, paddingTop: 20, borderTop: '1px solid rgba(6,182,212,0.1)' }}
                       onClick={e => e.stopPropagation()}
                     >
-                      {/* Diagram */}
-                      <div style={{ marginBottom: 20, opacity: 0.9 }}>
-                        {useCaseDiagrams[uc.diagram]}
+                      <div style={{ display: 'flex', gap: isMobile ? 0 : 40, flexDirection: isMobile ? 'column' : 'row', alignItems: 'flex-start' }}>
+                        {/* Diagram */}
+                        <div style={{ flex: '0 0 auto', width: isMobile ? '100%' : 300, marginBottom: isMobile ? 20 : 0 }}>
+                          {useCaseDiagrams[uc.diagram]}
+                        </div>
+                        {/* Story */}
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                          {uc.story.map((para: string, i: number) => (
+                            <p key={i} style={{ fontFamily: 'var(--font-inter)', fontSize: isMobile ? 13 : 14, color: i === 1 ? '#ff8c00' : '#7ec8d8', lineHeight: 1.75, margin: 0, fontStyle: i === 1 ? 'italic' : 'normal' }}>{para}</p>
+                          ))}
+                          <div style={{ marginTop: 8 }}>
+                            <a
+                              href="/"
+                              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 20px', background: 'rgba(6,182,212,0.08)', border: '1px solid rgba(6,182,212,0.25)', borderRadius: 4, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, letterSpacing: '0.1em', color: '#06b6d4', textDecoration: 'none' }}
+                            >
+                              Check a wallet now →
+                            </a>
+                          </div>
+                        </div>
                       </div>
-
-                      {/* Story paragraphs */}
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 20 }}>
-                        {uc.story.map((para, i) => (
-                          <p key={i} style={{ fontFamily: 'var(--font-inter)', fontSize: isMobile ? 13 : 14, color: i === 1 ? '#ff8c00' : '#7ec8d8', lineHeight: 1.75, margin: 0, fontStyle: i === 1 ? 'italic' : 'normal' }}>
-                            {para}
-                          </p>
-                        ))}
-                      </div>
-
-                      {/* CTA */}
-                      <a
-                        href="/"
-                        style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 20px', background: 'rgba(6,182,212,0.08)', border: '1px solid rgba(6,182,212,0.25)', borderRadius: 4, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, letterSpacing: '0.1em', color: '#06b6d4', textDecoration: 'none' }}
-                      >
-                        Check a wallet now →
-                      </a>
                     </div>
                   )}
                 </div>
