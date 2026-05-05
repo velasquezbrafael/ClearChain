@@ -305,8 +305,15 @@ input, textarea {
 
 /* Hero headline — single line always, scales with viewport */
 .hero-headline {
-  font-size: clamp(1.5rem, 5.5vw, 5.5rem);
+  font-size: clamp(1.75rem, 5.5vw, 5.5rem);
   white-space: nowrap;
+}
+
+/* Larger minimum on mobile so the slogan reads well at 390px */
+@media (max-width: 640px) {
+  .hero-headline {
+    font-size: clamp(1.875rem, 7vw, 5.5rem);
+  }
 }
 
 /* Staggered hero fade-up */

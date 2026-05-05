@@ -1158,6 +1158,124 @@ function HeroContent({
             </span>
           ))}
         </div>
+
+        {/* Mobile-only: try-an-example panel (mirrors hero-right, hidden on ≥768px) */}
+        {isMobile && (
+          <div
+            style={{
+              marginTop: 32,
+              animation: 'fadeSlideUp 0.5s ease-out both',
+              animationDelay: '0.6s',
+            }}
+          >
+            {/* Header */}
+            <div style={{
+              fontFamily: 'var(--font-jetbrains-mono)',
+              fontSize: 10,
+              letterSpacing: '0.25em',
+              color: 'rgba(6,182,212,0.5)',
+              marginBottom: 16,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+            }}>
+              <span style={{
+                display: 'inline-block',
+                width: 6,
+                height: 6,
+                borderRadius: '50%',
+                background: '#06b6d4',
+                boxShadow: '0 0 8px rgba(6,182,212,0.8)',
+                flexShrink: 0,
+              }} />
+              TRY AN EXAMPLE
+            </div>
+
+            {/* Quick fill rows */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {visibleQuickFills.map(({ label, sub, address: addr, style: qStyle }) => {
+                const riskColor = qStyle === 'red' ? '#ff3b3b' : qStyle === 'green' ? '#06b6d4' : qStyle === 'blue' ? '#60a5fa' : '#ff8c00';
+                const riskLabel = qStyle === 'red' ? 'HIGH RISK' : qStyle === 'green' ? 'CLEAN' : qStyle === 'blue' ? 'EXCHANGE' : 'EXCHANGE';
+                return (
+                  <button
+                    key={label}
+                    onClick={() => onQuickFill(addr)}
+                    disabled={loading}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '10px 14px',
+                      border: '1px solid rgba(255,255,255,0.06)',
+                      borderRadius: 3,
+                      background: 'rgba(255,255,255,0.02)',
+                      cursor: loading ? 'default' : 'pointer',
+                      width: '100%',
+                      textAlign: 'left' as const,
+                      transition: 'border-color 0.2s, background 0.2s',
+                    }}
+                    onTouchStart={e => { e.currentTarget.style.borderColor = 'rgba(6,182,212,0.25)'; e.currentTarget.style.background = 'rgba(6,182,212,0.04)'; }}
+                    onTouchEnd={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; }}
+                  >
+                    <div>
+                      <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: 'var(--text-primary)', marginBottom: 2 }}>
+                        {label}
+                      </div>
+                      {sub && (
+                        <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: 'var(--text-dim)', letterSpacing: '0.08em' }}>
+                          {sub}
+                        </div>
+                      )}
+                    </div>
+                    <span style={{
+                      fontFamily: 'var(--font-jetbrains-mono)',
+                      fontSize: 8,
+                      letterSpacing: '0.12em',
+                      color: riskColor,
+                      border: `1px solid ${riskColor}`,
+                      borderRadius: 2,
+                      padding: '2px 6px',
+                      opacity: 0.8,
+                      flexShrink: 0,
+                    }}>
+                      {riskLabel}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Simulator CTA — ETH only */}
+            {selectedChain === 'ETH' && (
+              <button
+                onClick={onSimulatorFill}
+                disabled={loading}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  background: 'none',
+                  border: 'none',
+                  borderTop: '1px solid rgba(6,182,212,0.08)',
+                  cursor: loading ? 'default' : 'pointer',
+                  width: '100%',
+                  fontFamily: 'var(--font-jetbrains-mono)',
+                  fontSize: 11,
+                  letterSpacing: '0.12em',
+                  color: 'rgba(6,182,212,0.7)',
+                  padding: '16px 0 0',
+                  marginTop: 16,
+                  transition: 'color 0.2s',
+                }}
+              >
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0 }}>
+                  <polygon points="2,1 9,5 2,9" fill="currentColor"/>
+                </svg>
+                RUN THE SIMULATOR
+              </button>
+            )}
+          </div>
+        )}
         </div>{/* end hero-left */}
 
         {/* RIGHT COLUMN — example panel */}
@@ -2594,7 +2712,7 @@ export default function HomePage() {
         </div>
 
         {/* Nav links */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 16 : 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 12 : 24 }}>
           {!isMobile && (
             <>
               <a
@@ -2742,14 +2860,20 @@ export default function HomePage() {
               href="/auth/login"
               style={{
                 fontFamily: 'var(--font-jetbrains-mono)',
-                fontSize: 10,
+                fontSize: isMobile ? 10 : 10,
                 letterSpacing: '0.1em',
-                color: 'var(--text-dim)',
+                color: isMobile ? '#06b6d4' : 'var(--text-dim)',
                 textDecoration: 'none',
-                ...(isMobile ? {} : { paddingLeft: 12, borderLeft: '1px solid rgba(6,182,212,0.08)' }),
+                ...(isMobile
+                  ? {
+                      border: '1px solid rgba(6,182,212,0.25)',
+                      borderRadius: 2,
+                      padding: '4px 10px',
+                    }
+                  : { paddingLeft: 12, borderLeft: '1px solid rgba(6,182,212,0.08)' }),
               }}
-              onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-secondary)'; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-dim)'; }}
+              onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = isMobile ? '#22d3ee' : 'var(--text-secondary)'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = isMobile ? '#06b6d4' : 'var(--text-dim)'; }}
             >
               {isMobile ? 'LOG IN' : 'SIGN IN →'}
             </a>
