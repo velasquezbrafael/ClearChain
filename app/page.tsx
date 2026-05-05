@@ -1559,7 +1559,7 @@ function HeroContent({
         const useCaseDiagrams: Record<string, React.ReactNode> = {
 
           incoming: (
-            <svg viewBox="0 0 320 140" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', maxWidth: 340, height: 'auto' }}>
+            <svg viewBox="0 0 320 140" fill="none" xmlns="http://www.w3.org/2000/svg" overflow="hidden" style={{ width: '100%', maxWidth: 340, height: 'auto' }}>
               <rect width="320" height="140" fill="rgba(0,8,15,0.4)" rx="4"/>
               <line x1="0" y1="70" x2="320" y2="70" stroke="rgba(6,182,212,0.04)" strokeWidth="0.5"/>
               <line x1="160" y1="0" x2="160" y2="140" stroke="rgba(6,182,212,0.04)" strokeWidth="0.5"/>
@@ -1603,7 +1603,7 @@ function HeroContent({
           ),
 
           outgoing: (
-            <svg viewBox="0 0 320 140" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', maxWidth: 340, height: 'auto' }}>
+            <svg viewBox="0 0 320 140" fill="none" xmlns="http://www.w3.org/2000/svg" overflow="hidden" style={{ width: '100%', maxWidth: 340, height: 'auto' }}>
               <rect width="320" height="140" fill="rgba(0,8,15,0.4)" rx="4"/>
               <line x1="0" y1="70" x2="320" y2="70" stroke="rgba(6,182,212,0.04)" strokeWidth="0.5"/>
               <rect x="12" y="44" width="72" height="52" rx="4" fill="rgba(6,182,212,0.04)" stroke="#06b6d4" strokeWidth="1.5"/>
@@ -1634,7 +1634,7 @@ function HeroContent({
           ),
 
           inbound: (
-            <svg viewBox="0 0 320 140" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', maxWidth: 340, height: 'auto' }}>
+            <svg viewBox="0 0 320 140" fill="none" xmlns="http://www.w3.org/2000/svg" overflow="hidden" style={{ width: '100%', maxWidth: 340, height: 'auto' }}>
               <rect width="320" height="140" fill="rgba(0,8,15,0.4)" rx="4"/>
               <rect x="220" y="44" width="72" height="52" rx="4" fill="rgba(6,182,212,0.04)" stroke="#06b6d4" strokeWidth="1.5"/>
               <rect x="220" y="44" width="72" height="14" rx="4" fill="rgba(6,182,212,0.09)"/>
@@ -1664,7 +1664,7 @@ function HeroContent({
               <circle cx="71" cy="92" r="7" fill="#00080f" stroke="#ff3b3b" strokeWidth="1.2"/>
               <line x1="71" y1="88" x2="71" y2="93" stroke="#ff3b3b" strokeWidth="1.5" strokeLinecap="round"/>
               <circle cx="71" cy="96.5" r="1" fill="#ff3b3b"/>
-              <text x="44" y="140" textAnchor="middle" fill="rgba(255,59,59,0.5)" fontFamily="monospace" fontSize="7">FLAGGED</text>
+              <text x="44" y="135" textAnchor="middle" fill="rgba(255,59,59,0.5)" fontFamily="monospace" fontSize="7">FLAGGED</text>
               <line x1="74" y1="111" x2="218" y2="78" stroke="rgba(255,59,59,0.5)" strokeWidth="1.2"/>
               <path d="M210 74l10 5-7 6" fill="none" stroke="rgba(255,59,59,0.6)" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
               <rect x="118" y="56" width="62" height="14" rx="3" fill="rgba(255,59,59,0.07)" stroke="rgba(255,59,59,0.3)" strokeWidth="1"/>
@@ -1673,7 +1673,7 @@ function HeroContent({
           ),
 
           protocol: (
-            <svg viewBox="0 0 320 140" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', maxWidth: 340, height: 'auto' }}>
+            <svg viewBox="0 0 320 140" fill="none" xmlns="http://www.w3.org/2000/svg" overflow="hidden" style={{ width: '100%', maxWidth: 340, height: 'auto' }}>
               <rect width="320" height="140" fill="rgba(0,8,15,0.4)" rx="4"/>
               <polygon points="160,38 180,49 180,71 160,82 140,71 140,49" fill="rgba(6,182,212,0.05)" stroke="#06b6d4" strokeWidth="1.5"/>
               <polygon points="160,48 172,55 172,69 160,76 148,69 148,55" fill="rgba(6,182,212,0.03)" stroke="rgba(6,182,212,0.3)" strokeWidth="0.8"/>
@@ -1818,10 +1818,10 @@ function HeroContent({
                   onClick={() => setExpandedCase(prev => prev === uc.scenario ? null : uc.scenario)}
                 >
                   {/* Top row — always visible */}
-                  <div style={{ display: 'flex', gap: isMobile ? 16 : 32, alignItems: 'flex-start' }}>
+                  <div style={{ display: 'flex', gap: isMobile ? 16 : 32, alignItems: 'center' }}>
                     {/* Left: icon + title */}
-                    <div style={{ flex: '0 0 auto', width: isMobile ? 'auto' : 260, display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-                      <div style={{ flexShrink: 0, marginTop: 2 }}>{uc.icon}</div>
+                    <div style={{ flex: '0 0 auto', width: isMobile ? 'auto' : 260, display: 'flex', gap: 16, alignItems: 'center' }}>
+                      <div style={{ flexShrink: 0, width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{uc.icon}</div>
                       <div>
                         <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.15em', color: '#06b6d4', marginBottom: 6, textTransform: 'uppercase' as const }}>{uc.tag}</div>
                         <div style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: isMobile ? 15 : 18, fontWeight: 700, color: '#ecfeff', lineHeight: 1.2, marginBottom: 4 }}>{uc.scenario}</div>
@@ -1835,7 +1835,7 @@ function HeroContent({
                     )}
 
                     {/* Expand chevron */}
-                    <div style={{ flexShrink: 0, marginLeft: 'auto', paddingTop: 4 }}>
+                    <div style={{ flexShrink: 0, marginLeft: 'auto' }}>
                       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ transform: expandedCase === uc.scenario ? 'rotate(180deg)' : 'none', transition: 'transform 0.25s' }}>
                         <path d="M3 6l5 5 5-5" stroke="#1e4d5c" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
@@ -1874,12 +1874,12 @@ function HeroContent({
                             <p key={i} style={{ fontFamily: 'var(--font-inter)', fontSize: isMobile ? 13 : 14, color: i === 1 ? '#ff8c00' : '#7ec8d8', lineHeight: 1.75, margin: 0, fontStyle: i === 1 ? 'italic' : 'normal' }}>{para}</p>
                           ))}
                           <div style={{ marginTop: 8 }}>
-                            <a
-                              href="/"
-                              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 20px', background: 'rgba(6,182,212,0.08)', border: '1px solid rgba(6,182,212,0.25)', borderRadius: 4, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, letterSpacing: '0.1em', color: '#06b6d4', textDecoration: 'none' }}
+                            <button
+                              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 20px', background: 'rgba(6,182,212,0.08)', border: '1px solid rgba(6,182,212,0.25)', borderRadius: 4, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, letterSpacing: '0.1em', color: '#06b6d4', cursor: 'pointer', textDecoration: 'none' }}
                             >
                               Check a wallet now →
-                            </a>
+                            </button>
                           </div>
                         </div>
                       </div>
