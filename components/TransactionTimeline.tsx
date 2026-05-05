@@ -128,7 +128,8 @@ function buildBuckets(txs: WalletTransaction[], mode: BucketMode): Bucket[] {
   return Array.from(map.values()).sort((a, b) => a.key.localeCompare(b.key));
 }
 
-function barColor(b: Bucket): string {
+function barColor(b: Bucket, isClean: boolean): string {
+  if (isClean) return '#22d3ee';
   if (b.hasMixer || b.hasHighRisk) return '#ff3b3b';
   if (b.hasRapid) return '#ff8c00';
   return '#1e4d5c';
@@ -142,8 +143,9 @@ function formatETHShort(v: number): string {
 
 interface TooltipState { bucket: Bucket; x: number; y: number; }
 
-export default function TransactionTimeline({ transactions }: { transactions: WalletTransaction[] }) {
+export default function TransactionTimeline({ transactions, riskScore = 100 }: { transactions: WalletTransaction[]; riskScore?: number }) {
   const [hovered, setHovered] = useState<TooltipState | null>(null);
+  const isClean = riskScore < 25;
 
   if (transactions.length < 3) return null;
 
@@ -219,7 +221,7 @@ export default function TransactionTimeline({ transactions }: { transactions: Wa
               const barH  = Math.max(2, (b.count / maxCount) * (CHART_H - 8));
               const x     = i * (BAR_W + GAP);
               const y     = CHART_H - barH;
-              const color = barColor(b);
+              const color = barColor(b, isClean);
               const isHov = hovered?.bucket.key === b.key;
 
               return (

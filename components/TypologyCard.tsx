@@ -14,9 +14,11 @@ function progressChars(pct: number): string {
   return '█'.repeat(filled) + '░'.repeat(10 - filled);
 }
 
-function TypologyRow({ typology }: { typology: AMLTypology }) {
+const CLEAN_COLOR = 'rgba(6,182,212,0.4)';
+
+function TypologyRow({ typology, isClean }: { typology: AMLTypology; isClean: boolean }) {
   const pct = Math.round(typology.confidence * 100);
-  const color = confidenceColor(typology.confidence);
+  const color = isClean ? CLEAN_COLOR : confidenceColor(typology.confidence);
 
   return (
     <div
@@ -34,11 +36,11 @@ function TypologyRow({ typology }: { typology: AMLTypology }) {
           width: 6,
           height: 6,
           borderRadius: '50%',
-          background: color,
+          background: isClean ? '#1e4d5c' : color,
           flexShrink: 0,
           marginTop: 5,
           marginRight: 16,
-          boxShadow: `0 0 8px ${color}88`,
+          boxShadow: isClean ? 'none' : `0 0 8px ${color}88`,
         }}
       />
 
@@ -205,11 +207,11 @@ export default function TypologyCard({ typologies, riskTotal = 0 }: { typologies
         <div style={{
           padding: '10px 14px',
           marginBottom: 16,
-          background: 'rgba(255,214,10,0.04)',
-          border: '1px solid rgba(255,214,10,0.12)',
+          background: 'rgba(6,182,212,0.05)',
+          border: '1px solid rgba(6,182,212,0.2)',
           borderRadius: 2,
         }}>
-          <p style={{ fontFamily: 'var(--font-inter)', fontSize: 12, color: 'rgba(255,214,10,0.7)', margin: 0, lineHeight: 1.5 }}>
+          <p style={{ fontFamily: 'var(--font-inter)', fontSize: 12, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
             This wallet scored {riskTotal}/100 (LOW risk). The patterns below are detected from raw transaction data and are common in normal high-volume wallets. They do not indicate wrongdoing on their own.
           </p>
         </div>
@@ -218,7 +220,7 @@ export default function TypologyCard({ typologies, riskTotal = 0 }: { typologies
       {/* Pattern rows */}
       <div>
         {triggered.map(t => (
-          <TypologyRow key={t.id} typology={t} />
+          <TypologyRow key={t.id} typology={t} isClean={isClean} />
         ))}
       </div>
     </div>

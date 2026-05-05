@@ -3831,7 +3831,7 @@ export default function HomePage() {
           })()}
 
           {/* Timeline chart */}
-          <TransactionTimeline transactions={analysis.transactions} />
+          <TransactionTimeline transactions={analysis.transactions} riskScore={analysis.riskScore.total} />
 
           {/* Row 3: Tabbed panel — entry animation lives on the wrapper so it
               doesn't claim the `transform` property on #clearchain-tabs.

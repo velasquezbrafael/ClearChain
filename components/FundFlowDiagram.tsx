@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import type { WalletTransaction } from '@/types';
 
 const MIXER_ADDRESSES = new Set([
@@ -63,13 +64,14 @@ function nodeColor(n: SourceNode): string {
   return '#4b5563';
 }
 
-function ribbonFill(n: SourceNode): string {
-  if (n.isMixer) return 'rgba(239,68,68,0.5)';
-  if (n.isHighRisk) return 'rgba(249,115,22,0.5)';
-  return 'rgba(75,85,99,0.6)';
+function ribbonFill(n: SourceNode, hovered = false): string {
+  if (n.isMixer) return hovered ? 'rgba(239,68,68,0.7)' : 'rgba(239,68,68,0.5)';
+  if (n.isHighRisk) return hovered ? 'rgba(249,115,22,0.7)' : 'rgba(249,115,22,0.5)';
+  return hovered ? 'rgba(6,182,212,0.5)' : 'rgba(6,182,212,0.25)';
 }
 
 export default function FundFlowDiagram({ transactions, queriedAddress, hopData }: FundFlowDiagramProps) {
+  const [hoveredRibbon, setHoveredRibbon] = useState<number | null>(null);
   const qAddr = queriedAddress.toLowerCase();
 
   // Build inbound flows: who sent ETH to queried wallet
@@ -333,6 +335,14 @@ export default function FundFlowDiagram({ transactions, queriedAddress, hopData 
         {/* Ribbons */}
         {ribbons.map((r, i) => {
           const cx = (r.srcRight + r.tgtLeft) / 2;
+          const isHov = hoveredRibbon === i;
+          // Recompute fill with hover flag (ribbonFill baked into r.fill uses non-hover default;
+          // derive the source node to get correct hover color)
+          const hoverFill = isHov
+            ? r.fill.includes('239,68,68') ? 'rgba(239,68,68,0.7)'
+              : r.fill.includes('249,115,22') ? 'rgba(249,115,22,0.7)'
+              : 'rgba(6,182,212,0.5)'
+            : r.fill;
           return (
             <path
               key={i}
@@ -343,8 +353,11 @@ export default function FundFlowDiagram({ transactions, queriedAddress, hopData 
                 `C ${cx} ${r.tgtY + r.tgtH}, ${cx} ${r.srcY + r.srcH}, ${r.srcRight} ${r.srcY + r.srcH}`,
                 'Z',
               ].join(' ')}
-              fill={r.fill}
+              fill={hoverFill}
               stroke="none"
+              style={{ cursor: 'default', transition: 'fill 0.15s' }}
+              onMouseEnter={() => setHoveredRibbon(i)}
+              onMouseLeave={() => setHoveredRibbon(null)}
             />
           );
         })}
