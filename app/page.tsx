@@ -1331,7 +1331,7 @@ function HeroContent({
             </div>
 
             {/* Quick fill rows */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {visibleQuickFills.map(({ label, address: addr, style: qStyle, chain: qChain }) => {
                 const rc = getRichCard(label, addr, qStyle, qChain);
                 return (
@@ -1343,8 +1343,8 @@ function HeroContent({
                     style={{
                       display: 'flex',
                       flexDirection: 'column',
-                      gap: 8,
-                      padding: '14px 16px',
+                      gap: 6,
+                      padding: '10px 14px',
                       border: '1px solid rgba(255,255,255,0.06)',
                       borderRadius: 3,
                       background: '#0d1220',
@@ -1363,12 +1363,12 @@ function HeroContent({
                     <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#3d4a5c' }}>{rc.displayAddr}</div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                       {rc.signals.map(sig => (
-                        <span key={sig} style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#8892a4', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 2, padding: '2px 7px' }}>{sig}</span>
+                        <span key={sig} style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: '#8892a4', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 2, padding: '1px 5px' }}>{sig}</span>
                       ))}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 10 }}>
                       <div style={{ display: 'flex', alignItems: 'baseline', gap: 3, flexShrink: 0 }}>
-                        <span style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 28, fontWeight: 700, color: rc.color, lineHeight: 1 }}>{rc.score}</span>
+                        <span style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 22, fontWeight: 700, color: rc.color, lineHeight: 1 }}>{rc.score}</span>
                         <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#3d4a5c' }}>/100</span>
                       </div>
                       <div style={{ flex: 1, height: 3, background: 'rgba(255,255,255,0.06)' }}>
@@ -1451,7 +1451,7 @@ function HeroContent({
             </div>
 
             {/* Quick fill cards */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1 }}>
               {visibleQuickFills.map(({ label, address: addr, style: qStyle, chain: qChain }) => {
                 const rc = getRichCard(label, addr, qStyle, qChain);
                 return (
@@ -1463,8 +1463,8 @@ function HeroContent({
                     style={{
                       display: 'flex',
                       flexDirection: 'column',
-                      gap: 8,
-                      padding: '14px 16px',
+                      gap: 6,
+                      padding: '10px 14px',
                       border: '1px solid rgba(255,255,255,0.06)',
                       borderRadius: 3,
                       background: '#0d1220',
@@ -1483,12 +1483,12 @@ function HeroContent({
                     <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#3d4a5c' }}>{rc.displayAddr}</div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                       {rc.signals.map(sig => (
-                        <span key={sig} style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#8892a4', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 2, padding: '2px 7px' }}>{sig}</span>
+                        <span key={sig} style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: '#8892a4', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 2, padding: '1px 5px' }}>{sig}</span>
                       ))}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 10 }}>
                       <div style={{ display: 'flex', alignItems: 'baseline', gap: 3, flexShrink: 0 }}>
-                        <span style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 28, fontWeight: 700, color: rc.color, lineHeight: 1 }}>{rc.score}</span>
+                        <span style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 22, fontWeight: 700, color: rc.color, lineHeight: 1 }}>{rc.score}</span>
                         <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#3d4a5c' }}>/100</span>
                       </div>
                       <div style={{ flex: 1, height: 3, background: 'rgba(255,255,255,0.06)' }}>
