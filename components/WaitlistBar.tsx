@@ -43,7 +43,7 @@ export default function WaitlistBar() {
             letterSpacing: '0.08em',
           }}
         >
-          ✓ You&apos;re subscribed.
+          OK You&apos;re subscribed.
         </span>
       </div>
     );

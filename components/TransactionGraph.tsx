@@ -1214,7 +1214,7 @@ export default function TransactionGraph({
                 style={{ background: 'none', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 3, color: 'var(--text-dim)', cursor: 'pointer', padding: '4px 8px', fontSize: 12, lineHeight: 1, transition: 'border-color 0.15s, color 0.15s', flexShrink: 0 }}
                 onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#06b6d4'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(6,182,212,0.3)'; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-dim)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.08)'; }}>
-                ⛶
+                
               </button>
             </div>
           </div>

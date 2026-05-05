@@ -77,7 +77,7 @@ export default function SkeletonLoader({ step, steps, isMobile = false }: Skelet
                   flexShrink: 0,
                 }}
               >
-                ✓
+                OK
               </span>
             ) : i === step ? (
               <span

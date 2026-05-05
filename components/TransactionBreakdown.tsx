@@ -126,7 +126,7 @@ function AddressCell({ addr, onAnalyzeAddress }: { addr: string; onAnalyzeAddres
         className="group-hover:opacity-100"
         aria-label={`Copy ${addr}`}
       >
-        {copied ? '✓' : '⊕'}
+        {copied ? 'OK' : 'COPY'}
       </button>
       {onAnalyzeAddress && (
         <button
@@ -275,14 +275,14 @@ export default function TransactionBreakdown({
             whiteSpace: 'nowrap',
           }}
         >
-          ⚠ FLAGGED ONLY
+          FLAGGED ONLY
         </button>
         {(search || direction !== 'all' || flaggedOnly) && (
           <button
             onClick={() => { setSearch(''); setDirection('all'); setFlaggedOnly(false); }}
             style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, padding: '5px 8px', borderRadius: 3, cursor: 'pointer', background: 'none', border: '1px solid rgba(255,255,255,0.06)', color: 'var(--text-dim)', letterSpacing: '0.06em' }}
           >
-            ✕ CLEAR
+            CLEAR
           </button>
         )}
       </div>

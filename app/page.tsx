@@ -1130,9 +1130,9 @@ function HeroContent({
               </span>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', flex: 1 }}>
                 {([
-                  { label: '🚨 OFAC Sanctioned', sub: 'Lazarus Group',    addr: '0x098B716B8Aaf21512996dC57EB0615e2383E2f96' },
-                  { label: '⚠ High Risk',        sub: 'Tornado Cash',     addr: '0xd90e2f925DA726b50C4Ed8D0Fb90Ad053324F31b' },
-                  { label: '✓ Clean Wallet',      sub: 'Vitalik Buterin',  addr: 'vitalik.eth' },
+                  { label: 'OFAC Sanctioned', sub: 'Lazarus Group',    addr: '0x098B716B8Aaf21512996dC57EB0615e2383E2f96' },
+                  { label: 'High Risk',        sub: 'Tornado Cash',     addr: '0xd90e2f925DA726b50C4Ed8D0Fb90Ad053324F31b' },
+                  { label: 'Clean Wallet',      sub: 'Vitalik Buterin',  addr: 'vitalik.eth' },
                 ] as const).map(pill => (
                   <button
                     key={pill.addr}
@@ -1893,7 +1893,7 @@ function HeroContent({
               <text x="383" y="144" textAnchor="middle" fill="rgba(6,182,212,0.75)" fontFamily="monospace" fontSize="18" fontWeight="700">3.7 ETH</text>
               <text x="383" y="160" textAnchor="middle" fill="rgba(6,182,212,0.3)" fontFamily="monospace" fontSize="8">from 3 sources</text>
               <line x1="312" y1="178" x2="454" y2="178" stroke="rgba(255,59,59,0.1)" strokeWidth="0.5"/>
-              <text x="383" y="196" textAnchor="middle" fill="rgba(255,140,0,0.7)" fontFamily="monospace" fontSize="8" letterSpacing="0.5" fontWeight="700">⚠ 1 FLAGGED SOURCE</text>
+              <text x="383" y="196" textAnchor="middle" fill="rgba(255,140,0,0.7)" fontFamily="monospace" fontSize="8" letterSpacing="0.5" fontWeight="700">! 1 FLAGGED SOURCE</text>
               <text x="383" y="212" textAnchor="middle" fill="rgba(255,59,59,0.35)" fontFamily="monospace" fontSize="7">funds may be tainted</text>
               <text x="383" y="228" textAnchor="middle" fill="rgba(6,182,212,0.25)" fontFamily="monospace" fontSize="7">0x9e2b...f1a</text>
             </svg>
@@ -2586,7 +2586,7 @@ function SaveToCaseButton({ address, analysisId }: { address: string; analysisId
           transition: 'all 0.2s',
         }}
       >
-        {saved ? `Saved to ${saved} ✓` : '+ Save to Case'}
+        {saved ? `Saved to ${saved}` : '+ Save to Case'}
       </button>
       {dropdown}
     </div>
