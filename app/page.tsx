@@ -2291,7 +2291,7 @@ function HeroContent({
                   <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.15em', color: '#1e4d5c', marginBottom: 12 }}>{row.left.label}</div>
                   <p style={{ fontFamily: 'var(--font-inter)', fontSize: isMobile ? 14 : 15, color: '#7ec8d8', lineHeight: 1.7, margin: 0 }}>{row.left.body}</p>
                 </div>
-                <div key={`right-${i}`} style={{ padding: isMobile ? '20px 20px' : '28px 32px', border: '1px solid rgba(6,182,212,0.08)', background: 'transparent' }}>
+                <div key={`right-${i}`} style={{ padding: isMobile ? '20px 20px' : '28px 32px', border: `1px solid ${isMobile ? 'rgba(6,182,212,0.12)' : 'rgba(6,182,212,0.08)'}`, background: isMobile ? 'rgba(6,182,212,0.02)' : 'transparent', borderTop: isMobile ? 'none' : undefined }}>
                   <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.15em', color: '#1e4d5c', marginBottom: 12 }}>{row.right.label}</div>
                   <p style={{ fontFamily: 'var(--font-inter)', fontSize: isMobile ? 14 : 15, color: '#7ec8d8', lineHeight: 1.7, margin: 0 }}>{row.right.body}</p>
                 </div>
@@ -2874,6 +2874,13 @@ export default function HomePage() {
   const [navUser, setNavUser] = useState<{ email: string; name: string } | null>(null);
   const [isAuthed, setIsAuthed] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') setMobileMenuOpen(false); }
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [mobileMenuOpen]);
   const pendingTabRef  = useRef<Tab | null>(null);
   const showResults = !!analysis && !loading;
 
@@ -3473,6 +3480,74 @@ export default function HomePage() {
               {isMobile ? 'LOG IN' : 'SIGN IN →'}
             </a>
           )}
+
+          {/* Mobile hamburger */}
+          {isMobile && (
+            <>
+              <button
+                onClick={() => setMobileMenuOpen(prev => !prev)}
+                style={{
+                  background: 'none',
+                  border: '1px solid rgba(6,182,212,0.15)',
+                  borderRadius: 3,
+                  padding: '6px 8px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 4,
+                }}
+                aria-label="Menu"
+              >
+                {[0, 1, 2].map(i => (
+                  <div key={i} style={{ width: 16, height: 1.5, background: '#06b6d4' }} />
+                ))}
+              </button>
+
+              {mobileMenuOpen && (
+                <div
+                  style={{
+                    position: 'fixed',
+                    top: 'calc(56px + env(safe-area-inset-top))',
+                    left: 0,
+                    right: 0,
+                    background: 'rgba(0,8,15,0.97)',
+                    borderBottom: '1px solid rgba(6,182,212,0.1)',
+                    backdropFilter: 'blur(16px)',
+                    WebkitBackdropFilter: 'blur(16px)',
+                    zIndex: 49,
+                    padding: '16px 20px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 0,
+                  }}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {[
+                    { href: '/docs', label: 'DOCS' },
+                    { href: '/intel', label: 'INTEL' },
+                    { href: '/dashboard', label: 'DASHBOARD' },
+                  ].map(link => (
+                    <a
+                      key={link.href}
+                      href={link.href}
+                      style={{
+                        fontFamily: 'var(--font-jetbrains-mono)',
+                        fontSize: 13,
+                        letterSpacing: '0.12em',
+                        color: 'var(--text-secondary)',
+                        textDecoration: 'none',
+                        padding: '14px 0',
+                        borderBottom: '1px solid rgba(6,182,212,0.05)',
+                        display: 'block',
+                      }}
+                    >
+                      {link.label}
+                    </a>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
         </div>
       </nav>
 
@@ -4036,9 +4111,8 @@ export default function HomePage() {
           letterSpacing: '0.05em',
         }}
       >
-        Enterprise tools start at $50,000/year.{' '}
-        ClearChain is{' '}
-        <span style={{ color: '#00ff88' }}>free to start</span>.
+        Chainalysis costs $50,000+/year. ClearChain is{' '}
+        <span style={{ color: '#06b6d4' }}>always free</span>.
       </div>
     </div>
   );

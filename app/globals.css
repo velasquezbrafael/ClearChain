@@ -267,7 +267,7 @@ body {
   .hero-right { display: none; }
 }
 @media (max-width: 640px) {
-  .hero-left  { padding: 64px 16px 32px; }
+  .hero-left  { padding: 64px 16px 20px; }
 }
 
 /* ── Glassmorphism card ─────────────────────────────────────── */
