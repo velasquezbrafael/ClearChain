@@ -309,6 +309,8 @@ input, textarea {
   button, [role="button"], a, select {
     min-height: 44px;
   }
+  /* Exception: nav links — 56px nav bar is already a sufficient touch target */
+  .dash-nav a, .dash-nav button { min-height: unset !important; display: flex !important; align-items: center !important; }
   /* Exception: compact UI controls that are already inside padded containers */
   .graph-filter-select,
   .tx-filter-btn {
