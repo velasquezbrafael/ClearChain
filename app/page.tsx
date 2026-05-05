@@ -1559,185 +1559,228 @@ function HeroContent({
         const useCaseDiagrams: Record<string, React.ReactNode> = {
 
           incoming: (
-            <svg viewBox="0 0 480 200" fill="none" xmlns="http://www.w3.org/2000/svg" overflow="hidden" style={{ width: '100%', maxWidth: 480, height: 'auto' }}>
-              <rect width="480" height="200" fill="rgba(0,8,15,0.6)" rx="4"/>
-              <line x1="0" y1="100" x2="480" y2="100" stroke="rgba(6,182,212,0.03)" strokeWidth="0.5"/>
-              <line x1="240" y1="0" x2="240" y2="200" stroke="rgba(6,182,212,0.03)" strokeWidth="0.5"/>
-              {/* UNKNOWN wallet */}
-              <rect x="16" y="62" width="108" height="80" rx="4" fill="rgba(255,59,59,0.04)" stroke="rgba(255,59,59,0.6)" strokeWidth="1.5"/>
-              <rect x="16" y="62" width="108" height="18" rx="4" fill="rgba(255,59,59,0.09)"/>
-              <line x1="16" y1="80" x2="124" y2="80" stroke="rgba(255,59,59,0.15)" strokeWidth="0.5"/>
-              <rect x="28" y="89" width="48" height="5" rx="2" fill="rgba(255,59,59,0.25)"/>
-              <rect x="28" y="101" width="34" height="4" rx="1.5" fill="rgba(255,59,59,0.14)"/>
-              <rect x="28" y="111" width="40" height="4" rx="1.5" fill="rgba(255,59,59,0.08)"/>
-              <circle cx="122" cy="62" r="12" fill="#00080f" stroke="#ff3b3b" strokeWidth="1.5"/>
-              <line x1="122" y1="56" x2="122" y2="64" stroke="#ff3b3b" strokeWidth="2" strokeLinecap="round"/>
-              <circle cx="122" cy="69" r="1.6" fill="#ff3b3b"/>
-              <text x="70" y="156" textAnchor="middle" fill="rgba(255,59,59,0.6)" fontFamily="monospace" fontSize="9" letterSpacing="1.5">UNKNOWN</text>
-              <text x="70" y="169" textAnchor="middle" fill="rgba(255,59,59,0.3)" fontFamily="monospace" fontSize="8">0x7f3a...d2c</text>
-              {/* Warning arrow + diamond */}
-              <line x1="126" y1="102" x2="156" y2="102" stroke="rgba(255,140,0,0.4)" strokeWidth="1.2" strokeDasharray="3 3"/>
-              <polygon points="170,93 161,102 170,111 179,102" fill="rgba(255,140,0,0.15)" stroke="rgba(255,140,0,0.85)" strokeWidth="1.3" strokeLinejoin="round"/>
-              <line x1="181" y1="102" x2="192" y2="102" stroke="rgba(255,140,0,0.4)" strokeWidth="1.2" strokeDasharray="3 3"/>
-              {/* ClearChain score box */}
-              <rect x="192" y="40" width="96" height="120" rx="4" fill="rgba(6,182,212,0.04)" stroke="rgba(6,182,212,0.45)" strokeWidth="1.5"/>
-              {[62,74,110,122].map(y => (
-                <line key={y} x1="200" y1={y} x2="280" y2={y} stroke="rgba(6,182,212,0.06)" strokeWidth="0.5"/>
-              ))}
-              <line x1="200" y1="86" x2="280" y2="86" stroke="rgba(6,182,212,0.5)" strokeWidth="1"/>
-              <circle cx="200" cy="86" r="3" fill="#06b6d4" opacity="0.7"/>
-              <circle cx="280" cy="86" r="3" fill="#06b6d4" opacity="0.7"/>
-              <text x="240" y="110" textAnchor="middle" fill="#ff8c00" fontFamily="monospace" fontSize="38" fontWeight="700">65</text>
-              <rect x="196" y="20" width="88" height="18" rx="3" fill="rgba(255,59,59,0.08)" stroke="rgba(255,59,59,0.45)" strokeWidth="1"/>
-              <text x="240" y="32.5" textAnchor="middle" fill="#ff3b3b" fontFamily="monospace" fontSize="9" letterSpacing="1.2">HIGH RISK</text>
-              <text x="240" y="176" textAnchor="middle" fill="rgba(6,182,212,0.4)" fontFamily="monospace" fontSize="8" letterSpacing="1.5">CLEARCHAIN</text>
-              {/* Clean arrow */}
-              <line x1="290" y1="100" x2="336" y2="100" stroke="rgba(6,182,212,0.65)" strokeWidth="1.5"/>
-              <polygon points="346,100 335,94 335,106" fill="#06b6d4" opacity="0.8"/>
-              {/* YOU wallet */}
-              <rect x="348" y="62" width="108" height="80" rx="4" fill="rgba(6,182,212,0.04)" stroke="#06b6d4" strokeWidth="1.5"/>
-              <rect x="348" y="62" width="108" height="18" rx="4" fill="rgba(6,182,212,0.1)"/>
-              <line x1="348" y1="80" x2="456" y2="80" stroke="rgba(6,182,212,0.15)" strokeWidth="0.5"/>
-              <rect x="360" y="89" width="48" height="5" rx="2" fill="rgba(6,182,212,0.22)"/>
-              <rect x="360" y="101" width="34" height="4" rx="1.5" fill="rgba(6,182,212,0.13)"/>
-              <rect x="360" y="111" width="40" height="4" rx="1.5" fill="rgba(6,182,212,0.07)"/>
-              <circle cx="454" cy="62" r="12" fill="#00080f" stroke="#06b6d4" strokeWidth="1.5"/>
-              <path d="M447 62l4.5 5 9-10" fill="none" stroke="#06b6d4" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-              <text x="402" y="156" textAnchor="middle" fill="#06b6d4" fontFamily="monospace" fontSize="9" letterSpacing="2">YOU</text>
+            <svg viewBox="0 0 480 270" fill="none" xmlns="http://www.w3.org/2000/svg" overflow="hidden" style={{ width: '100%', maxWidth: 480, height: 'auto' }}>
+              <rect width="480" height="270" fill="rgba(0,8,15,0.88)" rx="4"/>
+              {/* UNKNOWN SENDER */}
+              <rect x="12" y="44" width="110" height="152" rx="4" fill="rgba(255,59,59,0.04)" stroke="rgba(255,59,59,0.55)" strokeWidth="1.5"/>
+              <rect x="12" y="44" width="110" height="22" rx="4" fill="rgba(255,59,59,0.12)"/>
+              <line x1="12" y1="66" x2="122" y2="66" stroke="rgba(255,59,59,0.2)" strokeWidth="0.5"/>
+              <text x="58" y="59" textAnchor="middle" fill="rgba(255,59,59,0.9)" fontFamily="monospace" fontSize="7.5" letterSpacing="0.8" fontWeight="600">UNKNOWN SENDER</text>
+              {/* ⚠ icon at top-right corner */}
+              <circle cx="122" cy="44" r="13" fill="rgba(18,0,0,0.97)" stroke="#ff3b3b" strokeWidth="1.6"/>
+              <line x1="122" y1="37" x2="122" y2="46" stroke="#ff3b3b" strokeWidth="2.2" strokeLinecap="round"/>
+              <circle cx="122" cy="51" r="1.6" fill="#ff3b3b"/>
+              <rect x="24" y="76" width="50" height="5" rx="2" fill="rgba(255,59,59,0.22)"/>
+              <rect x="24" y="88" width="34" height="4" rx="1.5" fill="rgba(255,59,59,0.13)"/>
+              <rect x="24" y="99" width="42" height="4" rx="1.5" fill="rgba(255,59,59,0.08)"/>
+              <rect x="24" y="110" width="28" height="4" rx="1.5" fill="rgba(255,59,59,0.05)"/>
+              <text x="62" y="152" textAnchor="middle" fill="rgba(255,59,59,0.35)" fontFamily="monospace" fontSize="7">0x7f3a...d2c</text>
+              <text x="62" y="166" textAnchor="middle" fill="rgba(255,59,59,0.6)" fontFamily="monospace" fontSize="8" letterSpacing="1.5">UNVERIFIED</text>
+              <text x="62" y="182" textAnchor="middle" fill="rgba(255,59,59,0.28)" fontFamily="monospace" fontSize="6.5">not safe-listed</text>
+              {/* Diamond connector — both lines touch points exactly */}
+              <line x1="124" y1="120" x2="143" y2="120" stroke="rgba(255,140,0,0.6)" strokeWidth="1.3" strokeDasharray="3 2"/>
+              <polygon points="155,108 143,120 155,132 167,120" fill="rgba(255,140,0,0.13)" stroke="rgba(255,140,0,1)" strokeWidth="1.6" strokeLinejoin="round"/>
+              <line x1="167" y1="120" x2="180" y2="120" stroke="rgba(255,140,0,0.6)" strokeWidth="1.3" strokeDasharray="3 2"/>
+              {/* CLEARCHAIN center */}
+              <rect x="180" y="20" width="120" height="226" rx="4" fill="rgba(6,182,212,0.04)" stroke="rgba(6,182,212,0.5)" strokeWidth="1.5"/>
+              <rect x="180" y="20" width="120" height="22" rx="4" fill="rgba(6,182,212,0.12)"/>
+              <line x1="180" y1="42" x2="300" y2="42" stroke="rgba(6,182,212,0.2)" strokeWidth="0.5"/>
+              <text x="240" y="35" textAnchor="middle" fill="rgba(6,182,212,0.95)" fontFamily="monospace" fontSize="8" letterSpacing="2.5" fontWeight="700">CLEARCHAIN</text>
+              <rect x="192" y="50" width="96" height="20" rx="3" fill="rgba(255,59,59,0.1)" stroke="rgba(255,59,59,0.65)" strokeWidth="1.2"/>
+              <text x="240" y="64" textAnchor="middle" fill="#ff3b3b" fontFamily="monospace" fontSize="9" letterSpacing="1.2" fontWeight="700">HIGH RISK</text>
+              <line x1="188" y1="82" x2="292" y2="82" stroke="rgba(6,182,212,0.3)" strokeWidth="0.8"/>
+              <circle cx="188" cy="82" r="3" fill="#06b6d4" opacity="0.5"/>
+              <circle cx="292" cy="82" r="3" fill="#06b6d4" opacity="0.5"/>
+              <text x="240" y="144" textAnchor="middle" fill="#ff8c00" fontFamily="monospace" fontSize="62" fontWeight="700">65</text>
+              <line x1="188" y1="158" x2="292" y2="158" stroke="rgba(255,255,255,0.04)" strokeWidth="0.5"/>
+              <circle cx="206" cy="170" r="6" fill="rgba(255,59,59,0.15)" stroke="#ff3b3b" strokeWidth="1.5"/>
+              <circle cx="206" cy="170" r="2.5" fill="#ff3b3b"/>
+              <text x="206" y="184" textAnchor="middle" fill="rgba(255,59,59,0.75)" fontFamily="monospace" fontSize="6.5">OFAC</text>
+              <circle cx="240" cy="170" r="6" fill="rgba(255,59,59,0.15)" stroke="#ff3b3b" strokeWidth="1.5"/>
+              <circle cx="240" cy="170" r="2.5" fill="#ff3b3b"/>
+              <text x="240" y="184" textAnchor="middle" fill="rgba(255,59,59,0.75)" fontFamily="monospace" fontSize="6.5">MIXER</text>
+              <circle cx="274" cy="170" r="6" fill="rgba(255,140,0,0.15)" stroke="#ff8c00" strokeWidth="1.5"/>
+              <circle cx="274" cy="170" r="2.5" fill="#ff8c00"/>
+              <text x="274" y="184" textAnchor="middle" fill="rgba(255,140,0,0.75)" fontFamily="monospace" fontSize="6.5">RAPID</text>
+              <line x1="188" y1="195" x2="292" y2="195" stroke="rgba(6,182,212,0.07)" strokeWidth="0.5"/>
+              <text x="240" y="209" textAnchor="middle" fill="rgba(6,182,212,0.3)" fontFamily="monospace" fontSize="7">score / 100</text>
+              <text x="240" y="224" textAnchor="middle" fill="rgba(255,59,59,0.6)" fontFamily="monospace" fontSize="8" letterSpacing="0.5" fontWeight="700">DO NOT ACCEPT</text>
+              <text x="240" y="237" textAnchor="middle" fill="rgba(255,59,59,0.25)" fontFamily="monospace" fontSize="6.5">3 signals triggered</text>
+              {/* Blocked connector */}
+              <line x1="302" y1="120" x2="320" y2="120" stroke="rgba(255,59,59,0.4)" strokeWidth="1.4" strokeDasharray="4 3"/>
+              <circle cx="330" cy="120" r="9" fill="rgba(255,59,59,0.1)" stroke="#ff3b3b" strokeWidth="1.6"/>
+              <line x1="325" y1="115" x2="335" y2="125" stroke="#ff3b3b" strokeWidth="1.8" strokeLinecap="round"/>
+              <line x1="335" y1="115" x2="325" y2="125" stroke="#ff3b3b" strokeWidth="1.8" strokeLinecap="round"/>
+              <line x1="339" y1="120" x2="350" y2="120" stroke="rgba(255,59,59,0.4)" strokeWidth="1.4" strokeDasharray="4 3"/>
+              {/* YOUR WALLET alerted */}
+              <rect x="352" y="44" width="116" height="152" rx="4" fill="rgba(255,59,59,0.03)" stroke="rgba(255,59,59,0.38)" strokeWidth="1.5" strokeDasharray="5 3"/>
+              <rect x="352" y="44" width="116" height="22" rx="4" fill="rgba(255,140,0,0.07)"/>
+              <line x1="352" y1="66" x2="468" y2="66" stroke="rgba(255,140,0,0.12)" strokeWidth="0.5"/>
+              <text x="410" y="59" textAnchor="middle" fill="rgba(255,140,0,0.9)" fontFamily="monospace" fontSize="7.5" letterSpacing="1" fontWeight="600">YOUR WALLET</text>
+              <rect x="364" y="76" width="48" height="5" rx="2" fill="rgba(255,59,59,0.14)"/>
+              <rect x="364" y="88" width="32" height="4" rx="1.5" fill="rgba(255,59,59,0.08)"/>
+              <rect x="364" y="99" width="40" height="4" rx="1.5" fill="rgba(255,59,59,0.05)"/>
+              <polygon points="410,114 390,148 430,148" fill="rgba(255,140,0,0.1)" stroke="rgba(255,140,0,0.8)" strokeWidth="1.8" strokeLinejoin="round"/>
+              <line x1="410" y1="122" x2="410" y2="136" stroke="#ff8c00" strokeWidth="2" strokeLinecap="round"/>
+              <circle cx="410" cy="142" r="1.8" fill="#ff8c00"/>
+              <text x="410" y="165" textAnchor="middle" fill="rgba(255,140,0,0.8)" fontFamily="monospace" fontSize="9" letterSpacing="1.5" fontWeight="700">ALERTED</text>
+              <text x="410" y="179" textAnchor="middle" fill="rgba(255,59,59,0.45)" fontFamily="monospace" fontSize="7">do not accept</text>
+              <line x1="12" y1="244" x2="468" y2="244" stroke="rgba(255,140,0,0.05)" strokeWidth="0.5"/>
+              <text x="240" y="259" textAnchor="middle" fill="rgba(255,140,0,0.25)" fontFamily="monospace" fontSize="7.5" letterSpacing="1">CHECK BEFORE ACCEPTING PAYMENT</text>
             </svg>
           ),
 
           outgoing: (
-            <svg viewBox="0 0 480 200" fill="none" xmlns="http://www.w3.org/2000/svg" overflow="hidden" style={{ width: '100%', maxWidth: 480, height: 'auto' }}>
-              <rect width="480" height="200" fill="rgba(0,8,15,0.6)" rx="4"/>
-              <line x1="0" y1="100" x2="480" y2="100" stroke="rgba(6,182,212,0.03)" strokeWidth="0.5"/>
-              {/* YOU wallet */}
-              <rect x="16" y="62" width="108" height="80" rx="4" fill="rgba(6,182,212,0.04)" stroke="#06b6d4" strokeWidth="1.5"/>
-              <rect x="16" y="62" width="108" height="18" rx="4" fill="rgba(6,182,212,0.1)"/>
-              <line x1="16" y1="80" x2="124" y2="80" stroke="rgba(6,182,212,0.15)" strokeWidth="0.5"/>
-              <rect x="28" y="89" width="48" height="5" rx="2" fill="rgba(6,182,212,0.22)"/>
-              <rect x="28" y="101" width="34" height="4" rx="1.5" fill="rgba(6,182,212,0.13)"/>
-              <rect x="28" y="111" width="40" height="4" rx="1.5" fill="rgba(6,182,212,0.07)"/>
-              <text x="70" y="156" textAnchor="middle" fill="#06b6d4" fontFamily="monospace" fontSize="9" letterSpacing="2">YOU</text>
-              {/* Arrow to shield */}
-              <line x1="126" y1="102" x2="172" y2="102" stroke="rgba(6,182,212,0.5)" strokeWidth="1.3"/>
-              <polygon points="182,102 172,96 172,108" fill="rgba(6,182,212,0.7)"/>
-              {/* Shield center */}
-              <path d="M240 34l42 17v32c0 28-42 44-42 44s-42-16-42-44V51l42-17z" fill="rgba(6,182,212,0.05)" stroke="#06b6d4" strokeWidth="1.5" strokeLinejoin="round"/>
-              <circle cx="240" cy="80" r="16" fill="rgba(6,182,212,0.07)" stroke="rgba(6,182,212,0.2)" strokeWidth="1"/>
-              <circle cx="238" cy="78" r="9" stroke="#06b6d4" strokeWidth="1.5" fill="none"/>
-              <line x1="245" y1="85" x2="254" y2="94" stroke="#06b6d4" strokeWidth="2" strokeLinecap="round"/>
-              <text x="240" y="138" textAnchor="middle" fill="rgba(6,182,212,0.4)" fontFamily="monospace" fontSize="8" letterSpacing="1.5">VERIFY FIRST</text>
-              {/* Dashed arrow to unknown */}
-              <line x1="284" y1="102" x2="324" y2="102" stroke="rgba(255,59,59,0.45)" strokeWidth="1.3" strokeDasharray="4 3"/>
-              <polygon points="334,102 324,96 324,108" fill="rgba(255,59,59,0.6)"/>
-              {/* UNKNOWN DEST */}
-              <rect x="338" y="48" width="126" height="104" rx="4" fill="rgba(255,59,59,0.03)" stroke="rgba(255,59,59,0.5)" strokeWidth="1.5" strokeDasharray="5 3"/>
-              <rect x="338" y="48" width="126" height="18" rx="4" fill="rgba(255,59,59,0.05)"/>
-              <line x1="338" y1="66" x2="464" y2="66" stroke="rgba(255,59,59,0.1)" strokeWidth="0.5"/>
-              <text x="401" y="95" textAnchor="middle" fill="rgba(255,59,59,0.32)" fontFamily="monospace" fontSize="24">????</text>
-              <text x="401" y="122" textAnchor="middle" fill="rgba(255,59,59,0.18)" fontFamily="monospace" fontSize="18">????</text>
-              <circle cx="462" cy="48" r="12" fill="#00080f" stroke="#ff3b3b" strokeWidth="1.5"/>
-              <line x1="462" y1="42" x2="462" y2="50" stroke="#ff3b3b" strokeWidth="2" strokeLinecap="round"/>
-              <circle cx="462" cy="56" r="1.6" fill="#ff3b3b"/>
-              <text x="401" y="165" textAnchor="middle" fill="rgba(255,59,59,0.55)" fontFamily="monospace" fontSize="9" letterSpacing="1">UNKNOWN DEST</text>
+            <svg viewBox="0 0 480 270" fill="none" xmlns="http://www.w3.org/2000/svg" overflow="hidden" style={{ width: '100%', maxWidth: 480, height: 'auto' }}>
+              <rect width="480" height="270" fill="rgba(0,8,15,0.88)" rx="4"/>
+              {/* YOUR WALLET left */}
+              <rect x="12" y="68" width="112" height="128" rx="4" fill="rgba(6,182,212,0.04)" stroke="#06b6d4" strokeWidth="1.5"/>
+              <rect x="12" y="68" width="112" height="22" rx="4" fill="rgba(6,182,212,0.1)"/>
+              <line x1="12" y1="90" x2="124" y2="90" stroke="rgba(6,182,212,0.2)" strokeWidth="0.5"/>
+              <text x="68" y="83" textAnchor="middle" fill="rgba(6,182,212,0.95)" fontFamily="monospace" fontSize="8" letterSpacing="1.5" fontWeight="600">YOUR WALLET</text>
+              <rect x="24" y="100" width="52" height="5" rx="2" fill="rgba(6,182,212,0.22)"/>
+              <rect x="24" y="112" width="36" height="4" rx="1.5" fill="rgba(6,182,212,0.13)"/>
+              <rect x="24" y="123" width="44" height="4" rx="1.5" fill="rgba(6,182,212,0.07)"/>
+              <text x="68" y="150" textAnchor="middle" fill="rgba(6,182,212,0.65)" fontFamily="monospace" fontSize="13" fontWeight="700">2.4 ETH</text>
+              <text x="68" y="166" textAnchor="middle" fill="rgba(6,182,212,0.3)" fontFamily="monospace" fontSize="8">≈ $8,640</text>
+              <text x="68" y="186" textAnchor="middle" fill="rgba(6,182,212,0.28)" fontFamily="monospace" fontSize="7">0x9e2b...f1a</text>
+              {/* Arrow left → shield */}
+              <line x1="126" y1="132" x2="182" y2="132" stroke="rgba(6,182,212,0.5)" strokeWidth="1.4"/>
+              <polygon points="192,132 181,126 181,138" fill="rgba(6,182,212,0.7)"/>
+              {/* Shield outer */}
+              <path d="M240 62 l52 22v44c0 36-52 58-52 58s-52-22-52-58V84l52-22z" fill="rgba(6,182,212,0.05)" stroke="#06b6d4" strokeWidth="1.6" strokeLinejoin="round"/>
+              {/* Shield inner */}
+              <path d="M240 78 l34 14v30c0 24-34 38-34 38s-34-14-34-38V92l34-14z" fill="rgba(6,182,212,0.03)" stroke="rgba(6,182,212,0.25)" strokeWidth="1" strokeLinejoin="round"/>
+              {/* Magnifier inside inner shield */}
+              <circle cx="240" cy="118" r="12" stroke="#06b6d4" strokeWidth="1.8" fill="rgba(6,182,212,0.08)"/>
+              <circle cx="240" cy="118" r="7" stroke="rgba(6,182,212,0.25)" strokeWidth="0.8" fill="none"/>
+              <line x1="249" y1="127" x2="258" y2="136" stroke="#06b6d4" strokeWidth="2.4" strokeLinecap="round"/>
+              {/* VERIFY FIRST below shield */}
+              <text x="240" y="202" textAnchor="middle" fill="rgba(6,182,212,0.85)" fontFamily="monospace" fontSize="10" letterSpacing="1.5" fontWeight="700">VERIFY FIRST</text>
+              <text x="240" y="216" textAnchor="middle" fill="rgba(6,182,212,0.35)" fontFamily="monospace" fontSize="7.5">before sending</text>
+              {/* Dashed arrow shield → destination */}
+              <line x1="294" y1="132" x2="326" y2="132" stroke="rgba(255,59,59,0.5)" strokeWidth="1.4" strokeDasharray="4 3"/>
+              <polygon points="336,132 325,126 325,138" fill="rgba(255,59,59,0.7)"/>
+              {/* DESTINATION box: x=338, w=116, right=454; icon cx=454 cy=52 r=13 → right=467 */}
+              <rect x="338" y="52" width="116" height="178" rx="4" fill="rgba(255,59,59,0.03)" stroke="rgba(255,59,59,0.5)" strokeWidth="1.5" strokeDasharray="5 3"/>
+              <rect x="338" y="52" width="116" height="22" rx="4" fill="rgba(255,59,59,0.07)"/>
+              <line x1="338" y1="74" x2="454" y2="74" stroke="rgba(255,59,59,0.12)" strokeWidth="0.5"/>
+              <text x="388" y="67" textAnchor="middle" fill="rgba(255,59,59,0.85)" fontFamily="monospace" fontSize="8" letterSpacing="1" fontWeight="600">DESTINATION ?</text>
+              {/* ⚠ icon at top-right corner */}
+              <circle cx="454" cy="52" r="13" fill="rgba(18,0,0,0.97)" stroke="#ff3b3b" strokeWidth="1.6"/>
+              <line x1="454" y1="45" x2="454" y2="54" stroke="#ff3b3b" strokeWidth="2.2" strokeLinecap="round"/>
+              <circle cx="454" cy="59" r="1.6" fill="#ff3b3b"/>
+              <text x="396" y="124" textAnchor="middle" fill="rgba(255,59,59,0.28)" fontFamily="monospace" fontSize="46" fontWeight="700">??</text>
+              <text x="396" y="163" textAnchor="middle" fill="rgba(255,59,59,0.13)" fontFamily="monospace" fontSize="24">??</text>
+              <text x="396" y="192" textAnchor="middle" fill="rgba(255,59,59,0.5)" fontFamily="monospace" fontSize="7.5" letterSpacing="1">UNVERIFIED WALLET</text>
+              <text x="396" y="206" textAnchor="middle" fill="rgba(255,59,59,0.25)" fontFamily="monospace" fontSize="7">could be sanctioned</text>
+              <text x="396" y="218" textAnchor="middle" fill="rgba(255,59,59,0.16)" fontFamily="monospace" fontSize="6.5">mixer-linked or scam</text>
+              <line x1="12" y1="244" x2="468" y2="244" stroke="rgba(255,59,59,0.05)" strokeWidth="0.5"/>
+              <text x="240" y="259" textAnchor="middle" fill="rgba(255,59,59,0.25)" fontFamily="monospace" fontSize="7.5" letterSpacing="1">PASTE ADDRESS BEFORE YOU CONFIRM</text>
             </svg>
           ),
 
           inbound: (
-            <svg viewBox="0 0 480 210" fill="none" xmlns="http://www.w3.org/2000/svg" overflow="hidden" style={{ width: '100%', maxWidth: 480, height: 'auto' }}>
-              <rect width="480" height="210" fill="rgba(0,8,15,0.6)" rx="4"/>
-              {/* YOUR wallet right tall */}
-              <rect x="310" y="50" width="154" height="110" rx="4" fill="rgba(6,182,212,0.04)" stroke="#06b6d4" strokeWidth="1.5"/>
-              <rect x="310" y="50" width="154" height="18" rx="4" fill="rgba(6,182,212,0.1)"/>
-              <line x1="310" y1="68" x2="464" y2="68" stroke="rgba(6,182,212,0.15)" strokeWidth="0.5"/>
-              <rect x="322" y="78" width="54" height="5" rx="2" fill="rgba(6,182,212,0.22)"/>
-              <rect x="322" y="90" width="38" height="4" rx="1.5" fill="rgba(6,182,212,0.13)"/>
-              <rect x="322" y="101" width="46" height="4" rx="1.5" fill="rgba(6,182,212,0.07)"/>
-              <rect x="322" y="112" width="42" height="4" rx="1.5" fill="rgba(6,182,212,0.05)"/>
-              <text x="387" y="175" textAnchor="middle" fill="#06b6d4" fontFamily="monospace" fontSize="9" letterSpacing="2">YOU</text>
-              {/* Source 1 CLEAN */}
-              <rect x="16" y="14" width="106" height="46" rx="3" fill="rgba(6,182,212,0.03)" stroke="rgba(6,182,212,0.4)" strokeWidth="1.2"/>
-              <rect x="16" y="14" width="106" height="14" rx="3" fill="rgba(6,182,212,0.06)"/>
-              <rect x="26" y="34" width="36" height="4" rx="1.5" fill="rgba(6,182,212,0.18)"/>
-              <rect x="26" y="44" width="26" height="3" rx="1" fill="rgba(6,182,212,0.1)"/>
-              <text x="69" y="72" textAnchor="middle" fill="rgba(6,182,212,0.45)" fontFamily="monospace" fontSize="8" letterSpacing="1">CLEAN</text>
-              {/* Source 2 UNKNOWN */}
-              <rect x="16" y="82" width="106" height="46" rx="3" fill="rgba(255,140,0,0.03)" stroke="rgba(255,140,0,0.4)" strokeWidth="1.2"/>
-              <rect x="16" y="82" width="106" height="14" rx="3" fill="rgba(255,140,0,0.05)"/>
-              <rect x="26" y="102" width="36" height="4" rx="1.5" fill="rgba(255,140,0,0.18)"/>
-              <rect x="26" y="112" width="26" height="3" rx="1" fill="rgba(255,140,0,0.1)"/>
-              <text x="69" y="140" textAnchor="middle" fill="rgba(255,140,0,0.5)" fontFamily="monospace" fontSize="8" letterSpacing="1">UNKNOWN</text>
-              {/* Source 3 FLAGGED */}
-              <rect x="16" y="150" width="106" height="46" rx="3" fill="rgba(255,59,59,0.03)" stroke="rgba(255,59,59,0.55)" strokeWidth="1.2"/>
-              <rect x="16" y="150" width="106" height="14" rx="3" fill="rgba(255,59,59,0.05)"/>
-              <rect x="26" y="170" width="36" height="4" rx="1.5" fill="rgba(255,59,59,0.18)"/>
-              <rect x="26" y="180" width="26" height="3" rx="1" fill="rgba(255,59,59,0.1)"/>
-              <circle cx="120" cy="150" r="10" fill="#00080f" stroke="#ff3b3b" strokeWidth="1.3"/>
-              <line x1="120" y1="145" x2="120" y2="152" stroke="#ff3b3b" strokeWidth="1.6" strokeLinecap="round"/>
-              <circle cx="120" cy="157" r="1.2" fill="#ff3b3b"/>
-              <text x="69" y="205" textAnchor="middle" fill="rgba(255,59,59,0.55)" fontFamily="monospace" fontSize="8" letterSpacing="1">FLAGGED</text>
-              {/* Arrow 1 CLEAN */}
-              <line x1="122" y1="37" x2="310" y2="105" stroke="rgba(6,182,212,0.45)" strokeWidth="1.3"/>
-              <circle cx="310" cy="105" r="3.5" fill="rgba(6,182,212,0.6)"/>
-              {/* Arrow 2 UNKNOWN horizontal */}
-              <line x1="122" y1="105" x2="304" y2="105" stroke="rgba(255,140,0,0.5)" strokeWidth="1.3" strokeDasharray="5 3"/>
-              <polygon points="314,105 303,99 303,111" fill="rgba(255,140,0,0.7)"/>
-              {/* Arrow 3 FLAGGED */}
-              <line x1="122" y1="173" x2="310" y2="105" stroke="rgba(255,59,59,0.55)" strokeWidth="1.3"/>
-              <circle cx="310" cy="105" r="3.5" fill="rgba(255,59,59,0.6)"/>
-              {/* TAINTED SOURCE label */}
-              <rect x="155" y="122" width="112" height="15" rx="3" fill="rgba(255,59,59,0.08)" stroke="rgba(255,59,59,0.35)" strokeWidth="1"/>
-              <text x="211" y="133" textAnchor="middle" fill="#ff3b3b" fontFamily="monospace" fontSize="7.5" letterSpacing="1">TAINTED SOURCE</text>
+            <svg viewBox="0 0 480 270" fill="none" xmlns="http://www.w3.org/2000/svg" overflow="hidden" style={{ width: '100%', maxWidth: 480, height: 'auto' }}>
+              <rect width="480" height="270" fill="rgba(0,8,15,0.88)" rx="4"/>
+              {/* CLEAN SOURCE */}
+              <rect x="14" y="14" width="124" height="66" rx="4" fill="rgba(6,182,212,0.03)" stroke="rgba(6,182,212,0.45)" strokeWidth="1.2"/>
+              <rect x="14" y="14" width="124" height="20" rx="4" fill="rgba(6,182,212,0.07)"/>
+              <line x1="14" y1="34" x2="138" y2="34" stroke="rgba(6,182,212,0.12)" strokeWidth="0.5"/>
+              <text x="76" y="27" textAnchor="middle" fill="rgba(6,182,212,0.85)" fontFamily="monospace" fontSize="8" letterSpacing="1" fontWeight="600">CLEAN SOURCE</text>
+              <rect x="26" y="42" width="46" height="4" rx="1.5" fill="rgba(6,182,212,0.2)"/>
+              <rect x="26" y="52" width="32" height="3.5" rx="1" fill="rgba(6,182,212,0.11)"/>
+              <text x="76" y="72" textAnchor="middle" fill="rgba(6,182,212,0.35)" fontFamily="monospace" fontSize="7">0x2f1a...c3d</text>
+              {/* UNKNOWN SOURCE */}
+              <rect x="14" y="102" width="124" height="66" rx="4" fill="rgba(255,140,0,0.03)" stroke="rgba(255,140,0,0.4)" strokeWidth="1.2"/>
+              <rect x="14" y="102" width="124" height="20" rx="4" fill="rgba(255,140,0,0.06)"/>
+              <line x1="14" y1="122" x2="138" y2="122" stroke="rgba(255,140,0,0.1)" strokeWidth="0.5"/>
+              <text x="76" y="115" textAnchor="middle" fill="rgba(255,140,0,0.85)" fontFamily="monospace" fontSize="8" letterSpacing="1" fontWeight="600">UNKNOWN</text>
+              <rect x="26" y="130" width="46" height="4" rx="1.5" fill="rgba(255,140,0,0.18)"/>
+              <rect x="26" y="140" width="32" height="3.5" rx="1" fill="rgba(255,140,0,0.1)"/>
+              <text x="76" y="160" textAnchor="middle" fill="rgba(255,140,0,0.35)" fontFamily="monospace" fontSize="7">0x8b4d...e7f</text>
+              {/* FLAGGED SOURCE */}
+              <rect x="14" y="190" width="124" height="66" rx="4" fill="rgba(255,59,59,0.04)" stroke="rgba(255,59,59,0.6)" strokeWidth="1.3"/>
+              <rect x="14" y="190" width="124" height="20" rx="4" fill="rgba(255,59,59,0.08)"/>
+              <line x1="14" y1="210" x2="138" y2="210" stroke="rgba(255,59,59,0.14)" strokeWidth="0.5"/>
+              <text x="68" y="203" textAnchor="middle" fill="rgba(255,59,59,0.95)" fontFamily="monospace" fontSize="8" letterSpacing="1" fontWeight="600">FLAGGED SOURCE</text>
+              <rect x="26" y="218" width="46" height="4" rx="1.5" fill="rgba(255,59,59,0.2)"/>
+              <rect x="26" y="228" width="32" height="3.5" rx="1" fill="rgba(255,59,59,0.11)"/>
+              <text x="76" y="248" textAnchor="middle" fill="rgba(255,59,59,0.45)" fontFamily="monospace" fontSize="7">0x7c3e...b2a · OFAC</text>
+              {/* ⚠ at top-right corner of flagged box */}
+              <circle cx="138" cy="190" r="13" fill="rgba(18,0,0,0.97)" stroke="#ff3b3b" strokeWidth="1.6"/>
+              <line x1="138" y1="183" x2="138" y2="192" stroke="#ff3b3b" strokeWidth="2.2" strokeLinecap="round"/>
+              <circle cx="138" cy="197" r="1.6" fill="#ff3b3b"/>
+              {/* Arrows — drawn before tainted label */}
+              <line x1="140" y1="47" x2="283" y2="121" stroke="rgba(6,182,212,0.5)" strokeWidth="1.4"/>
+              <polygon points="292,128 279,122 284,112" fill="rgba(6,182,212,0.8)"/>
+              <line x1="140" y1="135" x2="285" y2="135" stroke="rgba(255,140,0,0.55)" strokeWidth="1.4" strokeDasharray="5 3"/>
+              <polygon points="296,135 284,129 284,141" fill="rgba(255,140,0,0.85)"/>
+              <line x1="140" y1="223" x2="283" y2="148" stroke="rgba(255,59,59,0.65)" strokeWidth="1.5"/>
+              <polygon points="292,142 279,148 284,157" fill="rgba(255,59,59,0.85)"/>
+              {/* TAINTED label drawn last — on top of arrows */}
+              <rect x="152" y="172" width="120" height="18" rx="3" fill="rgba(12,0,0,0.94)" stroke="rgba(255,59,59,0.55)" strokeWidth="1.2"/>
+              <text x="212" y="184.5" textAnchor="middle" fill="#ff3b3b" fontFamily="monospace" fontSize="8" letterSpacing="1.2" fontWeight="700">TAINTED SOURCE</text>
+              {/* YOUR WALLET right */}
+              <rect x="300" y="28" width="166" height="214" rx="4" fill="rgba(6,182,212,0.04)" stroke="#06b6d4" strokeWidth="1.5"/>
+              <rect x="300" y="28" width="166" height="22" rx="4" fill="rgba(6,182,212,0.1)"/>
+              <line x1="300" y1="50" x2="466" y2="50" stroke="rgba(6,182,212,0.2)" strokeWidth="0.5"/>
+              <text x="383" y="43" textAnchor="middle" fill="rgba(6,182,212,0.95)" fontFamily="monospace" fontSize="8" letterSpacing="1.5" fontWeight="600">YOUR WALLET</text>
+              <rect x="312" y="60" width="62" height="5" rx="2" fill="rgba(6,182,212,0.22)"/>
+              <rect x="312" y="72" width="44" height="4" rx="1.5" fill="rgba(6,182,212,0.13)"/>
+              <rect x="312" y="83" width="52" height="4" rx="1.5" fill="rgba(6,182,212,0.07)"/>
+              <line x1="312" y1="104" x2="454" y2="104" stroke="rgba(6,182,212,0.07)" strokeWidth="0.5"/>
+              <text x="383" y="120" textAnchor="middle" fill="rgba(6,182,212,0.4)" fontFamily="monospace" fontSize="8" letterSpacing="1">RECEIVED</text>
+              <text x="383" y="144" textAnchor="middle" fill="rgba(6,182,212,0.75)" fontFamily="monospace" fontSize="18" fontWeight="700">3.7 ETH</text>
+              <text x="383" y="160" textAnchor="middle" fill="rgba(6,182,212,0.3)" fontFamily="monospace" fontSize="8">from 3 sources</text>
+              <line x1="312" y1="178" x2="454" y2="178" stroke="rgba(255,59,59,0.1)" strokeWidth="0.5"/>
+              <text x="383" y="196" textAnchor="middle" fill="rgba(255,140,0,0.7)" fontFamily="monospace" fontSize="8" letterSpacing="0.5" fontWeight="700">⚠ 1 FLAGGED SOURCE</text>
+              <text x="383" y="212" textAnchor="middle" fill="rgba(255,59,59,0.35)" fontFamily="monospace" fontSize="7">funds may be tainted</text>
+              <text x="383" y="228" textAnchor="middle" fill="rgba(6,182,212,0.25)" fontFamily="monospace" fontSize="7">0x9e2b...f1a</text>
             </svg>
           ),
 
           protocol: (
-            <svg viewBox="0 0 480 200" fill="none" xmlns="http://www.w3.org/2000/svg" overflow="hidden" style={{ width: '100%', maxWidth: 480, height: 'auto' }}>
-              <rect width="480" height="200" fill="rgba(0,8,15,0.6)" rx="4"/>
-              {/* YOU box top */}
-              <rect x="190" y="6" width="100" height="28" rx="3" fill="rgba(6,182,212,0.04)" stroke="rgba(6,182,212,0.5)" strokeWidth="1.5" strokeDasharray="4 2"/>
-              <rect x="190" y="6" width="100" height="11" rx="3" fill="rgba(6,182,212,0.07)"/>
-              <text x="240" y="25" textAnchor="middle" fill="#06b6d4" fontFamily="monospace" fontSize="9" letterSpacing="1">YOU →</text>
-              <line x1="240" y1="34" x2="240" y2="52" stroke="#06b6d4" strokeWidth="1.3" strokeDasharray="3 2"/>
-              {/* Contract hexagon outer */}
-              <polygon points="240,52 274,71 274,109 240,128 206,109 206,71" fill="rgba(6,182,212,0.05)" stroke="#06b6d4" strokeWidth="1.5"/>
-              {/* Contract hexagon inner */}
-              <polygon points="240,64 260,75 260,97 240,108 220,97 220,75" fill="rgba(6,182,212,0.03)" stroke="rgba(6,182,212,0.28)" strokeWidth="0.8"/>
-              <text x="240" y="87" textAnchor="middle" fill="rgba(6,182,212,0.65)" fontFamily="monospace" fontSize="8" letterSpacing="0.5">CONTRACT</text>
-              <text x="240" y="99" textAnchor="middle" fill="rgba(6,182,212,0.35)" fontFamily="monospace" fontSize="7">0x4a2...f</text>
-              {/* Clean circle left */}
-              <circle cx="60" cy="82" r="22" fill="rgba(6,182,212,0.03)" stroke="rgba(6,182,212,0.35)" strokeWidth="1.2"/>
-              <text x="60" y="80" textAnchor="middle" fill="rgba(6,182,212,0.45)" fontFamily="monospace" fontSize="8">0x2f</text>
-              <text x="60" y="92" textAnchor="middle" fill="rgba(6,182,212,0.25)" fontFamily="monospace" fontSize="7">clean</text>
-              <line x1="82" y1="82" x2="205" y2="86" stroke="rgba(6,182,212,0.28)" strokeWidth="1"/>
-              {/* Clean circle right */}
-              <circle cx="420" cy="82" r="22" fill="rgba(6,182,212,0.03)" stroke="rgba(6,182,212,0.35)" strokeWidth="1.2"/>
-              <text x="420" y="80" textAnchor="middle" fill="rgba(6,182,212,0.45)" fontFamily="monospace" fontSize="8">0x9a</text>
-              <text x="420" y="92" textAnchor="middle" fill="rgba(6,182,212,0.25)" fontFamily="monospace" fontSize="7">clean</text>
-              <line x1="398" y1="82" x2="275" y2="86" stroke="rgba(6,182,212,0.28)" strokeWidth="1"/>
-              {/* Flagged circle bottom left */}
-              <circle cx="76" cy="164" r="24" fill="rgba(255,59,59,0.05)" stroke="rgba(255,59,59,0.65)" strokeWidth="1.5"/>
-              <text x="76" y="162" textAnchor="middle" fill="rgba(255,59,59,0.65)" fontFamily="monospace" fontSize="8">0x7c</text>
-              <text x="76" y="174" textAnchor="middle" fill="rgba(255,59,59,0.4)" fontFamily="monospace" fontSize="7">hacker</text>
-              <circle cx="100" cy="142" r="10" fill="#00080f" stroke="#ff3b3b" strokeWidth="1.3"/>
-              <line x1="100" y1="136" x2="100" y2="144" stroke="#ff3b3b" strokeWidth="1.5" strokeLinecap="round"/>
-              <circle cx="100" cy="149" r="1.2" fill="#ff3b3b"/>
-              <line x1="98" y1="148" x2="206" y2="109" stroke="rgba(255,59,59,0.55)" strokeWidth="1.3"/>
-              {/* Flagged circle bottom right */}
-              <circle cx="404" cy="164" r="24" fill="rgba(255,59,59,0.05)" stroke="rgba(255,59,59,0.65)" strokeWidth="1.5"/>
-              <text x="404" y="162" textAnchor="middle" fill="rgba(255,59,59,0.65)" fontFamily="monospace" fontSize="8">0xd3</text>
-              <text x="404" y="174" textAnchor="middle" fill="rgba(255,59,59,0.4)" fontFamily="monospace" fontSize="7">mixer</text>
-              <circle cx="380" cy="142" r="10" fill="#00080f" stroke="#ff3b3b" strokeWidth="1.3"/>
-              <line x1="380" y1="136" x2="380" y2="144" stroke="#ff3b3b" strokeWidth="1.5" strokeLinecap="round"/>
-              <circle cx="380" cy="149" r="1.2" fill="#ff3b3b"/>
-              <line x1="382" y1="148" x2="274" y2="109" stroke="rgba(255,59,59,0.55)" strokeWidth="1.3"/>
-              {/* HIDDEN CONNECTIONS */}
-              <rect x="150" y="182" width="180" height="14" rx="3" fill="rgba(255,59,59,0.06)" stroke="rgba(255,59,59,0.28)" strokeWidth="0.8"/>
-              <text x="240" y="192.5" textAnchor="middle" fill="rgba(255,59,59,0.55)" fontFamily="monospace" fontSize="7.5" letterSpacing="1">HIDDEN CONNECTIONS</text>
+            <svg viewBox="0 0 480 270" fill="none" xmlns="http://www.w3.org/2000/svg" overflow="hidden" style={{ width: '100%', maxWidth: 480, height: 'auto' }}>
+              <rect width="480" height="270" fill="rgba(0,8,15,0.88)" rx="4"/>
+              <rect x="186" y="8" width="108" height="32" rx="3" fill="rgba(6,182,212,0.04)" stroke="rgba(6,182,212,0.5)" strokeWidth="1.5" strokeDasharray="4 2"/>
+              <rect x="186" y="8" width="108" height="14" rx="3" fill="rgba(6,182,212,0.08)"/>
+              <text x="240" y="19" textAnchor="middle" fill="rgba(6,182,212,0.9)" fontFamily="monospace" fontSize="8.5" letterSpacing="1" fontWeight="600">YOU →</text>
+              <text x="240" y="33" textAnchor="middle" fill="rgba(6,182,212,0.35)" fontFamily="monospace" fontSize="7">interacting with contract</text>
+              <line x1="240" y1="40" x2="240" y2="60" stroke="#06b6d4" strokeWidth="1.4" strokeDasharray="3 2"/>
+              <polygon points="240,60 292,88 292,144 240,172 188,144 188,88" fill="rgba(6,182,212,0.05)" stroke="#06b6d4" strokeWidth="1.8"/>
+              <polygon points="240,74 274,93 274,131 240,150 206,131 206,93" fill="rgba(6,182,212,0.03)" stroke="rgba(6,182,212,0.22)" strokeWidth="0.8"/>
+              <text x="240" y="103" textAnchor="middle" fill="rgba(6,182,212,0.75)" fontFamily="monospace" fontSize="8.5" letterSpacing="0.5" fontWeight="600">CONTRACT</text>
+              <text x="240" y="117" textAnchor="middle" fill="rgba(6,182,212,0.45)" fontFamily="monospace" fontSize="7">0x4a2f...c8e</text>
+              <text x="240" y="130" textAnchor="middle" fill="rgba(6,182,212,0.28)" fontFamily="monospace" fontSize="6.5">deployed 94d ago</text>
+              <text x="240" y="143" textAnchor="middle" fill="rgba(6,182,212,0.18)" fontFamily="monospace" fontSize="6">unverified</text>
+              <circle cx="60" cy="90" r="30" fill="rgba(6,182,212,0.03)" stroke="rgba(6,182,212,0.35)" strokeWidth="1.3"/>
+              <text x="60" y="87" textAnchor="middle" fill="rgba(6,182,212,0.6)" fontFamily="monospace" fontSize="8.5" fontWeight="600">0x2f1a</text>
+              <text x="60" y="100" textAnchor="middle" fill="rgba(6,182,212,0.35)" fontFamily="monospace" fontSize="7.5">clean</text>
+              <line x1="90" y1="93" x2="187" y2="108" stroke="rgba(6,182,212,0.3)" strokeWidth="1"/>
+              <circle cx="420" cy="90" r="30" fill="rgba(6,182,212,0.03)" stroke="rgba(6,182,212,0.35)" strokeWidth="1.3"/>
+              <text x="420" y="87" textAnchor="middle" fill="rgba(6,182,212,0.6)" fontFamily="monospace" fontSize="8.5" fontWeight="600">0x9a4b</text>
+              <text x="420" y="100" textAnchor="middle" fill="rgba(6,182,212,0.35)" fontFamily="monospace" fontSize="7.5">clean</text>
+              <line x1="390" y1="93" x2="293" y2="108" stroke="rgba(6,182,212,0.3)" strokeWidth="1"/>
+              <circle cx="68" cy="204" r="32" fill="rgba(255,59,59,0.05)" stroke="rgba(255,59,59,0.7)" strokeWidth="1.6"/>
+              <text x="68" y="200" textAnchor="middle" fill="rgba(255,59,59,0.8)" fontFamily="monospace" fontSize="8.5" fontWeight="600">0x7c3e</text>
+              <text x="68" y="213" textAnchor="middle" fill="rgba(255,59,59,0.5)" fontFamily="monospace" fontSize="7.5">hacker</text>
+              <circle cx="96" cy="176" r="10" fill="rgba(18,0,0,0.97)" stroke="#ff3b3b" strokeWidth="1.3"/>
+              <line x1="96" y1="170" x2="96" y2="178" stroke="#ff3b3b" strokeWidth="1.6" strokeLinecap="round"/>
+              <circle cx="96" cy="183" r="1.3" fill="#ff3b3b"/>
+              <line x1="96" y1="176" x2="188" y2="144" stroke="rgba(255,59,59,0.6)" strokeWidth="1.5"/>
+              <circle cx="412" cy="204" r="32" fill="rgba(255,59,59,0.05)" stroke="rgba(255,59,59,0.7)" strokeWidth="1.6"/>
+              <text x="412" y="200" textAnchor="middle" fill="rgba(255,59,59,0.8)" fontFamily="monospace" fontSize="8.5" fontWeight="600">0xd3f8</text>
+              <text x="412" y="213" textAnchor="middle" fill="rgba(255,59,59,0.5)" fontFamily="monospace" fontSize="7.5">mixer</text>
+              <circle cx="384" cy="176" r="10" fill="rgba(18,0,0,0.97)" stroke="#ff3b3b" strokeWidth="1.3"/>
+              <line x1="384" y1="170" x2="384" y2="178" stroke="#ff3b3b" strokeWidth="1.6" strokeLinecap="round"/>
+              <circle cx="384" cy="183" r="1.3" fill="#ff3b3b"/>
+              <line x1="384" y1="176" x2="292" y2="144" stroke="rgba(255,59,59,0.6)" strokeWidth="1.5"/>
+              {/* HIDDEN CONNECTIONS drawn last */}
+              <rect x="138" y="244" width="204" height="19" rx="3" fill="rgba(12,0,0,0.92)" stroke="rgba(255,59,59,0.38)" strokeWidth="1"/>
+              <text x="240" y="257" textAnchor="middle" fill="rgba(255,59,59,0.7)" fontFamily="monospace" fontSize="8" letterSpacing="1" fontWeight="600">HIDDEN CONNECTIONS</text>
             </svg>
           ),
-
         };
 
         const useCases: UseCase[] = [
