@@ -26,7 +26,7 @@ export default function WaitlistBar() {
           color: '#1e4d5c',
         }}
       >
-        OPEN SOURCE · NO ACCOUNT REQUIRED FOR BASIC CHECKS
+        OPEN SOURCE · FREE TO TRY · ACCOUNT REQUIRED FOR FULL ACCESS
       </span>
 
       {/* GitHub CTA */}
