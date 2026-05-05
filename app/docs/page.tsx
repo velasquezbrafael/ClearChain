@@ -6,6 +6,7 @@
  */
 
 import SiteNav from '@/components/SiteNav'
+import DocsTOC from '@/components/DocsTOC'
 
 // ---------------------------------------------------------------------------
 // Data
@@ -189,8 +190,12 @@ export default async function DocsPage() {
         </div>
       </div>
 
-      {/* Content */}
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 32px 96px' }}>
+      {/* Content + TOC */}
+      <div style={{ maxWidth: 1160, margin: '0 auto', padding: '0 32px 96px', display: 'flex', gap: 56, alignItems: 'flex-start' }}>
+
+        <DocsTOC />
+
+        <div style={{ flex: 1, minWidth: 0 }}>
 
         {/* ---------------------------------------------------------------- */}
         {/* SECTION 1 — Risk Scoring                                         */}
@@ -451,7 +456,8 @@ export default async function DocsPage() {
           </a>
         </div>
 
-      </div>
+        </div>{/* end content column */}
+      </div>{/* end content + TOC flex */}
     </div>
   )
 }
