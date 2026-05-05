@@ -777,6 +777,7 @@ function HeroContent({
   onSubmit,
   onQuickFill,
   onSimulatorFill,
+  onOnboardingPick,
   error,
   selectedChain,
   setSelectedChain,
@@ -791,6 +792,7 @@ function HeroContent({
   onSubmit: (e: React.FormEvent) => void;
   onQuickFill: (addr: string) => void;
   onSimulatorFill: () => void;
+  onOnboardingPick: (addr: string) => void;
   error: ErrorState | null;
   selectedChain: 'ETH' | 'BTC' | 'TRX' | 'SOL';
   setSelectedChain: (c: 'ETH' | 'BTC' | 'TRX' | 'SOL') => void;
@@ -801,6 +803,18 @@ function HeroContent({
   const [nextIdx, setNextIdx] = useState(1);
   const [spotlightPos, setSpotlightPos] = useState({ x: -999, y: -999 });
   const [expandedCase, setExpandedCase] = useState<string | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !localStorage.getItem('cc_onboarded')) {
+      setShowOnboarding(true);
+    }
+  }, []);
+
+  function dismissOnboarding() {
+    localStorage.setItem('cc_onboarded', '1');
+    setShowOnboarding(false);
+  }
   const heroWrapperRef = useRef<HTMLDivElement>(null);
   const heroWindowWidth = useWindowWidth();
   const isMobile = heroWindowWidth < 768;
@@ -1042,6 +1056,79 @@ function HeroContent({
               );
             })}
           </div>
+
+          {/* Onboarding nudge — first-visit only, dismissed via localStorage */}
+          {showOnboarding && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                flexWrap: 'wrap',
+                marginBottom: 14,
+                padding: '10px 14px',
+                background: 'rgba(0,255,136,0.04)',
+                border: '1px solid rgba(0,255,136,0.15)',
+                borderRadius: 4,
+                animation: 'fadeSlideUp 0.35s ease-out both',
+                position: 'relative',
+              }}
+            >
+              <span style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 13, color: '#8892a4', flexShrink: 0 }}>
+                New here? Try an example:
+              </span>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', flex: 1 }}>
+                {([
+                  { label: '🚨 OFAC Sanctioned', sub: 'Lazarus Group',    addr: '0x098B716B8Aaf21512996dC57EB0615e2383E2f96' },
+                  { label: '⚠ High Risk',        sub: 'Tornado Cash',     addr: '0xd90e2f925DA726b50C4Ed8D0Fb90Ad053324F31b' },
+                  { label: '✓ Clean Wallet',      sub: 'Vitalik Buterin',  addr: 'vitalik.eth' },
+                ] as const).map(pill => (
+                  <button
+                    key={pill.addr}
+                    type="button"
+                    disabled={loading}
+                    onClick={() => { dismissOnboarding(); onOnboardingPick(pill.addr); }}
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'flex-start',
+                      gap: 1,
+                      padding: '5px 10px',
+                      background: '#0d1220',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      borderRadius: 4,
+                      cursor: loading ? 'default' : 'pointer',
+                      transition: 'border-color 0.15s',
+                    }}
+                    onMouseEnter={e => { if (!loading) (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(0,255,136,0.3)'; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.08)'; }}
+                  >
+                    <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#f0f4ff', letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>{pill.label}</span>
+                    <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#8892a4', letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>{pill.sub}</span>
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={dismissOnboarding}
+                aria-label="Dismiss"
+                style={{
+                  position: 'absolute',
+                  top: 8,
+                  right: 10,
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#8892a4',
+                  fontSize: 14,
+                  lineHeight: 1,
+                  padding: 2,
+                }}
+              >
+                ×
+              </button>
+            </div>
+          )}
 
           <div
             style={{
@@ -2892,6 +2979,7 @@ export default function HomePage() {
   }, [showResults]);
 
   async function runAnalysis(addr: string, chain?: 'ETH' | 'BTC' | 'TRX' | 'SOL') {
+    if (typeof window !== 'undefined') localStorage.setItem('cc_onboarded', '1');
     const activeChain = chain ?? selectedChain;
     playStartSound();   // Sound A — analysis begin
     setLoading(true);
@@ -3005,6 +3093,13 @@ export default function HomePage() {
     if (!isAuthed) { setShowAuthModal(true); return; }
     setAddress(addr);
     runAnalysis(addr, selectedChain);
+  }
+
+  function handleOnboardingPick(addr: string) {
+    if (!isAuthed) { setShowAuthModal(true); return; }
+    setSelectedChain('ETH');
+    setAddress(addr);
+    runAnalysis(addr, 'ETH');
   }
 
   function handleSimulatorFill() {
@@ -3329,6 +3424,7 @@ export default function HomePage() {
           onSubmit={handleAnalyze}
           onQuickFill={handleQuickFill}
           onSimulatorFill={handleSimulatorFill}
+          onOnboardingPick={handleOnboardingPick}
           error={error}
           selectedChain={selectedChain}
           setSelectedChain={setSelectedChain}
