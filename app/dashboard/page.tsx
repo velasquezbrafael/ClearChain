@@ -131,7 +131,12 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
   const hour = new Date().getHours()
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
-  const displayName = (user.email ?? '').split('@')[0].split('.')[0]
+  const emailLocal = (user.email ?? '').split('@')[0]
+  const displayName =
+    (user.user_metadata?.full_name as string | undefined)?.split(' ')[0]?.toLowerCase() ||
+    (user.user_metadata?.name as string | undefined)?.split(' ')[0]?.toLowerCase() ||
+    emailLocal.split('.').at(-1) ||
+    emailLocal
 
   async function signOut() {
     'use server'
@@ -154,11 +159,6 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
   return (
     <div style={{ minHeight: '100vh', background: '#00080f', color: '#ecfeff', fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif' }}>
-      <style>{`
-        @media (max-width: 767px) {
-          .dash-stats-grid    { grid-template-columns: repeat(2, 1fr) !important; }
-        }
-      `}</style>
       {/* Nav */}
       <nav className="dash-nav" style={{ position: 'sticky', top: 0, zIndex: 50, borderBottom: '1px solid rgba(6,182,212,0.08)', padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 56, background: 'rgba(0,8,15,0.75)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
@@ -185,10 +185,10 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       <div className="dash-content" style={{ maxWidth: 1100, margin: '0 auto', padding: '48px 32px' }}>
 
         {/* Greeting + Quick Actions */}
-        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 40, flexWrap: 'wrap', gap: 20 }}>
+        <div className="dash-greeting-row" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 40, flexWrap: 'wrap', gap: 20 }}>
           <div>
             <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, letterSpacing: '0.2em', color: '#1e4d5c', marginBottom: 8, textTransform: 'uppercase' }}>Overview</div>
-            <h1 style={{ fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif', fontSize: 32, fontWeight: 700, color: '#ecfeff', margin: 0, letterSpacing: '-0.01em' }}>
+            <h1 className="dash-greeting-h1" style={{ fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif', fontSize: 32, fontWeight: 700, color: '#ecfeff', margin: 0, letterSpacing: '-0.01em' }}>
               {greeting},{' '}
               <span style={{ color: '#06b6d4' }}>{displayName}</span>
               <span style={{ fontSize: 32 }}>.</span>

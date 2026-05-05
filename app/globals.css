@@ -128,9 +128,15 @@ body {
   /* Stat cards */
   .dash-stat-card                 { padding: 16px 18px !important; }
   .dash-stat-number               { font-size: 28px !important; }
-  /* Quick actions — wrap to 2-col grid on mobile */
-  .dash-quick-actions             { flex-wrap: wrap !important; }
-  .dash-quick-actions > a         { flex: 1 1 calc(50% - 5px) !important; min-width: 0 !important; justify-content: center !important; }
+  /* Greeting row — stack on mobile */
+  .dash-greeting-row              { flex-direction: column !important; align-items: flex-start !important; gap: 20px !important; }
+  /* Greeting heading — smaller on mobile */
+  .dash-greeting-h1               { font-size: 22px !important; }
+  /* Stats grid — 2 cols on mobile */
+  .dash-stats-grid                { grid-template-columns: repeat(2, 1fr) !important; }
+  /* Quick actions — stack vertically on mobile */
+  .dash-quick-actions             { flex-direction: column !important; width: 100% !important; }
+  .dash-quick-actions > a         { width: 100% !important; flex: none !important; justify-content: center !important; min-width: 0 !important; }
   /* Page section headers with right-side controls */
   .dash-section-header            { flex-wrap: wrap !important; gap: 12px !important; }
   .dash-section-header > div:last-child { width: 100% !important; }
