@@ -114,6 +114,11 @@ body {
 /* Tab bar — hide scrollbar while keeping scroll */
 #clearchain-tabs > div:first-child::-webkit-scrollbar { display: none; }
 
+/* ── Dashboard nav — structural centering (all screen sizes) ──── */
+.dash-nav > div                 { align-self: stretch; display: flex; align-items: center; }
+.dash-nav a                     { display: flex; align-items: center; min-height: unset !important; }
+.dash-nav button                { min-height: unset !important; }
+
 /* ── Dashboard pages — shared responsive classes ─────────────── */
 @media (max-width: 767px) {
   /* Nav */
@@ -127,7 +132,6 @@ body {
   .dash-table-overflow            { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
   /* Stat cards */
   .dash-stat-card                 { padding: 16px 18px !important; }
-  .dash-stat-number               { font-size: 28px !important; }
   /* Greeting row — stack on mobile, tighter margin */
   .dash-greeting-row              { flex-direction: column !important; align-items: flex-start !important; gap: 16px !important; margin-bottom: 24px !important; }
   /* Greeting heading — smaller on mobile */
@@ -309,8 +313,6 @@ input, textarea {
   button, [role="button"], a, select {
     min-height: 44px;
   }
-  /* Exception: nav links — 56px nav bar is already a sufficient touch target */
-  .dash-nav a, .dash-nav button { min-height: unset !important; display: flex !important; align-items: center !important; }
   /* Exception: compact UI controls that are already inside padded containers */
   .graph-filter-select,
   .tx-filter-btn {
