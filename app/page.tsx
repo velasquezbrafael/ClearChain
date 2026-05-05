@@ -3504,7 +3504,7 @@ export default function HomePage() {
           letterSpacing: '0.05em',
         }}
       >
-        Chainalysis starts at $50,000/year.{' '}
+        Enterprise tools start at $50,000/year.{' '}
         ClearChain is{' '}
         <span style={{ color: '#00ff88' }}>free to start</span>.
       </div>
