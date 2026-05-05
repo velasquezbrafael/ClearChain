@@ -2071,9 +2071,9 @@ function HeroContent({
                     <p style={{ fontFamily: 'var(--font-inter)', fontSize: 13, color: '#7ec8d8', lineHeight: 1.7, margin: '12px 0 0' }}>{uc.body}</p>
                   )}
 
-                  {/* SEE WHY THIS MATTERS label */}
-                  {expandedCase !== uc.scenario && (
-                    <div style={{
+                  {/* SEE WHY THIS MATTERS / COLLAPSE toggle */}
+                  <div
+                    style={{
                       marginTop: 16,
                       display: 'flex',
                       justifyContent: 'center',
@@ -2084,14 +2084,31 @@ function HeroContent({
                       fontFamily: 'var(--font-jetbrains-mono)',
                       fontSize: 11,
                       letterSpacing: '0.14em',
-                      color: 'rgba(6,182,212,0.5)',
-                    }}>
-                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                        <path d="M1.5 3.5l3.5 3.5 3.5-3.5" stroke="rgba(6,182,212,0.5)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                      SEE WHY THIS MATTERS
-                    </div>
-                  )}
+                      color: expandedCase === uc.scenario ? 'rgba(6,182,212,0.35)' : 'rgba(6,182,212,0.5)',
+                      cursor: 'pointer',
+                      userSelect: 'none' as const,
+                      transition: 'color 0.15s',
+                    }}
+                    onClick={e => { e.stopPropagation(); setExpandedCase(prev => prev === uc.scenario ? null : uc.scenario); }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.color = '#06b6d4'; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.color = expandedCase === uc.scenario ? 'rgba(6,182,212,0.35)' : 'rgba(6,182,212,0.5)'; }}
+                  >
+                    {expandedCase === uc.scenario ? (
+                      <>
+                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                          <path d="M1.5 6.5l3.5-3.5 3.5 3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                        COLLAPSE
+                      </>
+                    ) : (
+                      <>
+                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                          <path d="M1.5 3.5l3.5 3.5 3.5-3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                        SEE WHY THIS MATTERS
+                      </>
+                    )}
+                  </div>
 
                   {/* Deep dive — expanded state */}
                   {expandedCase === uc.scenario && (
