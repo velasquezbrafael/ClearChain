@@ -2825,10 +2825,15 @@ export default function HomePage() {
                 href="/dashboard"
                 style={{
                   fontFamily: 'var(--font-jetbrains-mono)',
-                  fontSize: 11,
-                  letterSpacing: '0.08em',
+                  fontSize: 10,
+                  letterSpacing: '0.1em',
                   color: '#06b6d4',
                   textDecoration: 'none',
+                  border: '1px solid rgba(6,182,212,0.25)',
+                  borderRadius: 2,
+                  padding: '4px 10px',
+                  display: 'flex',
+                  alignItems: 'center',
                 }}
               >
                 {navUser.name.split(' ')[0].toLowerCase()} ↗
