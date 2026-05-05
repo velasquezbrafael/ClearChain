@@ -240,7 +240,7 @@ const slogans = [
   'follow the money',
   'on-chain never lies',
   'money leaves tracks',
-  'know who you\'re trusting',
+  'know who you trust',
 ];
 
 const CHARS = 'abcdefghijklmnopqrstuvwxyz@#$%&*';
