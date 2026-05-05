@@ -156,15 +156,11 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     <div style={{ minHeight: '100vh', background: '#00080f', color: '#ecfeff', fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif' }}>
       <style>{`
         @media (max-width: 767px) {
-          .dash-secondary-nav { display: none !important; }
-          .dash-user-email    { display: none !important; }
-          .dash-content       { padding: 32px 16px !important; }
           .dash-stats-grid    { grid-template-columns: repeat(2, 1fr) !important; }
-          .dash-table-scroll  { overflow-x: auto !important; }
         }
       `}</style>
       {/* Nav */}
-      <nav style={{ position: 'sticky', top: 0, zIndex: 50, borderBottom: '1px solid rgba(6,182,212,0.08)', padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 56, background: 'rgba(0,8,15,0.75)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
+      <nav className="dash-nav" style={{ position: 'sticky', top: 0, zIndex: 50, borderBottom: '1px solid rgba(6,182,212,0.08)', padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 56, background: 'rgba(0,8,15,0.75)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
           <a href="/" style={{ fontSize: 15, letterSpacing: '0.15em', color: '#22d3ee', fontFamily: 'var(--font-rubik-glitch)', fontWeight: 400, textDecoration: 'none' }}>CLEARCHAIN</a>
           <div className="dash-secondary-nav" style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
@@ -200,7 +196,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           </div>
 
           {/* Quick Actions */}
-          <div style={{ display: 'flex', gap: 10, flexShrink: 0 }}>
+          <div className="dash-quick-actions" style={{ display: 'flex', gap: 10, flexShrink: 0 }}>
             <a
               href="/"
               style={{
@@ -275,9 +271,9 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         {/* Stats row */}
         <div className="dash-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
           {/* Card 1: Unique addresses */}
-          <div className="glass" style={{ borderRadius: 8, padding: '24px 28px' }}>
+          <div className="glass dash-stat-card" style={{ borderRadius: 8, padding: '24px 28px' }}>
             <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: '#7ec8d8', marginBottom: 14, textTransform: 'uppercase' }}>Addresses Analyzed</div>
-            <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 40, fontWeight: 700, color: '#06b6d4', lineHeight: 1, letterSpacing: '-0.02em', marginBottom: 10 }}>{uniqueAddressCount}</div>
+            <div className="dash-stat-number" style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 40, fontWeight: 700, color: '#06b6d4', lineHeight: 1, letterSpacing: '-0.02em', marginBottom: 10 }}>{uniqueAddressCount}</div>
             <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#1e4d5c', letterSpacing: '0.08em' }}>
               {ethCount > 0 && <span style={{ color: '#4b9e6e' }}>{ethCount} ETH</span>}
               {ethCount > 0 && btcCount > 0 && <span style={{ margin: '0 6px' }}>·</span>}
@@ -291,9 +287,9 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           </div>
 
           {/* Card 2: Active cases */}
-          <div className="glass" style={{ borderRadius: 8, padding: '24px 28px' }}>
+          <div className="glass dash-stat-card" style={{ borderRadius: 8, padding: '24px 28px' }}>
             <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: '#7ec8d8', marginBottom: 14, textTransform: 'uppercase' }}>Active Cases</div>
-            <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 40, fontWeight: 700, color: '#06b6d4', lineHeight: 1, letterSpacing: '-0.02em', marginBottom: 10 }}>{activeCaseCount}</div>
+            <div className="dash-stat-number" style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 40, fontWeight: 700, color: '#06b6d4', lineHeight: 1, letterSpacing: '-0.02em', marginBottom: 10 }}>{activeCaseCount}</div>
             <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#1e4d5c', letterSpacing: '0.08em' }}>
               {oldestOpenDays !== null
                 ? <>oldest open: <span style={{ color: '#7ec8d8' }}>{oldestOpenDays}d ago</span></>
@@ -303,18 +299,18 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           </div>
 
           {/* Card 3: High risk findings (HIGH + CRITICAL) */}
-          <div className="glass" style={{ borderRadius: 8, padding: '24px 28px' }}>
+          <div className="glass dash-stat-card" style={{ borderRadius: 8, padding: '24px 28px' }}>
             <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: '#7ec8d8', marginBottom: 14, textTransform: 'uppercase' }}>High Risk Findings</div>
-            <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 40, fontWeight: 700, color: highRiskCount > 0 ? '#ff8c00' : '#06b6d4', lineHeight: 1, letterSpacing: '-0.02em', marginBottom: 10 }}>{highRiskCount}</div>
+            <div className="dash-stat-number" style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 40, fontWeight: 700, color: highRiskCount > 0 ? '#ff8c00' : '#06b6d4', lineHeight: 1, letterSpacing: '-0.02em', marginBottom: 10 }}>{highRiskCount}</div>
             <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#1e4d5c', letterSpacing: '0.08em' }}>
               HIGH + CRITICAL combined
             </div>
           </div>
 
           {/* Card 4: Last Analysis */}
-          <div className="glass" style={{ borderRadius: 8, padding: '24px 28px' }}>
+          <div className="glass dash-stat-card" style={{ borderRadius: 8, padding: '24px 28px' }}>
             <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: '#7ec8d8', marginBottom: 14, textTransform: 'uppercase' }}>Last Analysis</div>
-            <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 40, fontWeight: 700, color: '#06b6d4', lineHeight: 1, letterSpacing: '-0.02em', marginBottom: 10 }}>
+            <div className="dash-stat-number" style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 40, fontWeight: 700, color: '#06b6d4', lineHeight: 1, letterSpacing: '-0.02em', marginBottom: 10 }}>
               {lastAnalysisAgo ?? '—'}
             </div>
             <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#1e4d5c', letterSpacing: '0.08em' }}>

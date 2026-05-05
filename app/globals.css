@@ -114,6 +114,34 @@ body {
 /* Tab bar — hide scrollbar while keeping scroll */
 #clearchain-tabs > div:first-child::-webkit-scrollbar { display: none; }
 
+/* ── Dashboard pages — shared responsive classes ─────────────── */
+@media (max-width: 767px) {
+  /* Nav */
+  .dash-nav                       { padding-left: 16px !important; padding-right: 16px !important; }
+  .dash-secondary-nav             { display: none !important; }
+  .dash-user-email                { display: none !important; }
+  /* Content area */
+  .dash-content                   { padding: 32px 16px !important; }
+  /* Tables */
+  .dash-table-scroll              { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
+  .dash-table-overflow            { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
+  /* Stat cards */
+  .dash-stat-card                 { padding: 16px 18px !important; }
+  .dash-stat-number               { font-size: 28px !important; }
+  /* Quick actions — wrap to 2-col grid on mobile */
+  .dash-quick-actions             { flex-wrap: wrap !important; }
+  .dash-quick-actions > a         { flex: 1 1 calc(50% - 5px) !important; min-width: 0 !important; justify-content: center !important; }
+  /* Page section headers with right-side controls */
+  .dash-section-header            { flex-wrap: wrap !important; gap: 12px !important; }
+  .dash-section-header > div:last-child { width: 100% !important; }
+  /* Case detail — action buttons */
+  .dash-case-actions              { flex-wrap: wrap !important; gap: 8px !important; }
+  .dash-case-actions > *          { flex: 1 1 auto !important; min-width: 0 !important; }
+  /* Add address / note form — button goes full-width below input */
+  .dash-add-form                  { flex-wrap: wrap !important; }
+  .dash-add-form > button         { width: 100% !important; margin-top: 4px; }
+}
+
 /* Responsive grids */
 @media (max-width: 640px) {
   .results-grid { display: flex !important; flex-direction: column !important; }

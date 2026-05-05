@@ -198,25 +198,27 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
   return (
     <div style={{ minHeight: '100vh', background: '#00080f', color: '#ecfeff', fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif' }}>
       {/* Nav */}
-      <nav style={{ position: 'sticky', top: 0, zIndex: 50, borderBottom: '1px solid rgba(6,182,212,0.08)', padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 56, background: 'rgba(0,8,15,0.75)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
+      <nav className="dash-nav" style={{ position: 'sticky', top: 0, zIndex: 50, borderBottom: '1px solid rgba(6,182,212,0.08)', padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 56, background: 'rgba(0,8,15,0.75)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
           <a href="/" style={{ fontSize: 15, letterSpacing: '0.15em', color: '#22d3ee', fontFamily: 'var(--font-rubik-glitch)', fontWeight: 400, textDecoration: 'none' }}>CLEARCHAIN</a>
-          <a href="/" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>← Back to Tool</a>
-          <a href="/dashboard/cases" style={{ fontSize: 12, color: '#06b6d4', textDecoration: 'none', letterSpacing: '0.08em' }}>Cases</a>
-          <a href="/dashboard/watchlist" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>Watchlist</a>
-          <a href="/dashboard/bulk" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>Bulk Screen</a>
-          <a href="/dashboard/settings" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>Settings</a>
-          <a href="/intel" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>Intel</a>
+          <div className="dash-secondary-nav" style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
+            <a href="/" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>← Back to Tool</a>
+            <a href="/dashboard/cases" style={{ fontSize: 12, color: '#06b6d4', textDecoration: 'none', letterSpacing: '0.08em' }}>Cases</a>
+            <a href="/dashboard/watchlist" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>Watchlist</a>
+            <a href="/dashboard/bulk" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>Bulk Screen</a>
+            <a href="/dashboard/settings" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>Settings</a>
+            <a href="/intel" style={{ fontSize: 12, color: '#7ec8d8', textDecoration: 'none', letterSpacing: '0.08em' }}>Intel</a>
+          </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-          <span style={{ fontSize: 12, color: '#1e4d5c', fontFamily: 'var(--font-jetbrains-mono)' }}>{userEmail}</span>
+          <span className="dash-user-email" style={{ fontSize: 12, color: '#1e4d5c', fontFamily: 'var(--font-jetbrains-mono)' }}>{userEmail}</span>
           <button onClick={signOut} style={{ fontSize: 12, color: '#7ec8d8', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: '0.08em' }}>Sign out</button>
         </div>
       </nav>
 
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: '48px 32px' }}>
+      <div className="dash-content" style={{ maxWidth: 900, margin: '0 auto', padding: '48px 32px' }}>
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 32, gap: 16 }}>
+        <div className="dash-section-header" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 32, gap: 16 }}>
           <div>
             <div style={{ fontSize: 11, letterSpacing: '0.2em', color: '#1e4d5c', marginBottom: 4 }}>CASE</div>
             <h1 style={{ fontSize: 22, fontWeight: 700, color: '#ecfeff', margin: '0 0 8px' }}>{caseData?.title}</h1>
@@ -224,7 +226,7 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
               Created {fmtDate(caseData?.created_at ?? '')} · {addresses.length} address{addresses.length !== 1 ? 'es' : ''}
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+          <div className="dash-case-actions" style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
             <select
               value={status}
               onChange={e => updateStatus(e.target.value)}
@@ -249,8 +251,8 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
           <div style={{ fontSize: 11, letterSpacing: '0.15em', color: '#7ec8d8', marginBottom: 16 }}>ADDRESSES IN THIS CASE</div>
 
           {addresses.length > 0 && (
-            <div className="glass" style={{ borderRadius: 8, overflow: 'clip', marginBottom: 16 }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <div className="dash-table-overflow glass" style={{ borderRadius: 8, overflow: 'clip', marginBottom: 16 }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 560 }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid rgba(6,182,212,0.08)' }}>
                     {['Address', 'Chain', 'Risk Score', 'Level', 'Analyzed', '', ''].map((h, i) => (
@@ -282,7 +284,7 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
           )}
 
           {/* Add address form */}
-          <form onSubmit={handleAddAddress} style={{ display: 'flex', gap: 12, alignItems: 'flex-end' }}>
+          <form onSubmit={handleAddAddress} className="dash-add-form" style={{ display: 'flex', gap: 12, alignItems: 'flex-end' }}>
             <div style={{ flex: 1 }}>
               <label style={{ display: 'block', fontSize: 10, letterSpacing: '0.12em', color: '#1e4d5c', marginBottom: 8 }}>+ ADD ADDRESS</label>
               <input
@@ -328,7 +330,7 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
             </div>
           )}
 
-          <form onSubmit={handleAddNote} style={{ display: 'flex', gap: 12, alignItems: 'flex-end' }}>
+          <form onSubmit={handleAddNote} className="dash-add-form" style={{ display: 'flex', gap: 12, alignItems: 'flex-end' }}>
             <div style={{ flex: 1 }}>
               <textarea
                 value={noteContent}

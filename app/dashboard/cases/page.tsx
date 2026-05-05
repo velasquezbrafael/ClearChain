@@ -95,16 +95,8 @@ export default function CasesPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#00080f', color: '#ecfeff', fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif' }}>
-      <style>{`
-        @media (max-width: 767px) {
-          .dash-secondary-nav { display: none !important; }
-          .dash-user-email    { display: none !important; }
-          .dash-content       { padding: 32px 16px !important; }
-          .dash-table-scroll  { overflow-x: auto !important; }
-        }
-      `}</style>
       {/* Nav */}
-      <nav style={{ position: 'sticky', top: 0, zIndex: 50, borderBottom: '1px solid rgba(6,182,212,0.08)', padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 56, background: 'rgba(0,8,15,0.75)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
+      <nav className="dash-nav" style={{ position: 'sticky', top: 0, zIndex: 50, borderBottom: '1px solid rgba(6,182,212,0.08)', padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 56, background: 'rgba(0,8,15,0.75)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
           <a href="/" style={{ fontSize: 15, letterSpacing: '0.15em', color: '#22d3ee', fontFamily: 'var(--font-rubik-glitch)', fontWeight: 400, textDecoration: 'none' }}>CLEARCHAIN</a>
           <div className="dash-secondary-nav" style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
@@ -123,12 +115,12 @@ export default function CasesPage() {
       </nav>
 
       <div className="dash-content" style={{ maxWidth: 900, margin: '0 auto', padding: '48px 32px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
+        <div className="dash-section-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
           <div>
             <div style={{ fontSize: 11, letterSpacing: '0.2em', color: '#1e4d5c', marginBottom: 4 }}>COMPLIANCE</div>
             <h1 style={{ fontSize: 24, fontWeight: 700, color: '#ecfeff', margin: 0 }}>Cases</h1>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div className="dash-case-actions" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <select
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value)}
