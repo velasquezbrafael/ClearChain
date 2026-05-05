@@ -802,6 +802,8 @@ function HeroContent({
   const [nextIdx, setNextIdx] = useState(1);
   const [spotlightPos, setSpotlightPos] = useState({ x: -999, y: -999 });
   const heroWrapperRef = useRef<HTMLDivElement>(null);
+  const heroWindowWidth = useWindowWidth();
+  const isMobile = heroWindowWidth < 768;
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -1312,7 +1314,7 @@ function HeroContent({
       <div
         style={{
           borderTop: '1px solid rgba(6,182,212,0.05)',
-          padding: '64px 24px 0',
+          padding: isMobile ? '40px 16px 0' : '64px 24px 0',
           maxWidth: 1200,
           margin: '0 auto',
           width: '100%',
@@ -1425,7 +1427,7 @@ function HeroContent({
       <div
         style={{
           borderTop: '1px solid rgba(6,182,212,0.05)',
-          padding: '48px 24px 16px',
+          padding: isMobile ? '32px 16px 16px' : '48px 24px 16px',
           maxWidth: 1200,
           margin: '0 auto',
           width: '100%',
@@ -1466,11 +1468,11 @@ function HeroContent({
               style={{
                 background: '#080b14',
                 borderLeft: '4px solid rgba(0,255,136,0.3)',
-                padding: '32px 40px',
+                padding: isMobile ? '24px 20px' : '32px 40px',
                 display: 'flex',
                 flexWrap: 'wrap',
                 alignItems: 'center',
-                gap: '32px 48px',
+                gap: isMobile ? '16px 24px' : '32px 48px',
               }}
             >
               {/* Stat */}
@@ -1478,7 +1480,7 @@ function HeroContent({
                 <div
                   style={{
                     fontFamily: 'var(--font-jetbrains-mono)',
-                    fontSize: 48,
+                    fontSize: isMobile ? 36 : 48,
                     fontWeight: 700,
                     color: '#00ff88',
                     lineHeight: 1,
@@ -1555,7 +1557,7 @@ function HeroContent({
 
       {/* Why ClearChain */}
       <div style={{ borderTop: '1px solid rgba(6,182,212,0.08)', width: '100%' }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '80px 32px' }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto', padding: isMobile ? '48px 20px' : '80px 32px' }}>
           {/* Header */}
           <div style={{ marginBottom: 60 }}>
             <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.2em', color: '#1e4d5c', marginBottom: 16, textTransform: 'uppercase' as const }}>
@@ -1564,13 +1566,13 @@ function HeroContent({
             <h2 style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 36, fontWeight: 700, color: '#ecfeff', margin: '0 0 16px', letterSpacing: '-0.01em' }}>
               Know exactly what you&apos;re dealing with.
             </h2>
-            <p style={{ fontFamily: 'var(--font-inter)', fontSize: 16, color: '#7ec8d8', margin: 0, lineHeight: 1.6, whiteSpace: 'nowrap' }}>
+            <p style={{ fontFamily: 'var(--font-inter)', fontSize: 16, color: '#7ec8d8', margin: 0, lineHeight: 1.6 }}>
               Most tools give you a number with no explanation. ClearChain shows you exactly why — and what to do about it.
             </p>
           </div>
 
           {/* Comparison grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', marginBottom: 64 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', marginBottom: isMobile ? 40 : 64 }}>
             {[
               {
                 left: { label: 'OTHER TOOLS', body: 'Black-box scores. A number with no explanation — no way to know if it\'s a false alarm.' },
@@ -1599,16 +1601,16 @@ function HeroContent({
           </div>
 
           {/* Stat row */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0, marginTop: 40 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: isMobile ? '24px 32px' : 0, marginTop: 40 }}>
             {[
               { value: '< 10s', label: 'average analysis time' },
               { value: '4 chains', label: 'ETH, BTC, TRX, SOL' },
               { value: 'Free', label: 'sign up free' },
             ].map((stat, i) => (
               <>
-                {i > 0 && <div key={`div-${i}`} style={{ width: 1, height: 40, background: 'rgba(6,182,212,0.08)', margin: '0 48px' }} />}
+                {i > 0 && !isMobile && <div key={`div-${i}`} style={{ width: 1, height: 40, background: 'rgba(6,182,212,0.08)', margin: '0 48px' }} />}
                 <div key={stat.value} style={{ textAlign: 'center' }}>
-                  <div style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 32, fontWeight: 700, color: '#06b6d4', lineHeight: 1, marginBottom: 8 }}>{stat.value}</div>
+                  <div style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: isMobile ? 24 : 32, fontWeight: 700, color: '#06b6d4', lineHeight: 1, marginBottom: 8 }}>{stat.value}</div>
                   <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.12em', color: '#1e4d5c' }}>{stat.label}</div>
                 </div>
               </>
@@ -1921,6 +1923,8 @@ function ResultsAddressBar({
   saveButton?: React.ReactNode;
   watchlistButton?: React.ReactNode;
 }) {
+  const barWindowWidth = useWindowWidth();
+  const isMobile = barWindowWidth < 768;
   const [overflowOpen, setOverflowOpen] = React.useState(false);
   const [overflowPos, setOverflowPos] = React.useState({ top: 0, right: 0 });
   const overflowBtnRef = React.useRef<HTMLButtonElement>(null);
@@ -1986,11 +1990,12 @@ function ResultsAddressBar({
         <span
           style={{
             fontFamily: 'var(--font-jetbrains-mono)',
-            fontSize: 13,
+            fontSize: isMobile ? 11 : 13,
             color: 'var(--text-primary)',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
+            maxWidth: isMobile ? 160 : undefined,
           }}
           title={address}
         >
@@ -2061,11 +2066,11 @@ function ResultsAddressBar({
         {formatTimestamp(analyzedAt)}
       </span>
 
-      {/* New analysis form */}
+      {/* New analysis form — hidden on mobile (use ← NEW ANALYSIS button instead) */}
       <form
         onSubmit={onSubmit}
         style={{
-          display: 'flex',
+          display: isMobile ? 'none' : 'flex',
           alignItems: 'center',
           gap: 10,
           borderBottom: `1px solid ${inputFocused ? '#06b6d4' : 'rgba(255,255,255,0.1)'}`,
@@ -2538,8 +2543,8 @@ export default function HomePage() {
           alignItems: 'center',
           justifyContent: 'space-between',
           paddingTop: 'env(safe-area-inset-top)',
-          paddingLeft: 32,
-          paddingRight: 32,
+          paddingLeft: isMobile ? 16 : 32,
+          paddingRight: isMobile ? 16 : 32,
           borderBottom: '1px solid rgba(6,182,212,0.08)',
           background: 'rgba(0,8,15,0.75)',
           backdropFilter: 'blur(16px)',
@@ -2868,7 +2873,7 @@ export default function HomePage() {
 
       {/* Loading skeleton */}
       {loading && (
-        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 32px' }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto', padding: isMobile ? '0 16px' : '0 32px' }}>
           <TerminalLoader
             step={loadingStep}
             steps={LOADING_STEPS}
@@ -2885,7 +2890,7 @@ export default function HomePage() {
           style={{
             maxWidth: 1280,
             margin: '0 auto',
-            padding: '0 32px 64px',
+            padding: isMobile ? '0 16px 48px' : '0 32px 64px',
           }}
         >
           {/* OFAC banner */}
@@ -2937,17 +2942,19 @@ export default function HomePage() {
                   — {analysis.ofacResult.matchedEntity}
                 </span>
               )}
-              <span
-                style={{
-                  marginLeft: 'auto',
-                  fontFamily: 'var(--font-jetbrains-mono)',
-                  fontSize: 10,
-                  letterSpacing: '0.1em',
-                  color: 'rgba(255,59,59,0.6)',
-                }}
-              >
-                SANCTIONED ADDRESS — DO NOT SEND
-              </span>
+              {!isMobile && (
+                <span
+                  style={{
+                    marginLeft: 'auto',
+                    fontFamily: 'var(--font-jetbrains-mono)',
+                    fontSize: 10,
+                    letterSpacing: '0.1em',
+                    color: 'rgba(255,59,59,0.6)',
+                  }}
+                >
+                  SANCTIONED ADDRESS — DO NOT SEND
+                </span>
+              )}
             </div>
           )}
 
