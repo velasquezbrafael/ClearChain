@@ -128,15 +128,17 @@ body {
   /* Stat cards */
   .dash-stat-card                 { padding: 16px 18px !important; }
   .dash-stat-number               { font-size: 28px !important; }
-  /* Greeting row — stack on mobile */
-  .dash-greeting-row              { flex-direction: column !important; align-items: flex-start !important; gap: 20px !important; }
+  /* Greeting row — stack on mobile, tighter margin */
+  .dash-greeting-row              { flex-direction: column !important; align-items: flex-start !important; gap: 16px !important; margin-bottom: 24px !important; }
   /* Greeting heading — smaller on mobile */
   .dash-greeting-h1               { font-size: 22px !important; }
   /* Stats grid — 2 cols on mobile */
   .dash-stats-grid                { grid-template-columns: repeat(2, 1fr) !important; }
-  /* Quick actions — stack vertically on mobile */
+  /* Stat numbers — more compact on mobile (fits time strings like "0m ago") */
+  .dash-stat-number               { font-size: 22px !important; }
+  /* Quick actions — stack vertically, remove min-height override */
   .dash-quick-actions             { flex-direction: column !important; width: 100% !important; }
-  .dash-quick-actions > a         { width: 100% !important; flex: none !important; justify-content: center !important; min-width: 0 !important; }
+  .dash-quick-actions > a         { width: 100% !important; flex: none !important; justify-content: center !important; min-width: 0 !important; min-height: unset !important; padding: 12px 18px !important; }
   /* Page section headers with right-side controls */
   .dash-section-header            { flex-wrap: wrap !important; gap: 12px !important; }
   .dash-section-header > div:last-child { width: 100% !important; }
