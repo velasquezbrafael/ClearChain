@@ -3490,11 +3490,15 @@ export default function HomePage() {
                   background: 'none',
                   border: '1px solid rgba(6,182,212,0.15)',
                   borderRadius: 3,
-                  padding: '6px 8px',
+                  padding: '8px 9px',
                   cursor: 'pointer',
                   display: 'flex',
                   flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                   gap: 4,
+                  alignSelf: 'center',
+                  height: 34,
                 }}
                 aria-label="Menu"
               >
@@ -4111,7 +4115,7 @@ export default function HomePage() {
           letterSpacing: '0.05em',
         }}
       >
-        Chainalysis costs $50,000+/year. ClearChain is{' '}
+        Enterprise AML tools cost $50,000+/year. ClearChain is{' '}
         <span style={{ color: '#06b6d4' }}>always free</span>.
       </div>
     </div>
