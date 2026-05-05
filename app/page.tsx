@@ -659,9 +659,8 @@ function StatPill({ value, label, accent = '#22d3ee' }: { value: number; label: 
         background:  'rgba(6,182,212,0.06)',
         border:      '1px solid rgba(6,182,212,0.15)',
         borderRadius: 3,
-        padding:     '8px 16px',
+        padding:     '8px 10px',
         textAlign:   'center',
-        minWidth:    100,
       }}
     >
       <div
@@ -749,9 +748,9 @@ function StatsBar() {
   return (
     <div
       style={{
-        display:        'flex',
-        flexWrap:       'wrap',
-        gap:            12,
+        display:        'grid',
+        gridTemplateColumns: 'repeat(3, 1fr)',
+        gap:            8,
         marginBottom:   40,
         animation:      'fadeSlideUp 0.5s ease-out both',
         animationDelay: '0.3s',
@@ -985,7 +984,7 @@ function HeroContent({
         <p
           style={{
             fontFamily: 'var(--font-inter)',
-            fontSize: 18,
+            fontSize: isMobile ? 15 : 18,
             color: 'rgba(236,254,255,0.7)',
             lineHeight: 1.65,
             margin: '0 0 0',
@@ -1096,7 +1095,7 @@ function HeroContent({
                 letterSpacing: '0.02em',
               }}
             />
-            <AnalyzeButton loading={loading} />
+            <AnalyzeButton loading={loading} showShortcut={!isMobile} />
           </div>
 
           {error && (
@@ -1559,14 +1558,14 @@ function HeroContent({
       <div style={{ borderTop: '1px solid rgba(6,182,212,0.08)', width: '100%' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto', padding: isMobile ? '48px 20px' : '80px 32px' }}>
           {/* Header */}
-          <div style={{ marginBottom: 60 }}>
+          <div style={{ marginBottom: isMobile ? 32 : 60 }}>
             <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.2em', color: '#1e4d5c', marginBottom: 16, textTransform: 'uppercase' as const }}>
               Why ClearChain
             </div>
-            <h2 style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 36, fontWeight: 700, color: '#ecfeff', margin: '0 0 16px', letterSpacing: '-0.01em' }}>
+            <h2 style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: isMobile ? 28 : 36, fontWeight: 700, color: '#ecfeff', margin: '0 0 16px', letterSpacing: '-0.01em' }}>
               Know exactly what you&apos;re dealing with.
             </h2>
-            <p style={{ fontFamily: 'var(--font-inter)', fontSize: 16, color: '#7ec8d8', margin: 0, lineHeight: 1.6 }}>
+            <p style={{ fontFamily: 'var(--font-inter)', fontSize: isMobile ? 14 : 16, color: '#7ec8d8', margin: 0, lineHeight: 1.6 }}>
               Most tools give you a number with no explanation. ClearChain shows you exactly why — and what to do about it.
             </p>
           </div>
@@ -1588,13 +1587,13 @@ function HeroContent({
               },
             ].map((row, i) => (
               <>
-                <div key={`left-${i}`} className="glass" style={{ padding: '28px 32px' }}>
+                <div key={`left-${i}`} className="glass" style={{ padding: isMobile ? '20px 20px' : '28px 32px' }}>
                   <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.15em', color: '#1e4d5c', marginBottom: 12 }}>{row.left.label}</div>
-                  <p style={{ fontFamily: 'var(--font-inter)', fontSize: 15, color: '#7ec8d8', lineHeight: 1.7, margin: 0 }}>{row.left.body}</p>
+                  <p style={{ fontFamily: 'var(--font-inter)', fontSize: isMobile ? 14 : 15, color: '#7ec8d8', lineHeight: 1.7, margin: 0 }}>{row.left.body}</p>
                 </div>
-                <div key={`right-${i}`} style={{ padding: '28px 32px', border: '1px solid rgba(6,182,212,0.08)', background: 'transparent' }}>
+                <div key={`right-${i}`} style={{ padding: isMobile ? '20px 20px' : '28px 32px', border: '1px solid rgba(6,182,212,0.08)', background: 'transparent' }}>
                   <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.15em', color: '#1e4d5c', marginBottom: 12 }}>{row.right.label}</div>
-                  <p style={{ fontFamily: 'var(--font-inter)', fontSize: 15, color: '#7ec8d8', lineHeight: 1.7, margin: 0 }}>{row.right.body}</p>
+                  <p style={{ fontFamily: 'var(--font-inter)', fontSize: isMobile ? 14 : 15, color: '#7ec8d8', lineHeight: 1.7, margin: 0 }}>{row.right.body}</p>
                 </div>
               </>
             ))}
@@ -1626,7 +1625,7 @@ function HeroContent({
 // Analyze button (extracted so it can be used in hero + compact bar)
 // ---------------------------------------------------------------------------
 
-function AnalyzeButton({ loading, compact }: { loading: boolean; compact?: boolean }) {
+function AnalyzeButton({ loading, compact, showShortcut = true }: { loading: boolean; compact?: boolean; showShortcut?: boolean }) {
   const [hovered, setHovered] = useState(false);
 
   return (
@@ -1655,7 +1654,7 @@ function AnalyzeButton({ loading, compact }: { loading: boolean; compact?: boole
       >
         {loading ? '...' : '→ ANALYZE'}
       </button>
-      {!compact && (
+      {!compact && showShortcut && (
         <span
           style={{
             fontFamily: 'var(--font-jetbrains-mono)',
@@ -2712,8 +2711,6 @@ export default function HomePage() {
                   letterSpacing: '0.08em',
                   color: '#06b6d4',
                   textDecoration: 'none',
-                  paddingLeft: 12,
-                  borderLeft: '1px solid rgba(6,182,212,0.08)',
                 }}
               >
                 {navUser.name.split(' ')[0].toLowerCase()} ↗
@@ -2749,8 +2746,7 @@ export default function HomePage() {
                 letterSpacing: '0.1em',
                 color: 'var(--text-dim)',
                 textDecoration: 'none',
-                paddingLeft: isMobile ? 8 : 12,
-                borderLeft: '1px solid rgba(6,182,212,0.08)',
+                ...(isMobile ? {} : { paddingLeft: 12, borderLeft: '1px solid rgba(6,182,212,0.08)' }),
               }}
               onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-secondary)'; }}
               onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-dim)'; }}

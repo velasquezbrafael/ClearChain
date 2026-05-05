@@ -117,11 +117,14 @@ body {
 /* Responsive grids */
 @media (max-width: 640px) {
   .results-grid { display: flex !important; flex-direction: column !important; }
-  .feature-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  /* Single column on mobile — 2-col makes each card only ~184px wide, too cramped */
+  .feature-grid { grid-template-columns: 1fr !important; }
+  /* Override span-2 on the last feature card — irrelevant in 1-col layout */
+  .feature-grid > div:last-child { grid-column: span 1 !important; }
   .how-it-works-grid { grid-template-columns: 1fr !important; }
 }
 @media (min-width: 641px) and (max-width: 900px) {
-  .feature-grid { grid-template-columns: repeat(3, 1fr) !important; }
+  .feature-grid { grid-template-columns: repeat(2, 1fr) !important; }
 }
 
 ::-webkit-scrollbar {
@@ -211,8 +214,11 @@ body {
 
 @media (max-width: 900px) {
   .hero-section { min-height: auto; }
-  .hero-left  { padding: 100px 24px 40px; }
+  .hero-left  { padding: 72px 20px 36px; }
   .hero-right { display: none; }
+}
+@media (max-width: 640px) {
+  .hero-left  { padding: 64px 16px 32px; }
 }
 
 /* ── Glassmorphism card ─────────────────────────────────────── */
