@@ -249,7 +249,10 @@ body {
   position: absolute;
   top: 80px;
   right: 80px;
+  bottom: 60px;
   width: 300px;
+  display: flex;
+  flex-direction: column;
 }
 
 @media (max-width: 900px) {

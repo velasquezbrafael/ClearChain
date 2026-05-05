@@ -800,6 +800,7 @@ function HeroContent({
   const [displayText, setDisplayText] = useState(slogans[0]);
   const [nextIdx, setNextIdx] = useState(1);
   const [spotlightPos, setSpotlightPos] = useState({ x: -999, y: -999 });
+  const [expandedCase, setExpandedCase] = useState<string | null>(null);
   const heroWrapperRef = useRef<HTMLDivElement>(null);
   const heroWindowWidth = useWindowWidth();
   const isMobile = heroWindowWidth < 768;
@@ -1287,6 +1288,9 @@ function HeroContent({
             padding: '32px 28px',
             backdropFilter: 'blur(12px)',
             WebkitBackdropFilter: 'blur(12px)',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
           }}>
             {/* Panel header */}
             <div style={{
@@ -1541,63 +1545,218 @@ function HeroContent({
       </div>
 
       {/* Use Cases */}
-      <div style={{ borderTop: '1px solid rgba(6,182,212,0.05)', padding: isMobile ? '40px 16px' : '64px 24px', maxWidth: 1200, margin: '0 auto', width: '100%' }}>
-        <div style={{ marginBottom: isMobile ? 28 : 48 }}>
-          <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.2em', color: '#1e4d5c', marginBottom: 16, textTransform: 'uppercase' as const, textAlign: 'center' as const }}>
-            Who uses ClearChain
-          </div>
-          <h2 style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: isMobile ? 24 : 32, fontWeight: 700, color: '#ecfeff', margin: '0 0 12px', textAlign: 'center' as const, letterSpacing: '-0.01em' }}>
-            Anyone who&apos;s ever had to trust a wallet
-          </h2>
-          <p style={{ fontFamily: 'var(--font-inter)', fontSize: isMobile ? 13 : 15, color: '#7ec8d8', textAlign: 'center' as const, maxWidth: 520, margin: '0 auto', lineHeight: 1.6 }}>
-            Crypto moves fast. These are the moments where a 10-second check can save you.
-          </p>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: 12 }}>
-          {([
-            {
-              icon: '💸',
-              tag: 'Incoming payment',
-              scenario: 'Getting paid in crypto',
-              who: 'Freelancers · Sellers · Creators',
-              body: "Someone wants to pay you in ETH or USDC. You don't know them. Check their wallet before you hand over your address — or before you accept funds that could later be flagged.",
-            },
-            {
-              icon: '🔒',
-              tag: 'Outgoing transfer',
-              scenario: 'Sending to a new wallet',
-              who: 'Anyone making a transfer',
-              body: "Before you confirm a send to a new exchange, platform, or person — paste their address. Know in seconds if it's connected to a scam, a hack, or a government-sanctioned entity.",
-            },
-            {
-              icon: '🪂',
-              tag: 'Unknown inbound',
-              scenario: 'You received unexpected funds',
-              who: 'DeFi users · NFT holders',
-              body: "An airdrop. A random deposit. Someone sent you crypto you didn't ask for. Check where it came from — touching tainted funds can create problems even if you didn't initiate it.",
-            },
-            {
-              icon: '🧩',
-              tag: 'Due diligence',
-              scenario: 'Interacting with a new protocol',
-              who: 'DeFi users · NFT buyers',
-              body: "About to connect your wallet to a new platform or buy from a new project? Check the contract or team wallet first. Rug pulls and scam projects leave on-chain trails before they disappear.",
-            },
-          ] as const).map(uc => (
-            <div key={uc.scenario} className="glass" style={{ borderRadius: 6, padding: isMobile ? '20px' : '28px 32px' }}>
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, marginBottom: 16 }}>
-                <div style={{ fontSize: isMobile ? 28 : 32, lineHeight: 1, flexShrink: 0 }}>{uc.icon}</div>
-                <div>
-                  <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.15em', color: '#06b6d4', marginBottom: 6, textTransform: 'uppercase' as const }}>{uc.tag}</div>
-                  <div style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: isMobile ? 15 : 17, fontWeight: 700, color: '#ecfeff', lineHeight: 1.2, marginBottom: 4 }}>{uc.scenario}</div>
-                  <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#1e4d5c', letterSpacing: '0.08em' }}>{uc.who}</div>
-                </div>
+      {(() => {
+        interface UseCase {
+          icon: React.ReactNode;
+          tag: string;
+          scenario: string;
+          who: string;
+          body: string;
+          story: string[];
+          diagram: string;
+        }
+
+        const useCaseDiagrams: Record<string, React.ReactNode> = {
+          incoming: (
+            <svg viewBox="0 0 240 120" fill="none" style={{ width: '100%', maxWidth: 320, height: 'auto' }}>
+              <rect x="160" y="40" width="60" height="40" rx="4" stroke="#06b6d4" strokeWidth="1.5" strokeDasharray="4 2"/>
+              <rect x="20" y="40" width="60" height="40" rx="4" stroke="rgba(6,182,212,0.4)" strokeWidth="1.5"/>
+              <path d="M80 60h60" stroke="#06b6d4" strokeWidth="1.5" strokeLinecap="round"/>
+              <path d="M126 52l14 8-14 8" stroke="#06b6d4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <text x="36" y="64" fontFamily="monospace" fontSize="8" fill="rgba(6,182,212,0.5)">THEM</text>
+              <text x="174" y="64" fontFamily="monospace" fontSize="8" fill="#06b6d4">YOU</text>
+              <circle cx="140" cy="60" r="3" fill="#ff3b3b"/>
+              <text x="128" y="54" fontFamily="monospace" fontSize="6" fill="#ff3b3b">?</text>
+            </svg>
+          ),
+          outgoing: (
+            <svg viewBox="0 0 240 120" fill="none" style={{ width: '100%', maxWidth: 320, height: 'auto' }}>
+              <rect x="20" y="40" width="60" height="40" rx="4" stroke="#06b6d4" strokeWidth="1.5"/>
+              <rect x="160" y="40" width="60" height="40" rx="4" stroke="rgba(255,59,59,0.5)" strokeWidth="1.5" strokeDasharray="4 2"/>
+              <path d="M80 60h60" stroke="#06b6d4" strokeWidth="1.5" strokeLinecap="round"/>
+              <path d="M126 52l14 8-14 8" stroke="#06b6d4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <text x="36" y="64" fontFamily="monospace" fontSize="8" fill="#06b6d4">YOU</text>
+              <text x="168" y="64" fontFamily="monospace" fontSize="8" fill="rgba(255,59,59,0.7)">?????</text>
+              <circle cx="140" cy="60" r="3" fill="#ff8c00"/>
+            </svg>
+          ),
+          inbound: (
+            <svg viewBox="0 0 240 120" fill="none" style={{ width: '100%', maxWidth: 320, height: 'auto' }}>
+              <rect x="90" y="60" width="60" height="40" rx="4" stroke="#06b6d4" strokeWidth="1.5"/>
+              <rect x="20" y="10" width="50" height="32" rx="4" stroke="rgba(255,59,59,0.5)" strokeWidth="1.5" strokeDasharray="4 2"/>
+              <rect x="170" y="10" width="50" height="32" rx="4" stroke="rgba(255,59,59,0.5)" strokeWidth="1.5" strokeDasharray="4 2"/>
+              <path d="M45 42l75 28M195 42l-75 28" stroke="rgba(255,59,59,0.5)" strokeWidth="1" strokeLinecap="round"/>
+              <text x="105" y="85" fontFamily="monospace" fontSize="8" fill="#06b6d4">YOU</text>
+            </svg>
+          ),
+          protocol: (
+            <svg viewBox="0 0 240 120" fill="none" style={{ width: '100%', maxWidth: 320, height: 'auto' }}>
+              <circle cx="120" cy="55" r="28" stroke="#06b6d4" strokeWidth="1.5" strokeDasharray="4 2"/>
+              <circle cx="120" cy="55" r="8" stroke="#06b6d4" strokeWidth="1.5"/>
+              <circle cx="60" cy="30" r="6" stroke="rgba(255,59,59,0.6)" strokeWidth="1.5"/>
+              <circle cx="180" cy="30" r="6" stroke="rgba(255,59,59,0.6)" strokeWidth="1.5"/>
+              <circle cx="60" cy="80" r="6" stroke="rgba(6,182,212,0.4)" strokeWidth="1.5"/>
+              <circle cx="180" cy="80" r="6" stroke="rgba(6,182,212,0.4)" strokeWidth="1.5"/>
+              <line x1="66" y1="34" x2="113" y2="50" stroke="rgba(255,59,59,0.4)" strokeWidth="1"/>
+              <line x1="174" y1="34" x2="127" y2="50" stroke="rgba(255,59,59,0.4)" strokeWidth="1"/>
+              <line x1="66" y1="76" x2="113" y2="60" stroke="rgba(6,182,212,0.3)" strokeWidth="1"/>
+              <line x1="174" y1="76" x2="127" y2="60" stroke="rgba(6,182,212,0.3)" strokeWidth="1"/>
+            </svg>
+          ),
+        };
+
+        const useCases: UseCase[] = [
+          {
+            icon: (
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                <rect x="3" y="9" width="26" height="18" rx="2" stroke="#06b6d4" strokeWidth="1.5"/>
+                <path d="M3 15h26" stroke="#06b6d4" strokeWidth="1.5"/>
+                <circle cx="16" cy="21" r="2.5" stroke="#06b6d4" strokeWidth="1.5"/>
+                <path d="M16 9V5M13 7l3-3 3 3" stroke="#22d3ee" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            ),
+            tag: 'Incoming payment',
+            scenario: 'Getting paid in crypto',
+            who: 'Freelancers · Sellers · Creators',
+            body: "Someone wants to pay you in ETH or USDC. You don't know them. Check their wallet before you hand over your address — or before you accept funds that could later be flagged.",
+            story: [
+              "You've agreed to do freelance work for someone you met online. They offer to pay in ETH. Sounds good — until you realize you have no idea who they are on-chain.",
+              "If their wallet has been used to launder stolen funds, the ETH they send you can be flagged. Your exchange flags the deposit. Your account gets reviewed. You did nothing wrong, but you're the one answering questions.",
+              "A 10-second check before you share your address would have shown the red flags. You could have asked for a different payment method, or walked away entirely.",
+            ],
+            diagram: 'incoming',
+          },
+          {
+            icon: (
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                <path d="M16 3L28 8v10c0 7-12 11-12 11S4 25 4 18V8L16 3z" stroke="#06b6d4" strokeWidth="1.5" strokeLinejoin="round"/>
+                <path d="M11 16l3.5 3.5L21 12" stroke="#06b6d4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            ),
+            tag: 'Outgoing transfer',
+            scenario: 'Sending to a new wallet',
+            who: 'Anyone making a transfer',
+            body: "Before you confirm a send to a new exchange, platform, or person — paste their address. Know in seconds if it's connected to a scam, a hack, or a government-sanctioned entity.",
+            story: [
+              "You found a new exchange with great rates. You're about to move $2,000 in ETH. The site looks legitimate. The address looks real.",
+              "Scam platforms copy the UI of real exchanges down to the favicon. The only difference is the destination address — and destination addresses are built to look random anyway.",
+              "Paste it into ClearChain first. If that address has been flagged in a previous scam, received funds from a sanctioned entity, or shows rapid in-and-out movement, you'll know before you confirm.",
+            ],
+            diagram: 'outgoing',
+          },
+          {
+            icon: (
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                <circle cx="16" cy="16" r="12" stroke="#06b6d4" strokeWidth="1.5"/>
+                <path d="M16 10v7" stroke="#06b6d4" strokeWidth="1.5" strokeLinecap="round"/>
+                <circle cx="16" cy="21" r="1.5" fill="#06b6d4"/>
+              </svg>
+            ),
+            tag: 'Unknown inbound',
+            scenario: 'You received unexpected funds',
+            who: 'DeFi users · NFT holders',
+            body: "An airdrop. A random deposit. Someone sent you crypto you didn't ask for. Check where it came from — touching tainted funds can create problems even if you didn't initiate it.",
+            story: [
+              "Someone sent you 0.1 ETH. You didn't ask for it. You don't recognize the sender. It happens — airdrops, random goodwill, a mistaken transfer.",
+              "Some of these are dusting attacks: small amounts sent to your wallet to track your activity. Others are from wallets that have been used in hacks or scams. If you interact with that ETH — swap it, send it, use it — you create an on-chain link to that wallet.",
+              "Check the source first. If it's flagged, leave it alone. The few dollars aren't worth the paper trail.",
+            ],
+            diagram: 'inbound',
+          },
+          {
+            icon: (
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                <circle cx="13" cy="13" r="8" stroke="#06b6d4" strokeWidth="1.5"/>
+                <path d="M19 19l7 7" stroke="#06b6d4" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+            ),
+            tag: 'Due diligence',
+            scenario: 'Interacting with a new protocol',
+            who: 'DeFi users · NFT buyers',
+            body: "About to connect your wallet to a new platform or buy from a new project? Check the contract or team wallet first. Rug pulls and scam projects leave on-chain trails before they disappear.",
+            story: [
+              "A new DeFi protocol launches with strong tokenomics and a slick interface. The Discord is active. The Twitter has 20,000 followers. You're about to connect your wallet.",
+              "Before the Ronin Bridge hack, before Multichain, before dozens of other protocol failures — the contracts and team wallets showed signs. Unusual fund flows. Connections to known risky entities. Activity that didn't match the project's stated history.",
+              "Check the contract address and the team wallet before you sign anything. A 10-second look can tell you whether this protocol has connections you should know about.",
+            ],
+            diagram: 'protocol',
+          },
+        ];
+
+        return (
+          <div style={{ borderTop: '1px solid rgba(6,182,212,0.05)', padding: isMobile ? '40px 16px' : '64px 24px', maxWidth: 1200, margin: '0 auto', width: '100%' }}>
+            <div style={{ marginBottom: isMobile ? 28 : 48 }}>
+              <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.2em', color: '#1e4d5c', marginBottom: 16, textTransform: 'uppercase' as const, textAlign: 'center' as const }}>
+                Who uses ClearChain
               </div>
-              <p style={{ fontFamily: 'var(--font-inter)', fontSize: isMobile ? 13 : 14, color: '#7ec8d8', lineHeight: 1.7, margin: 0 }}>{uc.body}</p>
+              <h2 style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: isMobile ? 24 : 32, fontWeight: 700, color: '#ecfeff', margin: '0 0 12px', textAlign: 'center' as const, letterSpacing: '-0.01em' }}>
+                Anyone who&apos;s ever had to trust a wallet
+              </h2>
+              <p style={{ fontFamily: 'var(--font-inter)', fontSize: isMobile ? 13 : 15, color: '#7ec8d8', textAlign: 'center' as const, maxWidth: 520, margin: '0 auto', lineHeight: 1.6 }}>
+                Crypto moves fast. These are the moments where a 10-second check can save you.
+              </p>
             </div>
-          ))}
-        </div>
-      </div>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: 12 }}>
+              {useCases.map(uc => (
+                <div
+                  key={uc.scenario}
+                  className="glass"
+                  style={{ borderRadius: 6, padding: isMobile ? '20px' : '28px 32px', cursor: 'pointer', transition: 'border-color 0.2s', borderColor: expandedCase === uc.scenario ? 'rgba(6,182,212,0.3)' : undefined }}
+                  onClick={() => setExpandedCase(prev => prev === uc.scenario ? null : uc.scenario)}
+                >
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, marginBottom: 16 }}>
+                    <div style={{ flexShrink: 0, lineHeight: 1 }}>{uc.icon}</div>
+                    <div>
+                      <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.15em', color: '#06b6d4', marginBottom: 6, textTransform: 'uppercase' as const }}>{uc.tag}</div>
+                      <div style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: isMobile ? 15 : 17, fontWeight: 700, color: '#ecfeff', lineHeight: 1.2, marginBottom: 4 }}>{uc.scenario}</div>
+                      <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#1e4d5c', letterSpacing: '0.08em' }}>{uc.who}</div>
+                    </div>
+                  </div>
+                  <p style={{ fontFamily: 'var(--font-inter)', fontSize: isMobile ? 13 : 14, color: '#7ec8d8', lineHeight: 1.7, margin: 0 }}>{uc.body}</p>
+
+                  {/* Expand indicator */}
+                  <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.1em', color: '#1e4d5c' }}>
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ transform: expandedCase === uc.scenario ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
+                      <path d="M2 4l4 4 4-4" stroke="#1e4d5c" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    {expandedCase === uc.scenario ? 'CLOSE' : 'SEE WHY THIS MATTERS'}
+                  </div>
+
+                  {/* Deep dive */}
+                  {expandedCase === uc.scenario && (
+                    <div
+                      style={{ marginTop: 20, paddingTop: 20, borderTop: '1px solid rgba(6,182,212,0.1)' }}
+                      onClick={e => e.stopPropagation()}
+                    >
+                      {/* Diagram */}
+                      <div style={{ marginBottom: 20, opacity: 0.9 }}>
+                        {useCaseDiagrams[uc.diagram]}
+                      </div>
+
+                      {/* Story paragraphs */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 20 }}>
+                        {uc.story.map((para, i) => (
+                          <p key={i} style={{ fontFamily: 'var(--font-inter)', fontSize: isMobile ? 13 : 14, color: i === 1 ? '#ff8c00' : '#7ec8d8', lineHeight: 1.75, margin: 0, fontStyle: i === 1 ? 'italic' : 'normal' }}>
+                            {para}
+                          </p>
+                        ))}
+                      </div>
+
+                      {/* CTA */}
+                      <a
+                        href="/"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 20px', background: 'rgba(6,182,212,0.08)', border: '1px solid rgba(6,182,212,0.25)', borderRadius: 4, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, letterSpacing: '0.1em', color: '#06b6d4', textDecoration: 'none' }}
+                      >
+                        Check a wallet now →
+                      </a>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Feature grid */}
       <div
@@ -3216,13 +3375,13 @@ export default function HomePage() {
               gridTemplateColumns: gridCols,
               gap: 20,
               marginBottom: 20,
-              alignItems: 'start',
+              alignItems: 'stretch',
               animation: 'fadeSlideUp 0.5s ease-out both',
               animationDelay: '0.1s',
             }}
           >
             {/* Col 1: Risk score */}
-            <TiltCard><RiskScoreCard riskScore={analysis.riskScore} /></TiltCard>
+            <TiltCard style={{ height: '100%' }}><RiskScoreCard riskScore={analysis.riskScore} /></TiltCard>
 
             {/* Col 2: Transaction graph */}
             <TransactionGraph
