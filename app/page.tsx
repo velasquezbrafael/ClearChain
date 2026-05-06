@@ -4377,7 +4377,7 @@ export default function HomePage() {
                   justifyContent: 'center',
                   gap: 12,
                   width: '100%',
-                  padding: '18px 24px',
+                  padding: '14px 24px',
                   background: '#06b6d4',
                   borderRadius: 4,
                   fontFamily: 'var(--font-space-grotesk)',
@@ -4385,7 +4385,7 @@ export default function HomePage() {
                   fontWeight: 700,
                   color: '#000',
                   textDecoration: 'none',
-                  marginBottom: 10,
+                  marginBottom: 8,
                   boxShadow: '0 0 28px rgba(6,182,212,0.3)',
                   transition: 'background 0.15s, box-shadow 0.15s',
                 }}
@@ -4398,13 +4398,13 @@ export default function HomePage() {
                 </svg>
                 Add to Chrome — It's Free
               </a>
-              <p style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#3d4a5c', textAlign: 'center', marginBottom: 40, letterSpacing: '0.05em' }}>
+              <p style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#3d4a5c', textAlign: 'center', marginBottom: 24, letterSpacing: '0.05em' }}>
                 Works on Chrome & Brave · No account required
               </p>
 
               {/* 3-step consumer flow */}
-              <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.2em', color: '#1e4d5c', marginBottom: 20 }}>HOW IT WORKS</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.2em', color: '#1e4d5c', marginBottom: 12 }}>HOW IT WORKS</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {[
                   {
                     n: '1',
@@ -4446,8 +4446,8 @@ export default function HomePage() {
                   <div key={i} style={{
                     display: 'flex',
                     alignItems: 'flex-start',
-                    gap: 16,
-                    padding: '16px 18px',
+                    gap: 14,
+                    padding: '12px 16px',
                     background: '#080b14',
                     border: '1px solid rgba(255,255,255,0.06)',
                     borderRadius: 4,
@@ -4457,23 +4457,23 @@ export default function HomePage() {
                     onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.06)'; }}
                   >
                     {/* Icon in a pill container */}
-                    <div style={{ flexShrink: 0, width: 40, height: 40, borderRadius: '50%', background: step.n === '3' ? 'rgba(0,255,136,0.06)' : 'rgba(6,182,212,0.06)', border: step.n === '3' ? '1px solid rgba(0,255,136,0.15)' : '1px solid rgba(6,182,212,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ flexShrink: 0, width: 34, height: 34, borderRadius: '50%', background: step.n === '3' ? 'rgba(0,255,136,0.06)' : 'rgba(6,182,212,0.06)', border: step.n === '3' ? '1px solid rgba(0,255,136,0.15)' : '1px solid rgba(6,182,212,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       {step.icon}
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 4 }}>
                         <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 8, color: '#1e4d5c', letterSpacing: '0.12em' }}>STEP {step.n}</span>
-                        <span style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 14, fontWeight: 600, color: '#f0f4ff' }}>{step.title}</span>
+                        <span style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 13, fontWeight: 600, color: '#f0f4ff' }}>{step.title}</span>
                       </div>
-                      <p style={{ fontFamily: 'var(--font-inter)', fontSize: 13, color: '#8892a4', lineHeight: 1.65, margin: 0 }}>{step.body}</p>
+                      <p style={{ fontFamily: 'var(--font-inter)', fontSize: 12, color: '#8892a4', lineHeight: 1.6, margin: 0 }}>{step.body}</p>
                     </div>
                   </div>
                 ))}
               </div>
 
               {/* One-time setup */}
-              <div style={{ marginTop: 18, padding: '18px 20px', background: '#080b14', border: '1px solid rgba(6,182,212,0.18)', borderRadius: 4 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+              <div style={{ marginTop: 10, padding: '14px 16px', background: '#080b14', border: '1px solid rgba(6,182,212,0.18)', borderRadius: 4 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                   <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#06b6d4" strokeWidth="1.3"/><path d="M8 5v4M8 11v.5" stroke="#06b6d4" strokeWidth="1.4" strokeLinecap="round"/></svg>
                   <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, fontWeight: 700, letterSpacing: '0.16em', color: '#06b6d4' }}>ONE-TIME SETUP — REQUIRED</span>
                 </div>
@@ -4483,7 +4483,7 @@ export default function HomePage() {
                   'Click "Load unpacked" → select the unzipped folder.',
                   'Click the puzzle piece in your toolbar → pin ClearChain for quick access.',
                 ].map((line, i) => (
-                  <div key={i} style={{ display: 'flex', gap: 12, marginBottom: i < 3 ? 12 : 0, alignItems: 'flex-start' }}>
+                  <div key={i} style={{ display: 'flex', gap: 10, marginBottom: i < 3 ? 8 : 0, alignItems: 'flex-start' }}>
                     <div style={{ flexShrink: 0, width: 20, height: 20, borderRadius: '50%', background: 'rgba(6,182,212,0.1)', border: '1px solid rgba(6,182,212,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 1 }}>
                       <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, fontWeight: 700, color: '#06b6d4' }}>{i + 1}</span>
                     </div>
