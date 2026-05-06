@@ -4243,7 +4243,7 @@ export default function HomePage() {
           }}>
 
             {/* LEFT — pixel-faithful popup mockup */}
-            <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14 }}>
+            <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, zoom: 1.2 }}>
               {/* Browser chrome bar */}
               <div style={{ width: 380, background: '#0a0d1a', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px 8px 0 0', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
                 <div style={{ display: 'flex', gap: 5 }}>
