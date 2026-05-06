@@ -4245,7 +4245,7 @@ export default function HomePage() {
             {/* LEFT — pixel-faithful popup mockup */}
             <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14 }}>
               {/* Browser chrome bar */}
-              <div style={{ width: 340, background: '#0a0d1a', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px 8px 0 0', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ width: 380, background: '#0a0d1a', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px 8px 0 0', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
                 <div style={{ display: 'flex', gap: 5 }}>
                   {['#ff5f57','#ffbd2e','#28c840'].map(c => <div key={c} style={{ width: 8, height: 8, borderRadius: '50%', background: c }} />)}
                 </div>
@@ -4260,7 +4260,7 @@ export default function HomePage() {
               </div>
 
               {/* Popup shell — exact match to popup.html structure */}
-              <div style={{ width: 340, background: '#03040a', border: '1px solid rgba(6,182,212,0.15)', borderRadius: '0 0 8px 8px', overflow: 'hidden', boxShadow: '0 0 40px rgba(6,182,212,0.08), 0 24px 60px rgba(0,0,0,0.7)', marginTop: -1 }}>
+              <div style={{ width: 380, background: '#03040a', border: '1px solid rgba(6,182,212,0.15)', borderRadius: '0 0 8px 8px', overflow: 'hidden', boxShadow: '0 0 60px rgba(6,182,212,0.1), 0 30px 80px rgba(0,0,0,0.8)', marginTop: -1 }}>
 
                 {/* Header */}
                 <div style={{ background: '#080b14', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '11px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -4472,12 +4472,22 @@ export default function HomePage() {
               </div>
 
               {/* One-time setup */}
-              <div style={{ marginTop: 18, padding: '12px 16px', background: 'rgba(6,182,212,0.02)', border: '1px solid rgba(6,182,212,0.07)', borderRadius: 3 }}>
-                <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: '#1e4d5c', letterSpacing: '0.12em', marginBottom: 8 }}>ONE-TIME SETUP STEPS</div>
-                {['Unzip the downloaded file into any folder on your computer.', 'In Chrome, open chrome://extensions and toggle on Developer Mode (top-right).', 'Click "Load unpacked" → select the unzipped folder. Done.', 'Click the puzzle piece in your toolbar → pin ClearChain for quick access.'].map((line, i) => (
-                  <div key={i} style={{ display: 'flex', gap: 10, marginBottom: i < 3 ? 6 : 0 }}>
-                    <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: '#1e4d5c', flexShrink: 0, marginTop: 1 }}>{i + 1}.</span>
-                    <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#3d4a5c', lineHeight: 1.6 }}>{line}</span>
+              <div style={{ marginTop: 18, padding: '18px 20px', background: '#080b14', border: '1px solid rgba(6,182,212,0.18)', borderRadius: 4 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                  <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#06b6d4" strokeWidth="1.3"/><path d="M8 5v4M8 11v.5" stroke="#06b6d4" strokeWidth="1.4" strokeLinecap="round"/></svg>
+                  <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, fontWeight: 700, letterSpacing: '0.16em', color: '#06b6d4' }}>ONE-TIME SETUP — REQUIRED</span>
+                </div>
+                {[
+                  'Unzip the downloaded file into any folder on your computer.',
+                  'In Chrome, open chrome://extensions and turn on Developer Mode (top-right toggle).',
+                  'Click "Load unpacked" → select the unzipped folder.',
+                  'Click the puzzle piece in your toolbar → pin ClearChain for quick access.',
+                ].map((line, i) => (
+                  <div key={i} style={{ display: 'flex', gap: 12, marginBottom: i < 3 ? 12 : 0, alignItems: 'flex-start' }}>
+                    <div style={{ flexShrink: 0, width: 20, height: 20, borderRadius: '50%', background: 'rgba(6,182,212,0.1)', border: '1px solid rgba(6,182,212,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 1 }}>
+                      <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, fontWeight: 700, color: '#06b6d4' }}>{i + 1}</span>
+                    </div>
+                    <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#8892a4', lineHeight: 1.65 }}>{line}</span>
                   </div>
                 ))}
               </div>
