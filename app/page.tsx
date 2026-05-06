@@ -795,11 +795,11 @@ const ETH_CARD_OVERRIDES: Record<string, RichCard> = {
   },
 };
 
-// BTC-specific overrides — must reflect achievable BTC engine scores:
-// BTC signals: OFAC(40) + CoinJoin(25) + PeelChain(20). Achievable: 0,20,25,40,45,60,65,80,85
+// BTC-specific overrides — achievable BTC engine scores: 0,20,25,40,45,60,65,80,85
+// (OFAC=40, CoinJoin=25, PeelChain=20)
 const BTC_CARD_OVERRIDES: Record<string, RichCard> = {
   'Lazarus BTC': {
-    badge: 'CRITICAL', score: 65, color: '#ff3b3b',
+    badge: 'HIGH RISK', score: 65, color: '#ff8c00', // OFAC(40) + CoinJoin(25) = 65 → HIGH
     signals: ['OFAC SDN', 'COINJOIN'],
     displayAddr: 'bc1qxy2k...wlh',
   },
@@ -810,8 +810,20 @@ const BTC_CARD_OVERRIDES: Record<string, RichCard> = {
   },
 };
 
+// SOL-specific overrides — achievable SOL engine scores: 0,15,20,25,35,40,45,55,60,65,75,80,85,100
+// (OFAC=40, HighRisk=25, Rapid=20, Volume=15)
+const SOL_CARD_OVERRIDES: Record<string, RichCard> = {
+  'Lazarus SOL': {
+    badge: 'CRITICAL', score: 75, color: '#ff3b3b', // OFAC(40) + Rapid(20) + Volume(15) = 75 → CRITICAL
+    signals: ['OFAC SDN', 'RAPID MOVEMENT', 'VOLUME ANOMALY'],
+    displayAddr: 'DRpbCBM...aUn',
+  },
+};
+
+// Fallback base styles for chains without specific overrides.
+// score 70 is achievable for TRX (40+15+10+5=70) and maps to HIGH (50–74).
 const QF_STYLE_BASE: Record<QFStyle, { badge: string; score: number; color: string }> = {
-  red:    { badge: 'CRITICAL',  score: 70, color: '#ff3b3b' },
+  red:    { badge: 'HIGH RISK', score: 70, color: '#ff8c00' },
   green:  { badge: 'CLEAN',     score: 0,  color: '#00ff88' },
   blue:   { badge: 'EXCHANGE',  score: 0,  color: '#60a5fa' },
   orange: { badge: 'EXCHANGE',  score: 15, color: '#ff8c00' },
@@ -825,6 +837,7 @@ function getRichCard(
 ): RichCard {
   if (chain === 'ETH' && ETH_CARD_OVERRIDES[label]) return ETH_CARD_OVERRIDES[label];
   if (chain === 'BTC' && BTC_CARD_OVERRIDES[label]) return BTC_CARD_OVERRIDES[label];
+  if (chain === 'SOL' && SOL_CARD_OVERRIDES[label]) return SOL_CARD_OVERRIDES[label];
   const base = QF_STYLE_BASE[style];
   const short = address.length > 14 ? `${address.slice(0, 8)}...${address.slice(-5)}` : address;
   return { ...base, signals: ['SCREENED', `${chain} CHAIN`], displayAddr: short };
