@@ -1281,18 +1281,24 @@ function HeroContent({
             animationDelay: '0.55s',
           }}
         >
-          {['OFAC Screening', 'Scam Detection', 'Risk Report', 'ETH · BTC · TRX · SOL'].map(label => (
+          {['Live OFAC Data', 'Scam Detection', 'Risk Report', 'ETH · BTC · TRX · SOL'].map(label => (
             <span
               key={label}
               style={{
                 fontFamily: 'var(--font-jetbrains-mono)',
                 fontSize: 10,
                 letterSpacing: '0.1em',
-                color: 'var(--text-dim)',
+                color: label === 'Live OFAC Data' ? '#00ff88' : 'var(--text-dim)',
                 marginRight: 20,
                 marginBottom: 8,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 5,
               }}
             >
+              {label === 'Live OFAC Data' && (
+                <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#00ff88', display: 'inline-block', boxShadow: '0 0 6px #00ff88' }} />
+              )}
               {label}
             </span>
           ))}
@@ -2340,7 +2346,7 @@ function HeroContent({
             {[
               {
                 left: { label: 'WITHOUT CHECKING', body: 'You see an address. You have no idea if it\'s connected to a scam, a hack, or a government-sanctioned entity. You find out after it\'s too late.' },
-                right: { label: 'WITH CLEARCHAIN', body: 'Sanctions check, mixer flags, scam wallet labels, and on-chain risk signals — all in one look, in under 10 seconds. Free.' },
+                right: { label: 'WITH CLEARCHAIN', body: 'Live OFAC sanctions data synced daily from the U.S. Treasury, mixer flags, scam wallet labels, and on-chain risk signals — all in one look, in under 10 seconds. Free.' },
               },
               {
                 left: { label: 'OTHER TOOLS', body: 'Most crypto safety tools are built for institutions. Expensive APIs, complex dashboards, output that tells you nothing actionable.' },
@@ -2369,12 +2375,18 @@ function HeroContent({
             {[
               { value: '< 10s', label: 'average analysis time' },
               { value: '4 chains', label: 'ETH, BTC, TRX, SOL' },
+              { value: 'Daily', label: 'live OFAC sync' },
               { value: 'Free', label: 'sign up free' },
             ].map((stat, i) => (
               <>
                 {i > 0 && !isMobile && <div key={`div-${i}`} style={{ width: 1, height: 40, background: 'rgba(6,182,212,0.08)', margin: '0 48px' }} />}
                 <div key={stat.value} style={{ textAlign: 'center' }}>
-                  <div style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: isMobile ? 24 : 32, fontWeight: 700, color: '#06b6d4', lineHeight: 1, marginBottom: 8 }}>{stat.value}</div>
+                  <div style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: isMobile ? 24 : 32, fontWeight: 700, color: stat.label === 'live OFAC sync' ? '#00ff88' : '#06b6d4', lineHeight: 1, marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                    {stat.label === 'live OFAC sync' && (
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#00ff88', display: 'inline-block', boxShadow: '0 0 8px #00ff88', flexShrink: 0 }} />
+                    )}
+                    {stat.value}
+                  </div>
                   <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.12em', color: '#1e4d5c' }}>{stat.label}</div>
                 </div>
               </>
