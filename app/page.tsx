@@ -4235,39 +4235,51 @@ export default function HomePage() {
 
           {/* ── Full-width CTA ── */}
           <div style={{ marginBottom: 48 }}>
-            <a
-              href="https://github.com/velasquezbrafael-source/ClearChain"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 14,
-                width: '100%',
-                padding: '20px 32px',
-                background: '#06b6d4',
-                borderRadius: 4,
-                fontFamily: 'var(--font-space-grotesk)',
-                fontSize: 18,
-                fontWeight: 700,
-                color: '#000',
-                textDecoration: 'none',
-                marginBottom: 10,
-                boxShadow: '0 0 40px rgba(6,182,212,0.35)',
-                transition: 'background 0.15s, box-shadow 0.15s',
-              }}
-              onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = '#22d3ee'; el.style.boxShadow = '0 0 56px rgba(6,182,212,0.5)'; }}
-              onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = '#06b6d4'; el.style.boxShadow = '0 0 40px rgba(6,182,212,0.35)'; }}
-            >
-              <svg width="22" height="22" viewBox="0 0 20 20" fill="none">
-                <rect x="3" y="13" width="14" height="4" rx="1.5" fill="currentColor" opacity="0.3"/>
-                <path d="M10 2v10M6 8l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              Add to Chrome — It's Free
-            </a>
+            {isAuthed ? (
+              /* Logged-in: go straight to download */
+              <a
+                href="https://github.com/velasquezbrafael-source/ClearChain/releases/latest"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14,
+                  width: '100%', padding: '20px 32px', background: '#06b6d4', borderRadius: 4,
+                  fontFamily: 'var(--font-space-grotesk)', fontSize: 18, fontWeight: 700,
+                  color: '#000', textDecoration: 'none', marginBottom: 10,
+                  boxShadow: '0 0 40px rgba(6,182,212,0.35)', transition: 'background 0.15s, box-shadow 0.15s',
+                }}
+                onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = '#22d3ee'; el.style.boxShadow = '0 0 56px rgba(6,182,212,0.5)'; }}
+                onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = '#06b6d4'; el.style.boxShadow = '0 0 40px rgba(6,182,212,0.35)'; }}
+              >
+                <svg width="22" height="22" viewBox="0 0 20 20" fill="none">
+                  <rect x="3" y="13" width="14" height="4" rx="1.5" fill="currentColor" opacity="0.3"/>
+                  <path d="M10 2v10M6 8l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Download the Extension
+              </a>
+            ) : (
+              /* Logged-out: gate behind sign-up */
+              <a
+                href="/auth/signup?next=%23extension"
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14,
+                  width: '100%', padding: '20px 32px', background: '#06b6d4', borderRadius: 4,
+                  fontFamily: 'var(--font-space-grotesk)', fontSize: 18, fontWeight: 700,
+                  color: '#000', textDecoration: 'none', marginBottom: 10,
+                  boxShadow: '0 0 40px rgba(6,182,212,0.35)', transition: 'background 0.15s, box-shadow 0.15s',
+                }}
+                onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = '#22d3ee'; el.style.boxShadow = '0 0 56px rgba(6,182,212,0.5)'; }}
+                onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = '#06b6d4'; el.style.boxShadow = '0 0 40px rgba(6,182,212,0.35)'; }}
+              >
+                <svg width="22" height="22" viewBox="0 0 20 20" fill="none">
+                  <rect x="3" y="13" width="14" height="4" rx="1.5" fill="currentColor" opacity="0.3"/>
+                  <path d="M10 2v10M6 8l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Create an Account to Download
+              </a>
+            )}
             <p style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#3d4a5c', textAlign: 'center', letterSpacing: '0.05em' }}>
-              Works on Chrome & Brave · No account required
+              {isAuthed ? 'Works on Chrome & Brave · Developer mode required during beta' : 'Free account required · Works on Chrome & Brave'}
             </p>
           </div>
 
