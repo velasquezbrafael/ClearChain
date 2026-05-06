@@ -59,7 +59,7 @@ const STATIC_MAPS = buildStaticMaps();
 
 function getSupabase() {
   const url     = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const svcKey  = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const svcKey  = process.env.SUPABASE_SECRET_KEY;
   if (!url || !svcKey) return null;
   return createClient(url, svcKey, {
     auth: { autoRefreshToken: false, persistSession: false },

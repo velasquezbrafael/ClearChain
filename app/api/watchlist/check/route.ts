@@ -9,7 +9,7 @@
  *
  * Required env vars:
  *   CRON_SECRET                — Bearer secret set in Vercel dashboard (also add to vercel.json env)
- *   SUPABASE_SERVICE_ROLE_KEY  — Service role key to bypass RLS and read all rows
+ *   SUPABASE_SECRET_KEY  — Service role key to bypass RLS and read all rows
  *   RESEND_API_KEY             — For alert emails
  *
  * NOTE: Vercel hobby plan has a 10s function timeout. For large watchlists
@@ -204,9 +204,9 @@ export async function GET(request: NextRequest) {
   }
 
   // Use service role to bypass RLS and read all watchlist rows
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const serviceKey = process.env.SUPABASE_SECRET_KEY;
   if (!serviceKey) {
-    return NextResponse.json({ error: 'SUPABASE_SERVICE_ROLE_KEY not configured' }, { status: 500 });
+    return NextResponse.json({ error: 'SUPABASE_SECRET_KEY not configured' }, { status: 500 });
   }
 
   const adminClient = createClient(

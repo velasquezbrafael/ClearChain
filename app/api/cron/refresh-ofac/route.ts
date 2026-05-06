@@ -7,7 +7,7 @@
  *
  * Required env vars:
  *   CRON_SECRET               — Bearer secret set in Vercel dashboard
- *   SUPABASE_SERVICE_ROLE_KEY — Admin key to bypass RLS
+ *   SUPABASE_SECRET_KEY — Admin key to bypass RLS
  *
  * Can also be triggered manually:
  *   curl -H "Authorization: Bearer $CRON_SECRET" \
@@ -133,9 +133,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const serviceKey = process.env.SUPABASE_SECRET_KEY;
   if (!serviceKey) {
-    return NextResponse.json({ error: 'SUPABASE_SERVICE_ROLE_KEY not configured' }, { status: 500 });
+    return NextResponse.json({ error: 'SUPABASE_SECRET_KEY not configured' }, { status: 500 });
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
