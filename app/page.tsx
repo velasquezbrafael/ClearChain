@@ -779,8 +779,8 @@ interface RichCard {
 
 const ETH_CARD_OVERRIDES: Record<string, RichCard> = {
   'Tornado Cash': {
-    badge: 'CRITICAL', score: 95, color: '#ff3b3b',
-    signals: ['OFAC SDN', 'MIXER', 'RAPID MOVEMENT'],
+    badge: 'HIGH RISK', score: 65, color: '#ff8c00',
+    signals: ['OFAC SDN', 'MIXER'],
     displayAddr: '0xd90e2f9...4F31b',
   },
   'Lazarus Group': {

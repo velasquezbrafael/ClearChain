@@ -123,6 +123,16 @@ async function loadFromSupabase(): Promise<SDNMaps> {
       return { ...STATIC_MAPS, loadedAt: Date.now() };
     }
 
+    // Merge static JSON into Supabase maps — static JSON contains manually curated
+    // addresses (e.g. TC router) that the official OFAC XML may not list by address.
+    // Static entries are added only if not already present in live data.
+    for (const [addr, entity] of STATIC_MAPS.eth) {
+      if (!eth.has(addr)) eth.set(addr, entity);
+    }
+    for (const [addr, entity] of STATIC_MAPS.sol) {
+      if (!sol.has(addr)) sol.set(addr, entity);
+    }
+
     return { eth, sol, trx, btc, other, loadedAt: Date.now() };
 
   } catch (err) {
