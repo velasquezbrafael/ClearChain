@@ -3365,6 +3365,27 @@ export default function HomePage() {
               >
                 INTEL →
               </a>
+              <a
+                href="#extension"
+                style={{
+                  fontFamily: 'var(--font-jetbrains-mono)',
+                  fontSize: 10,
+                  letterSpacing: '0.1em',
+                  color: '#06b6d4',
+                  textDecoration: 'none',
+                  transition: 'color 0.15s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 5,
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = '#22d3ee'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = '#06b6d4'; }}
+              >
+                <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M6 1a1 1 0 0 0-1 1v1H3a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2V2a1 1 0 0 0-1-1H6zm0 1h4v1H6V2zM3 4h10a1 1 0 0 1 1 1v1H2V5a1 1 0 0 1 1-1zm-1 3h12v6a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V7z"/>
+                </svg>
+                EXTENSION
+              </a>
 
               {/* Status indicator */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -3552,6 +3573,7 @@ export default function HomePage() {
                   {[
                     { href: '/docs', label: 'DOCS' },
                     { href: '/intel', label: 'INTEL' },
+                    { href: '#extension', label: 'EXTENSION ↓' },
                     { href: '/dashboard', label: 'DASHBOARD' },
                   ].map(link => (
                     <a
@@ -4126,6 +4148,389 @@ export default function HomePage() {
           </div>
         </div>
       )}
+
+      {/* ── Browser Extension Section ──────────────────────────────────── */}
+      <div
+        id="extension"
+        style={{
+          background: 'linear-gradient(180deg, rgba(6,182,212,0.03) 0%, transparent 100%)',
+          borderTop: '1px solid rgba(6,182,212,0.12)',
+          borderBottom: '1px solid rgba(6,182,212,0.06)',
+          padding: isMobile ? '64px 20px 72px' : '88px 32px 96px',
+        }}
+      >
+        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+
+          {/* ── Top: badge + headline + CTA ── */}
+          <div style={{ textAlign: 'center', marginBottom: isMobile ? 48 : 72 }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#06b6d4', boxShadow: '0 0 8px rgba(6,182,212,0.8)', animation: 'pulseGlow 2s ease-in-out infinite' }} />
+              <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.22em', color: '#06b6d4' }}>
+                FREE CHROME EXTENSION — BETA
+              </span>
+            </div>
+
+            <h2 style={{
+              fontFamily: 'var(--font-space-grotesk)',
+              fontSize: isMobile ? 28 : 44,
+              fontWeight: 700,
+              color: '#f0f4ff',
+              lineHeight: 1.15,
+              marginBottom: 16,
+              letterSpacing: '-0.01em',
+            }}>
+              Scan any wallet.<br />
+              <span style={{ color: '#06b6d4' }}>Right from your browser.</span>
+            </h2>
+
+            <p style={{
+              fontFamily: 'var(--font-inter)',
+              fontSize: 16,
+              color: '#8892a4',
+              maxWidth: 520,
+              margin: '0 auto',
+              lineHeight: 1.75,
+              marginBottom: 36,
+            }}>
+              The ClearChain extension surfaces risk scores, OFAC flags, and AML signals inline — on Etherscan, Uniswap, OpenSea, or anywhere on the web. No copy-pasting. No tab switching.
+            </p>
+
+            {/* Primary CTA */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
+              <a
+                href="https://github.com/velasquezbrafael-source/ClearChain"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  padding: '13px 28px',
+                  background: '#06b6d4',
+                  borderRadius: 3,
+                  fontFamily: 'var(--font-jetbrains-mono)',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  letterSpacing: '0.1em',
+                  color: '#000',
+                  textDecoration: 'none',
+                  transition: 'background 0.15s, box-shadow 0.15s',
+                  boxShadow: '0 0 24px rgba(6,182,212,0.25)',
+                }}
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLAnchorElement).style.background = '#22d3ee';
+                  (e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 0 36px rgba(6,182,212,0.4)';
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLAnchorElement).style.background = '#06b6d4';
+                  (e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 0 24px rgba(6,182,212,0.25)';
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm3.5 7.5-3 4a.5.5 0 0 1-.8 0l-3-4A.5.5 0 0 1 5.1 7h5.8a.5.5 0 0 1 .6.5z"/>
+                </svg>
+                Download Free Extension
+              </a>
+              <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#3d4a5c', letterSpacing: '0.06em' }}>
+                Works on Chrome & Brave · Free forever
+              </span>
+            </div>
+          </div>
+
+          {/* ── Feature highlights row ── */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+            gap: isMobile ? 12 : 16,
+            marginBottom: isMobile ? 56 : 80,
+          }}>
+            {[
+              {
+                icon: (
+                  <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                    <circle cx="10" cy="10" r="7" stroke="#06b6d4" strokeWidth="1.4"/>
+                    <path d="M10 6v4l3 2" stroke="#06b6d4" strokeWidth="1.4" strokeLinecap="round"/>
+                  </svg>
+                ),
+                title: 'Instant risk scores',
+                desc: 'Click the toolbar icon, paste a wallet, get a full risk breakdown in seconds. ETH, BTC, TRX, and SOL supported.',
+              },
+              {
+                icon: (
+                  <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                    <path d="M3 10h14M10 3l7 7-7 7" stroke="#06b6d4" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                ),
+                title: 'Right-click any address',
+                desc: 'Select any wallet address on any site. Right-click → Scan with ClearChain. Results appear instantly in the popup.',
+              },
+              {
+                icon: (
+                  <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                    <path d="M4 4h12v12H4z" stroke="#06b6d4" strokeWidth="1.4" strokeLinejoin="round"/>
+                    <path d="M4 8h12M8 8v8" stroke="#06b6d4" strokeWidth="1.4"/>
+                  </svg>
+                ),
+                title: 'Inline risk badges',
+                desc: 'Wallet addresses on Etherscan, Uniswap, and OpenSea get colored risk dots injected automatically — no clicking required.',
+              },
+            ].map((feat, i) => (
+              <div key={i} style={{
+                background: '#080b14',
+                border: '1px solid rgba(255,255,255,0.06)',
+                borderRadius: 4,
+                padding: '20px 22px',
+                transition: 'border-color 0.2s',
+              }}
+                onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(6,182,212,0.2)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.06)'; }}
+              >
+                <div style={{ marginBottom: 12 }}>{feat.icon}</div>
+                <div style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 14, fontWeight: 600, color: '#f0f4ff', marginBottom: 8 }}>{feat.title}</div>
+                <div style={{ fontFamily: 'var(--font-inter)', fontSize: 13, color: '#8892a4', lineHeight: 1.65 }}>{feat.desc}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* ── Bottom: mockup + install steps ── */}
+          <div style={{
+            display: 'flex',
+            flexDirection: isMobile ? 'column' : 'row',
+            gap: isMobile ? 48 : 72,
+            alignItems: 'flex-start',
+            justifyContent: 'center',
+          }}>
+
+            {/* Popup mockup */}
+            <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+              {/* Browser chrome bar */}
+              <div style={{
+                width: 290,
+                background: '#0a0d1a',
+                border: '1px solid rgba(255,255,255,0.08)',
+                borderRadius: '8px 8px 0 0',
+                padding: '8px 12px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+              }}>
+                <div style={{ display: 'flex', gap: 5 }}>
+                  {['#ff5f57','#ffbd2e','#28c840'].map(c => (
+                    <div key={c} style={{ width: 8, height: 8, borderRadius: '50%', background: c }} />
+                  ))}
+                </div>
+                <div style={{ flex: 1, background: 'rgba(255,255,255,0.04)', borderRadius: 3, padding: '3px 8px', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: '#3d4a5c' }}>
+                  etherscan.io/address/0x...
+                </div>
+                {/* Extension icon in toolbar */}
+                <div style={{ width: 18, height: 18, borderRadius: 3, overflow: 'hidden', border: '1px solid rgba(6,182,212,0.3)', flexShrink: 0 }}>
+                  <img src="/clearchainlogo.jpg" width={18} height={18} alt="ClearChain" style={{ display: 'block' }} />
+                </div>
+              </div>
+
+              {/* Popup body */}
+              <div style={{
+                width: 290,
+                background: '#080b14',
+                border: '1px solid rgba(6,182,212,0.15)',
+                borderRadius: '0 0 8px 8px',
+                overflow: 'hidden',
+                boxShadow: '0 0 40px rgba(6,182,212,0.08), 0 24px 60px rgba(0,0,0,0.7)',
+                marginTop: -1,
+              }}>
+                {/* Header */}
+                <div style={{ padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ width: 20, height: 20, borderRadius: 3, overflow: 'hidden' }}>
+                      <img src="/clearchainlogo.jpg" width={20} height={20} alt="" style={{ display: 'block' }} />
+                    </div>
+                    <span style={{ fontFamily: 'var(--font-rubik-glitch)', fontSize: 12, letterSpacing: '0.15em', color: '#22d3ee' }}>CLEARCHAIN</span>
+                  </div>
+                  <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: '#06b6d4', background: 'rgba(6,182,212,0.1)', border: '1px solid rgba(6,182,212,0.2)', padding: '2px 7px', borderRadius: 2 }}>ETH</span>
+                </div>
+                {/* Score */}
+                <div style={{ padding: '14px', background: '#080b14', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div>
+                      <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 44, fontWeight: 700, color: '#ff3b3b', lineHeight: 1 }}>78</div>
+                      <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: '#3d4a5c', marginTop: 2 }}>/ 100 RISK SCORE</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 13, fontWeight: 700, letterSpacing: '0.1em', color: '#ff3b3b', marginBottom: 6 }}>CRITICAL</div>
+                      <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, padding: '3px 8px', background: 'rgba(255,59,59,0.1)', border: '1px solid rgba(255,59,59,0.3)', color: '#ff3b3b', borderRadius: 2, marginBottom: 4 }}>⚠ OFAC MATCH</div>
+                      <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: '#3d4a5c' }}>ETH NETWORK</div>
+                    </div>
+                  </div>
+                </div>
+                {/* Stats */}
+                <div style={{ display: 'flex', background: '#0d1220', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                  {[['2/6','SIGNALS'],['1','PATTERNS'],['47','TXS']].map(([v, l], i) => (
+                    <div key={i} style={{ flex: 1, padding: '8px', textAlign: 'center', borderRight: i < 2 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
+                      <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 14, fontWeight: 700, color: '#f0f4ff' }}>{v}</div>
+                      <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 7, color: '#3d4a5c', letterSpacing: '0.08em', marginTop: 2 }}>{l}</div>
+                    </div>
+                  ))}
+                </div>
+                {/* Signals */}
+                {[
+                  { name: 'OFAC match', score: '+40', hit: true },
+                  { name: 'Mixer interaction', score: '+25', hit: true },
+                  { name: 'Rapid movement', score: '0', hit: false },
+                ].map((s, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 12px', borderBottom: '1px solid rgba(255,255,255,0.03)', borderLeft: s.hit ? '2px solid #ff3b3b' : '2px solid transparent', background: s.hit ? 'rgba(255,59,59,0.03)' : 'transparent' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                      <div style={{ width: 5, height: 5, borderRadius: '50%', background: s.hit ? '#ff3b3b' : '#3d4a5c', flexShrink: 0 }} />
+                      <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: s.hit ? '#f0f4ff' : '#8892a4' }}>{s.name}</span>
+                    </div>
+                    <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: s.hit ? '#ff3b3b' : '#3d4a5c' }}>{s.score}</span>
+                  </div>
+                ))}
+                {/* Actions */}
+                <div style={{ display: 'flex', gap: 6, padding: 10 }}>
+                  <div style={{ flex: 2, padding: '7px', background: 'rgba(6,182,212,0.08)', border: '1px solid rgba(6,182,212,0.2)', borderRadius: 2, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#06b6d4', textAlign: 'center' }}>Full Report ↗</div>
+                  <div style={{ flex: 1, padding: '7px', background: '#0d1220', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 2, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#8892a4', textAlign: 'center' }}>Copy ▾</div>
+                  <div style={{ flex: 1, padding: '7px', background: '#0d1220', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 2, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#8892a4', textAlign: 'center' }}>Watch</div>
+                </div>
+              </div>
+
+              {/* Chain pills */}
+              <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
+                {([['ETH','#6366f1'],['BTC','#f97316'],['TRX','#ef4444'],['SOL','#a855f7']] as [string,string][]).map(([chain, color]) => (
+                  <span key={chain} style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', padding: '3px 9px', borderRadius: 2, color, border: `1px solid ${color}30`, background: `${color}10` }}>{chain}</span>
+                ))}
+              </div>
+            </div>
+
+            {/* Install steps */}
+            <div style={{ flex: 1, maxWidth: 460 }}>
+              <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.22em', color: '#06b6d4', marginBottom: 28 }}>HOW TO GET IT — 2 MINUTES</div>
+
+              {[
+                {
+                  num: '01',
+                  title: 'Download the extension',
+                  desc: 'Hit the button below to grab the extension zip from GitHub. It\'s free and open source — no account needed.',
+                  cta: true,
+                },
+                {
+                  num: '02',
+                  title: 'Unzip the file',
+                  desc: 'Extract the zip into a permanent folder on your computer (not Downloads — Chrome needs the folder to stay put).',
+                },
+                {
+                  num: '03',
+                  title: 'Enable Developer Mode',
+                  desc: 'Open Chrome or Brave and go to the extensions page. Toggle on Developer Mode in the top-right corner.',
+                  code: 'chrome://extensions',
+                },
+                {
+                  num: '04',
+                  title: 'Load the extension',
+                  desc: 'Click "Load unpacked" → select the folder you just unzipped. ClearChain appears in your extensions list instantly.',
+                },
+                {
+                  num: '05',
+                  title: 'Pin it to your toolbar',
+                  desc: 'Click the puzzle piece icon in Chrome\'s toolbar → find ClearChain → click the pin. Now it\'s always one click away.',
+                },
+              ].map((step, i) => (
+                <div key={i} style={{
+                  display: 'flex',
+                  gap: 0,
+                  paddingBottom: i < 4 ? 24 : 0,
+                  paddingLeft: 24,
+                  borderLeft: `1px solid rgba(6,182,212,${i < 4 ? '0.1' : '0'})`,
+                  position: 'relative',
+                }}>
+                  {/* Dot on timeline */}
+                  <div style={{
+                    position: 'absolute',
+                    left: -5,
+                    top: 3,
+                    width: 10,
+                    height: 10,
+                    borderRadius: '50%',
+                    background: '#06b6d4',
+                    boxShadow: '0 0 8px rgba(6,182,212,0.5)',
+                    flexShrink: 0,
+                  }} />
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                      <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: '#1e4d5c', letterSpacing: '0.1em' }}>{step.num}</span>
+                      <span style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 15, fontWeight: 600, color: '#f0f4ff' }}>{step.title}</span>
+                    </div>
+                    <p style={{ fontFamily: 'var(--font-inter)', fontSize: 13, color: '#8892a4', lineHeight: 1.7, marginBottom: step.code || step.cta ? 12 : 0 }}>
+                      {step.desc}
+                    </p>
+                    {step.code && (
+                      <code style={{ display: 'inline-block', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#06b6d4', background: 'rgba(6,182,212,0.06)', border: '1px solid rgba(6,182,212,0.14)', padding: '4px 10px', borderRadius: 2 }}>
+                        {step.code}
+                      </code>
+                    )}
+                    {step.cta && (
+                      <a
+                        href="https://github.com/velasquezbrafael-source/ClearChain"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 8,
+                          padding: '9px 18px',
+                          background: 'rgba(6,182,212,0.08)',
+                          border: '1px solid rgba(6,182,212,0.25)',
+                          borderRadius: 3,
+                          fontFamily: 'var(--font-jetbrains-mono)',
+                          fontSize: 11,
+                          letterSpacing: '0.08em',
+                          color: '#06b6d4',
+                          textDecoration: 'none',
+                          transition: 'all 0.15s',
+                        }}
+                        onMouseEnter={e => {
+                          const el = e.currentTarget as HTMLAnchorElement;
+                          el.style.background = 'rgba(6,182,212,0.15)';
+                          el.style.borderColor = 'rgba(6,182,212,0.4)';
+                        }}
+                        onMouseLeave={e => {
+                          const el = e.currentTarget as HTMLAnchorElement;
+                          el.style.background = 'rgba(6,182,212,0.08)';
+                          el.style.borderColor = 'rgba(6,182,212,0.25)';
+                        }}
+                      >
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+                        </svg>
+                        Download from GitHub
+                      </a>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              {/* Footer note */}
+              <div style={{
+                marginTop: 28,
+                padding: '12px 16px',
+                background: 'rgba(6,182,212,0.03)',
+                border: '1px solid rgba(6,182,212,0.08)',
+                borderRadius: 3,
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 10,
+              }}>
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0, marginTop: 1 }}>
+                  <circle cx="8" cy="8" r="6.5" stroke="#1e4d5c" strokeWidth="1.2"/>
+                  <path d="M8 5v3.5M8 10.5v.5" stroke="#1e4d5c" strokeWidth="1.4" strokeLinecap="round"/>
+                </svg>
+                <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#3d4a5c', lineHeight: 1.65 }}>
+                  Chrome Web Store listing coming soon. Until then, manual install takes under 2 minutes and works on Chrome, Brave, and any Chromium browser.
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Comparison line */}
       <div

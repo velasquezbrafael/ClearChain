@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ClearChain</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Rubik+Glitch&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="logo">
+      <div class="logo-hex">
+        <img src="icons/icon32.png" width="22" height="22" alt="ClearChain" style="display:block;border-radius:3px;" />
+      </div>
+      <span class="logo-text">CLEARCHAIN</span>
+    </div>
+    <div class="header-right">
+      <span id="chain-badge" class="chain-badge hidden"></span>
+      <span id="page-wallet-badge" class="page-wallet-badge hidden" title="Wallets detected on this page"></span>
+      <a href="https://clearchain.vercel.app" target="_blank" class="ext-link" title="Open ClearChain">
+        <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+          <path d="M1 11L11 1M11 1H4M11 1V8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </a>
+    </div>
+  </header>
+
+  <!-- Scan line effect -->
+  <div class="scanline" aria-hidden="true"></div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" data-tab="scan">SCAN</button>
+    <button class="tab" data-tab="history">HISTORY <span id="history-count" class="history-count hidden">0</span></button>
+    <button class="tab" data-tab="watchlist">WATCH <span id="watchlist-count" class="history-count hidden">0</span></button>
+  </div>
+
+  <!-- ─── SCAN TAB ──────────────────────────────────────────────────────── -->
+  <div id="tab-scan" class="tab-content">
+
+    <!-- Mode toggle: single / bulk -->
+    <div class="mode-toggle">
+      <button id="mode-single-btn" class="mode-btn active">SINGLE</button>
+      <button id="mode-bulk-btn" class="mode-btn">BULK</button>
+    </div>
+
+    <!-- Single scan input -->
+    <div id="single-mode">
+      <div class="input-section">
+        <div class="input-wrap">
+          <input
+            id="address-input"
+            type="text"
+            placeholder="Wallet address or ENS..."
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <button id="paste-btn" class="icon-btn" title="Paste from clipboard">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+              <rect x="4" y="3" width="9" height="11" rx="1" stroke="currentColor" stroke-width="1.4"/>
+              <path d="M4 5H3a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1" stroke="currentColor" stroke-width="1.4"/>
+              <path d="M6 3V2h4v1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <button id="clear-input-btn" class="icon-btn hidden" title="Clear">
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+              <path d="M1 1L9 9M1 9L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+        <button id="scan-btn" class="scan-btn" disabled>
+          <span id="scan-label">SCAN</span>
+          <div id="scan-spinner" class="btn-spinner hidden"></div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Bulk scan input -->
+    <div id="bulk-mode" class="hidden">
+      <div class="bulk-section">
+        <textarea
+          id="bulk-input"
+          class="bulk-textarea"
+          placeholder="One address per line (up to 10)&#10;&#10;0x1234...&#10;bc1q...&#10;T1234..."
+          spellcheck="false"
+        ></textarea>
+        <button id="bulk-scan-btn" class="scan-btn" style="margin-top:8px;width:100%">
+          <span id="bulk-label">SCAN ALL</span>
+          <div id="bulk-spinner" class="btn-spinner hidden"></div>
+        </button>
+      </div>
+      <div id="bulk-results" class="bulk-results hidden"></div>
+    </div>
+
+    <!-- Scan progress (shown while scanning) -->
+    <div id="scan-progress" class="scan-progress hidden">
+      <div class="progress-bar-wrap">
+        <div id="progress-bar" class="progress-bar"></div>
+      </div>
+      <div id="progress-label" class="progress-label">INITIALIZING...</div>
+    </div>
+
+    <!-- Empty state -->
+    <div id="empty-state" class="empty-state">
+      <div class="empty-chains">
+        <span class="chain-pill eth">ETH</span>
+        <span class="chain-pill btc">BTC</span>
+        <span class="chain-pill trx">TRX</span>
+        <span class="chain-pill sol">SOL</span>
+      </div>
+      <p class="empty-hint">Paste any wallet address above, or right-click selected text on any page to scan instantly.</p>
+      <p class="shortcut-hint">⌨ Alt+Shift+C opens this popup from anywhere</p>
+    </div>
+
+    <!-- Results -->
+    <div id="results" class="results hidden">
+
+      <!-- Cache indicator -->
+      <div id="cache-indicator" class="cache-indicator hidden"></div>
+
+      <!-- Risk gauge -->
+      <div class="gauge-section">
+        <svg id="gauge-svg" class="gauge" viewBox="0 0 200 120" width="200" height="120">
+          <path id="gauge-bg" d="M 20 110 A 80 80 0 0 1 180 110" stroke="rgba(255,255,255,0.05)" stroke-width="12" fill="none" stroke-linecap="round"/>
+          <path id="gauge-fill" d="M 20 110 A 80 80 0 0 1 180 110" stroke="#00ff88" stroke-width="12" fill="none" stroke-linecap="round" stroke-dasharray="251.2" stroke-dashoffset="251.2"/>
+          <text id="gauge-score" x="100" y="98" text-anchor="middle" class="gauge-score-text">0</text>
+          <text x="100" y="114" text-anchor="middle" class="gauge-label-text">/ 100</text>
+        </svg>
+        <div class="gauge-meta">
+          <div id="risk-level-text" class="risk-level-text">—</div>
+          <div id="ofac-pill" class="ofac-pill hidden">⚠ OFAC MATCH</div>
+          <div id="result-chain" class="result-chain">—</div>
+        </div>
+      </div>
+
+      <!-- Stats row -->
+      <div class="stats-row">
+        <div class="stat">
+          <div id="stat-signals" class="stat-value">—</div>
+          <div class="stat-label">SIGNALS HIT</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <div id="stat-typologies" class="stat-value">—</div>
+          <div class="stat-label">PATTERNS</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <div id="stat-txs" class="stat-value">—</div>
+          <div class="stat-label">TXS</div>
+        </div>
+      </div>
+
+      <!-- Signals accordion -->
+      <div class="section-hdr">
+        <span>SIGNALS</span>
+        <button class="toggle-btn" id="signals-toggle">▾</button>
+      </div>
+      <div id="signals-list" class="signals-list"></div>
+
+      <!-- Typologies (if any) -->
+      <div id="typologies-wrap" class="hidden">
+        <div class="section-hdr"><span>PATTERNS DETECTED</span></div>
+        <div id="typologies-list" class="typologies-list"></div>
+      </div>
+
+      <!-- AI Narrative snippet -->
+      <div id="narrative-wrap" class="hidden">
+        <div class="section-hdr"><span>AI ASSESSMENT</span></div>
+        <div id="narrative-text" class="narrative-text"></div>
+      </div>
+
+      <!-- Actions -->
+      <div class="actions">
+        <a id="full-report-link" href="#" target="_blank" class="btn-primary">Full Report ↗</a>
+
+        <!-- Copy dropdown -->
+        <div class="copy-wrap" id="copy-wrap">
+          <button id="copy-btn" class="btn-secondary copy-main">Copy ▾</button>
+          <div id="copy-dropdown" class="copy-dropdown hidden">
+            <button data-fmt="text" class="copy-opt">Plain Text</button>
+            <button data-fmt="json" class="copy-opt">JSON</button>
+            <button data-fmt="compliance" class="copy-opt">Compliance Note</button>
+          </div>
+        </div>
+
+        <button id="watchlist-add-btn" class="btn-secondary" title="Add to watchlist">
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+            <circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.4"/>
+            <path d="M6 3v6M3 6h6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+          Watch
+        </button>
+      </div>
+
+      <div id="scan-timestamp" class="scan-timestamp"></div>
+    </div>
+
+    <!-- Error state -->
+    <div id="error-state" class="error-state hidden">
+      <div class="error-icon">!</div>
+      <div id="error-msg" class="error-msg"></div>
+      <button id="retry-btn" class="retry-btn">Retry</button>
+    </div>
+
+  </div>
+
+  <!-- ─── HISTORY TAB ───────────────────────────────────────────────────── -->
+  <div id="tab-history" class="tab-content hidden">
+    <div id="history-list" class="history-list"></div>
+    <div id="history-empty" class="history-empty hidden">
+      <div class="history-empty-text">No scans yet. Run your first scan to see history here.</div>
+    </div>
+    <div id="history-footer" class="history-footer hidden">
+      <button id="clear-history-btn" class="clear-history-btn">Clear history</button>
+    </div>
+  </div>
+
+  <!-- ─── WATCHLIST TAB ─────────────────────────────────────────────────── -->
+  <div id="tab-watchlist" class="tab-content hidden">
+
+    <!-- Add to watchlist -->
+    <div class="watchlist-add-row">
+      <input
+        id="watchlist-input"
+        type="text"
+        class="watchlist-input"
+        placeholder="Add address to monitor..."
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <button id="watchlist-add-confirm" class="watchlist-add-btn">ADD</button>
+    </div>
+
+    <!-- Watchlist items -->
+    <div id="watchlist-list" class="watchlist-list"></div>
+
+    <div id="watchlist-empty" class="history-empty hidden">
+      <div class="history-empty-text">No addresses being monitored. Add an address to get risk alerts.</div>
+    </div>
+
+    <!-- Footer: check all / clear -->
+    <div id="watchlist-footer" class="watchlist-footer hidden">
+      <button id="check-all-btn" class="watchlist-check-btn">
+        <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+          <path d="M2 6a4 4 0 1 0 8 0 4 4 0 0 0-8 0M6 1v2M6 9v2M1 6h2M9 6h2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+        </svg>
+        Refresh all
+      </button>
+      <button id="clear-watchlist-btn" class="clear-history-btn">Clear</button>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
