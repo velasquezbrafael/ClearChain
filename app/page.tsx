@@ -4233,6 +4233,44 @@ export default function HomePage() {
             </p>
           </div>
 
+          {/* ── Full-width CTA ── */}
+          <div style={{ marginBottom: 48 }}>
+            <a
+              href="https://github.com/velasquezbrafael-source/ClearChain"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 14,
+                width: '100%',
+                padding: '20px 32px',
+                background: '#06b6d4',
+                borderRadius: 4,
+                fontFamily: 'var(--font-space-grotesk)',
+                fontSize: 18,
+                fontWeight: 700,
+                color: '#000',
+                textDecoration: 'none',
+                marginBottom: 10,
+                boxShadow: '0 0 40px rgba(6,182,212,0.35)',
+                transition: 'background 0.15s, box-shadow 0.15s',
+              }}
+              onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = '#22d3ee'; el.style.boxShadow = '0 0 56px rgba(6,182,212,0.5)'; }}
+              onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = '#06b6d4'; el.style.boxShadow = '0 0 40px rgba(6,182,212,0.35)'; }}
+            >
+              <svg width="22" height="22" viewBox="0 0 20 20" fill="none">
+                <rect x="3" y="13" width="14" height="4" rx="1.5" fill="currentColor" opacity="0.3"/>
+                <path d="M10 2v10M6 8l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              Add to Chrome — It's Free
+            </a>
+            <p style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#3d4a5c', textAlign: 'center', letterSpacing: '0.05em' }}>
+              Works on Chrome & Brave · No account required
+            </p>
+          </div>
+
           {/* ── Two columns: mockup LEFT, get-it RIGHT ── */}
           <div style={{
             display: 'flex',
@@ -4366,42 +4404,6 @@ export default function HomePage() {
             {/* RIGHT — consumer get-it flow */}
             <div style={{ flex: 1, maxWidth: 460, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
 
-              {/* Big download CTA */}
-              <a
-                href="https://github.com/velasquezbrafael-source/ClearChain"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 12,
-                  width: '100%',
-                  padding: '14px 24px',
-                  background: '#06b6d4',
-                  borderRadius: 4,
-                  fontFamily: 'var(--font-space-grotesk)',
-                  fontSize: 16,
-                  fontWeight: 700,
-                  color: '#000',
-                  textDecoration: 'none',
-                  marginBottom: 8,
-                  boxShadow: '0 0 28px rgba(6,182,212,0.3)',
-                  transition: 'background 0.15s, box-shadow 0.15s',
-                }}
-                onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = '#22d3ee'; el.style.boxShadow = '0 0 40px rgba(6,182,212,0.45)'; }}
-                onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = '#06b6d4'; el.style.boxShadow = '0 0 28px rgba(6,182,212,0.3)'; }}
-              >
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                  <rect x="3" y="13" width="14" height="4" rx="1.5" fill="currentColor" opacity="0.3"/>
-                  <path d="M10 2v10M6 8l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                Add to Chrome — It's Free
-              </a>
-              <p style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#3d4a5c', textAlign: 'center', marginBottom: 24, letterSpacing: '0.05em' }}>
-                Works on Chrome & Brave · No account required
-              </p>
-
               {/* 3-step consumer flow */}
               <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.2em', color: '#1e4d5c', marginBottom: 12 }}>HOW IT WORKS</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -4447,7 +4449,7 @@ export default function HomePage() {
                     display: 'flex',
                     alignItems: 'flex-start',
                     gap: 14,
-                    padding: '12px 16px',
+                    padding: '14px 16px',
                     background: '#080b14',
                     border: '1px solid rgba(255,255,255,0.06)',
                     borderRadius: 4,
@@ -4461,11 +4463,11 @@ export default function HomePage() {
                       {step.icon}
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 4 }}>
-                        <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 8, color: '#1e4d5c', letterSpacing: '0.12em' }}>STEP {step.n}</span>
-                        <span style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 13, fontWeight: 600, color: '#f0f4ff' }}>{step.title}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 5 }}>
+                        <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: '#1e4d5c', letterSpacing: '0.12em' }}>STEP {step.n}</span>
+                        <span style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 15, fontWeight: 600, color: '#f0f4ff' }}>{step.title}</span>
                       </div>
-                      <p style={{ fontFamily: 'var(--font-inter)', fontSize: 12, color: '#8892a4', lineHeight: 1.6, margin: 0 }}>{step.body}</p>
+                      <p style={{ fontFamily: 'var(--font-inter)', fontSize: 14, color: '#8892a4', lineHeight: 1.65, margin: 0 }}>{step.body}</p>
                     </div>
                   </div>
                 ))}
@@ -4487,7 +4489,7 @@ export default function HomePage() {
                     <div style={{ flexShrink: 0, width: 20, height: 20, borderRadius: '50%', background: 'rgba(6,182,212,0.1)', border: '1px solid rgba(6,182,212,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 1 }}>
                       <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, fontWeight: 700, color: '#06b6d4' }}>{i + 1}</span>
                     </div>
-                    <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#8892a4', lineHeight: 1.65 }}>{line}</span>
+                    <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: '#8892a4', lineHeight: 1.7 }}>{line}</span>
                   </div>
                 ))}
               </div>
