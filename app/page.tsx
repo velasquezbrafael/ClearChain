@@ -1298,6 +1298,48 @@ function HeroContent({
           ))}
         </div>
 
+        {/* Download widget CTA */}
+        <div style={{
+          marginTop: 20,
+          animation: 'fadeSlideUp 0.5s ease-out both',
+          animationDelay: '0.65s',
+        }}>
+          <a
+            href="#extension"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '8px 18px',
+              background: 'rgba(6,182,212,0.06)',
+              border: '1px solid rgba(6,182,212,0.2)',
+              borderRadius: 3,
+              fontFamily: 'var(--font-jetbrains-mono)',
+              fontSize: 10,
+              letterSpacing: '0.1em',
+              color: '#06b6d4',
+              textDecoration: 'none',
+              transition: 'background 0.15s, border-color 0.15s',
+            }}
+            onMouseEnter={e => {
+              const el = e.currentTarget as HTMLAnchorElement;
+              el.style.background = 'rgba(6,182,212,0.12)';
+              el.style.borderColor = 'rgba(6,182,212,0.35)';
+            }}
+            onMouseLeave={e => {
+              const el = e.currentTarget as HTMLAnchorElement;
+              el.style.background = 'rgba(6,182,212,0.06)';
+              el.style.borderColor = 'rgba(6,182,212,0.2)';
+            }}
+          >
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+              <rect x="2" y="10" width="12" height="4" rx="1" stroke="currentColor" strokeWidth="1.3"/>
+              <path d="M8 2v7M5 6l3 3 3-3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            Download the browser widget ↓
+          </a>
+        </div>
+
         {/* Mobile-only: try-an-example panel (mirrors hero-right, hidden on ≥768px) */}
         {isMobile && (
           <div
@@ -4226,13 +4268,14 @@ export default function HomePage() {
                   (e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 0 24px rgba(6,182,212,0.25)';
                 }}
               >
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                  <path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm3.5 7.5-3 4a.5.5 0 0 1-.8 0l-3-4A.5.5 0 0 1 5.1 7h5.8a.5.5 0 0 1 .6.5z"/>
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                  <rect x="2" y="10" width="12" height="4" rx="1" stroke="currentColor" strokeWidth="1.4"/>
+                  <path d="M8 1v8M5 6l3 3 3-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
-                Download Free Extension
+                Download the Widget
               </a>
               <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#3d4a5c', letterSpacing: '0.06em' }}>
-                Works on Chrome & Brave · Free forever
+                Chrome & Brave · No account required
               </span>
             </div>
           </div>
@@ -4296,13 +4339,13 @@ export default function HomePage() {
           <div style={{
             display: 'flex',
             flexDirection: isMobile ? 'column' : 'row',
-            gap: isMobile ? 48 : 72,
-            alignItems: 'flex-start',
+            gap: isMobile ? 48 : 64,
+            alignItems: 'stretch',
             justifyContent: 'center',
           }}>
 
-            {/* Popup mockup */}
-            <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+            {/* Popup mockup + what you get */}
+            <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, justifyContent: 'space-between' }}>
               {/* Browser chrome bar */}
               <div style={{
                 width: 290,
@@ -4322,9 +4365,14 @@ export default function HomePage() {
                 <div style={{ flex: 1, background: 'rgba(255,255,255,0.04)', borderRadius: 3, padding: '3px 8px', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: '#3d4a5c' }}>
                   etherscan.io/address/0x...
                 </div>
-                {/* Extension icon in toolbar */}
-                <div style={{ width: 18, height: 18, borderRadius: 3, overflow: 'hidden', border: '1px solid rgba(6,182,212,0.3)', flexShrink: 0 }}>
-                  <img src="/clearchainlogo.jpg" width={18} height={18} alt="ClearChain" style={{ display: 'block' }} />
+                {/* Extension icon in toolbar — CC logo mark */}
+                <div style={{ width: 18, height: 18, borderRadius: 3, background: '#000', border: '1px solid rgba(6,182,212,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <svg width="12" height="10" viewBox="0 0 24 20" fill="none">
+                    <path d="M2 10C2 5.58 5.58 2 10 2c2.2 0 4.2.9 5.66 2.34" stroke="#fff" strokeWidth="3" strokeLinecap="round"/>
+                    <path d="M14 10C14 5.58 17.58 2 22 2" stroke="#06b6d4" strokeWidth="3" strokeLinecap="round"/>
+                    <path d="M2 18C2 13.58 5.58 10 10 10" stroke="#fff" strokeWidth="3" strokeLinecap="round"/>
+                    <path d="M14 18C14 13.58 17.58 10 22 10c2.2 0 4.2.9 5.66 2.34" stroke="#06b6d4" strokeWidth="3" strokeLinecap="round"/>
+                  </svg>
                 </div>
               </div>
 
@@ -4341,9 +4389,10 @@ export default function HomePage() {
                 {/* Header */}
                 <div style={{ padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <div style={{ width: 20, height: 20, borderRadius: 3, overflow: 'hidden' }}>
-                      <img src="/clearchainlogo.jpg" width={20} height={20} alt="" style={{ display: 'block' }} />
-                    </div>
+                    <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
+                      <path d="M9 1L16.5 5.25V12.75L9 17L1.5 12.75V5.25L9 1Z" stroke="#06b6d4" strokeWidth="1.2" fill="rgba(6,182,212,0.08)"/>
+                      <path d="M9 5L12.5 7V11L9 13L5.5 11V7L9 5Z" fill="#06b6d4" opacity="0.6"/>
+                    </svg>
                     <span style={{ fontFamily: 'var(--font-rubik-glitch)', fontSize: 12, letterSpacing: '0.15em', color: '#22d3ee' }}>CLEARCHAIN</span>
                   </div>
                   <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: '#06b6d4', background: 'rgba(6,182,212,0.1)', border: '1px solid rgba(6,182,212,0.2)', padding: '2px 7px', borderRadius: 2 }}>ETH</span>
@@ -4397,6 +4446,33 @@ export default function HomePage() {
               <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
                 {([['ETH','#6366f1'],['BTC','#f97316'],['TRX','#ef4444'],['SOL','#a855f7']] as [string,string][]).map(([chain, color]) => (
                   <span key={chain} style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', padding: '3px 9px', borderRadius: 2, color, border: `1px solid ${color}30`, background: `${color}10` }}>{chain}</span>
+                ))}
+              </div>
+
+              {/* What you get */}
+              <div style={{
+                width: 290,
+                background: '#080b14',
+                border: '1px solid rgba(255,255,255,0.06)',
+                borderRadius: 4,
+                padding: '16px 18px',
+              }}>
+                <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.18em', color: '#1e4d5c', marginBottom: 14 }}>WHAT YOU GET</div>
+                {[
+                  { label: 'Risk score on every wallet', color: '#00ff88' },
+                  { label: 'OFAC & sanctions screening', color: '#00ff88' },
+                  { label: 'Right-click scan on any page', color: '#00ff88' },
+                  { label: 'Inline risk dots on Etherscan', color: '#00ff88' },
+                  { label: 'Watchlist with auto-alerts', color: '#00ff88' },
+                  { label: 'Bulk scan up to 10 at once', color: '#00ff88' },
+                  { label: 'Copy as compliance note', color: '#00ff88' },
+                ].map((item, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: i < 6 ? 10 : 0 }}>
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                      <path d="M2 6l3 3 5-5" stroke={item.color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    <span style={{ fontFamily: 'var(--font-inter)', fontSize: 13, color: '#8892a4' }}>{item.label}</span>
+                  </div>
                 ))}
               </div>
             </div>
