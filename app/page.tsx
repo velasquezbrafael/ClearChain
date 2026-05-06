@@ -784,8 +784,8 @@ const ETH_CARD_OVERRIDES: Record<string, RichCard> = {
     displayAddr: '0xd90e2f9...4F31b',
   },
   'Lazarus Group': {
-    badge: 'HIGH RISK', score: 72, color: '#ff8c00',
-    signals: ['DPRK', 'OFAC SDN', 'STATE ACTOR'],
+    badge: 'CRITICAL', score: 75, color: '#ff3b3b',
+    signals: ['OFAC SDN', 'MIXER', 'HIGH RISK COUNTERPARTY'],
     displayAddr: '0x098B71...2f96',
   },
   'Vitalik.eth': {
@@ -795,10 +795,25 @@ const ETH_CARD_OVERRIDES: Record<string, RichCard> = {
   },
 };
 
+// BTC-specific overrides — must reflect achievable BTC engine scores:
+// BTC signals: OFAC(40) + CoinJoin(25) + PeelChain(20). Achievable: 0,20,25,40,45,60,65,80,85
+const BTC_CARD_OVERRIDES: Record<string, RichCard> = {
+  'Lazarus BTC': {
+    badge: 'CRITICAL', score: 65, color: '#ff3b3b',
+    signals: ['OFAC SDN', 'COINJOIN'],
+    displayAddr: 'bc1qxy2k...wlh',
+  },
+  'Binance BTC': {
+    badge: 'CLEAN', score: 0, color: '#00ff88',
+    signals: ['EXCHANGE', 'NO FLAGS'],
+    displayAddr: '34xp4vR...seo',
+  },
+};
+
 const QF_STYLE_BASE: Record<QFStyle, { badge: string; score: number; color: string }> = {
-  red:    { badge: 'HIGH RISK', score: 70, color: '#ff8c00' },
+  red:    { badge: 'CRITICAL',  score: 70, color: '#ff3b3b' },
   green:  { badge: 'CLEAN',     score: 0,  color: '#00ff88' },
-  blue:   { badge: 'EXCHANGE',  score: 15, color: '#60a5fa' },
+  blue:   { badge: 'EXCHANGE',  score: 0,  color: '#60a5fa' },
   orange: { badge: 'EXCHANGE',  score: 15, color: '#ff8c00' },
 };
 
@@ -809,6 +824,7 @@ function getRichCard(
   chain: 'ETH' | 'BTC' | 'TRX' | 'SOL',
 ): RichCard {
   if (chain === 'ETH' && ETH_CARD_OVERRIDES[label]) return ETH_CARD_OVERRIDES[label];
+  if (chain === 'BTC' && BTC_CARD_OVERRIDES[label]) return BTC_CARD_OVERRIDES[label];
   const base = QF_STYLE_BASE[style];
   const short = address.length > 14 ? `${address.slice(0, 8)}...${address.slice(-5)}` : address;
   return { ...base, signals: ['SCREENED', `${chain} CHAIN`], displayAddr: short };
@@ -3955,20 +3971,20 @@ export default function HomePage() {
           {(() => {
             const comparableCases: Record<string, { name: string; score: number; note: string }[]> = {
               CRITICAL: [
-                { name: 'Blender.io', score: 85, note: 'OFAC SDN · mixer' },
-                { name: 'Ronin exploiter', score: 90, note: 'OFAC SDN · hack' },
+                { name: 'Blender.io', score: 85, note: 'OFAC SDN · mixer' },   // 40+25+15+5
+                { name: 'Ronin exploiter', score: 90, note: 'OFAC SDN · hack' }, // 40+25+15+10
               ],
               HIGH: [
-                { name: 'Sinbad mixer', score: 70, note: 'OFAC SDN · mixer' },
-                { name: 'BTC-e exchange', score: 68, note: 'sanctioned exchange' },
+                { name: 'Sinbad mixer', score: 70, note: 'OFAC SDN · mixer' },        // 40+25+5
+                { name: 'BTC-e exchange', score: 65, note: 'sanctioned exchange' },    // 40+25
               ],
               MEDIUM: [
-                { name: 'Typical DEX trader', score: 35, note: 'normal activity' },
-                { name: 'Active DeFi wallet', score: 28, note: 'protocol usage' },
+                { name: 'Mixer-adjacent wallet', score: 30, note: 'mixer interaction · volume anomaly' }, // 25+5
+                { name: 'Active DeFi wallet', score: 25, note: 'mixer interaction' },                     // 25
               ],
               LOW: [
                 { name: 'Vitalik.eth', score: 0, note: 'clean baseline' },
-                { name: 'Typical holder', score: 8, note: 'minimal activity' },
+                { name: 'Typical holder', score: 5, note: 'minimal activity' }, // 5 (volume anomaly)
               ],
             };
             const cases = comparableCases[analysis.riskScore.level] ?? [];

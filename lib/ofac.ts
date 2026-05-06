@@ -241,6 +241,20 @@ export async function checkOfacTrx(address: string): Promise<OFACResult> {
   return { matched: false, confidence: 0, listLastFetched };
 }
 
+/** Check a Bitcoin address against the SDN list (case-insensitive). */
+export async function checkOfacBtc(address: string): Promise<OFACResult> {
+  const maps = await getSDNMaps();
+  const matchedEntity = maps.btc.get(address.toLowerCase());
+  const listLastFetched = new Date(maps.loadedAt || Date.now()).toISOString();
+
+  if (matchedEntity) {
+    console.warn(`[ClearChain/ofac] OFAC BTC MATCH: ${address} — "${matchedEntity}"`);
+    return { matched: true, matchedEntity, confidence: 1.0, listLastFetched };
+  }
+
+  return { matched: false, confidence: 0, listLastFetched };
+}
+
 /** Returns cache status for diagnostics / admin endpoints. */
 export function getSDNCacheStatus() {
   if (!_cache) {

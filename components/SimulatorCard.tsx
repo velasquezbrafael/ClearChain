@@ -61,7 +61,13 @@ export default function SimulatorCard({ signals, address, baselineScore, baselin
     100,
     [...active].reduce((sum, name) => {
       const sig = signals[name];
-      return sum + (sig?.weight ?? 0);
+      if (!sig) return sum;
+      // Enforce contextual gate: rapid_fund_movement only scores when OFAC or mixer is also active.
+      // This mirrors the engine in lib/scoring.ts — alone it produces too many false positives.
+      if (name === 'rapid_fund_movement' && !active.has('ofac_match') && !active.has('mixer_interaction')) {
+        return sum;
+      }
+      return sum + (sig.weight ?? 0);
     }, 0),
   );
 

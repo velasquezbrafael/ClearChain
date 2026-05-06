@@ -14,7 +14,7 @@ import { getBitcoinTransactions, getBitcoinRawTxs, detectBtcPatterns } from '@/l
 import { getTronTransactions, getTronTRC20Transfers, detectTrxPatterns } from '@/lib/tron';
 import { getSolBalance, getSolTransactions, getSPLTokenTransfers, detectSolPatterns, validateSolAddress } from '@/lib/solana';
 import OFAC_TRX from '@/data/ofac-trx-addresses.json';
-import { checkAddress, checkOfacSol } from '@/lib/ofac';
+import { checkAddress, checkOfacSol, checkOfacBtc } from '@/lib/ofac';
 import { computeRiskScore } from '@/lib/scoring';
 import { scoreSolana } from '@/lib/scoring-sol';
 import { matchTypologies } from '@/lib/typology';
@@ -279,7 +279,13 @@ export async function POST(request: NextRequest) {
         getBitcoinRawTxs(address),
       ]);
       transactions = btcTxs;
-      ofacResult = { matched: false, confidence: 0 }; // OFAC list is ETH-only
+
+      // OFAC check against live BTC SDN list
+      try {
+        ofacResult = await checkOfacBtc(address);
+      } catch {
+        ofacResult = { matched: false, confidence: 0 };
+      }
 
       // BTC-specific scoring
       const patterns = detectBtcPatterns(address, rawTxs);
@@ -287,9 +293,11 @@ export async function POST(request: NextRequest) {
         {
           name: 'ofac_match',
           weight: 40,
-          triggered: false,
-          score: 0,
-          detail: 'BTC address not found on OFAC SDN list.',
+          triggered: ofacResult.matched,
+          score: ofacResult.matched ? 40 : 0,
+          detail: ofacResult.matched
+            ? `BTC address is listed on the OFAC SDN list as "${ofacResult.matchedEntity}". Mandatory SAR filing required for covered financial institutions.`
+            : 'BTC address not found on OFAC SDN list.',
         },
         {
           name: 'coinjoin_usage',
@@ -457,9 +465,9 @@ export async function POST(request: NextRequest) {
         },
         {
           name: 'rapid_fund_movement',
-          weight: 25,
+          weight: 15,
           triggered: patterns.rapidHops && (trxOfacResult.matched || hasCounterpartyRisk),
-          score: patterns.rapidHops && (trxOfacResult.matched || hasCounterpartyRisk) ? 25 : 0,
+          score: patterns.rapidHops && (trxOfacResult.matched || hasCounterpartyRisk) ? 15 : 0,
           detail: patterns.rapidHops
             ? trxOfacResult.matched || hasCounterpartyRisk
               ? '≥3 outbound TRX transactions within 24 hours alongside OFAC exposure — consistent with rapid layering.'
@@ -468,18 +476,18 @@ export async function POST(request: NextRequest) {
         },
         {
           name: 'high_risk_counterparty',
-          weight: 20,
+          weight: 10,
           triggered: hasCounterpartyRisk,
-          score: hasCounterpartyRisk ? 20 : 0,
+          score: hasCounterpartyRisk ? 10 : 0,
           detail: hasCounterpartyRisk
             ? `${counterpartyHits.length} transaction(s) with OFAC-sanctioned TRX counterparty addresses. Enhanced due diligence required.`
             : 'No interactions with known sanctioned TRX counterparties.',
         },
         {
           name: 'volume_anomaly',
-          weight: 15,
+          weight: 5,
           triggered: patterns.highVolume,
-          score: patterns.highVolume ? 15 : 0,
+          score: patterns.highVolume ? 5 : 0,
           detail: patterns.highVolume
             ? 'High TRX volume detected in a wallet less than 30 days old — inconsistent with normal wallet activity.'
             : 'TRX volume within expected range for wallet age.',
