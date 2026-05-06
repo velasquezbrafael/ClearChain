@@ -104,6 +104,8 @@ export default function RiskScoreCard({ riskScore }: RiskScoreCardProps) {
           borderRadius: 4,
           boxShadow: cardGlow(level),
           overflow: 'clip',
+          height: '100%',
+          boxSizing: 'border-box',
         }}
       >
         {/* Vertical accent bar */}
