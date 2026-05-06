@@ -164,12 +164,23 @@ export async function GET(request: NextRequest) {
     console.log(`[refresh-ofac] Fetched ${(xml.length / 1024).toFixed(0)} KB`);
 
     // ── 2. Parse digital currency addresses ───────────────────────────────
-    const rows = parseSDNXml(xml);
-    console.log(`[refresh-ofac] Parsed ${rows.length} digital currency addresses`);
+    const rawRows = parseSDNXml(xml);
+    console.log(`[refresh-ofac] Parsed ${rawRows.length} digital currency addresses (pre-dedup)`);
 
-    if (rows.length === 0) {
+    if (rawRows.length === 0) {
       throw new Error('Parsed 0 addresses — possible XML format change');
     }
+
+    // Deduplicate by (address, chain) — OFAC XML occasionally lists the same
+    // address under multiple entities; keep the first occurrence.
+    const seen = new Set<string>();
+    const rows = rawRows.filter(r => {
+      const key = `${r.address.toLowerCase()}|${r.chain}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    console.log(`[refresh-ofac] ${rows.length} unique addresses after dedup`);
 
     // ── 3. Upsert in batches ───────────────────────────────────────────────
     for (let i = 0; i < rows.length; i += BATCH_SIZE) {
