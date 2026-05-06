@@ -4237,54 +4237,104 @@ export default function HomePage() {
           <div style={{
             display: 'flex',
             flexDirection: isMobile ? 'column' : 'row',
-            gap: isMobile ? 48 : 80,
-            alignItems: 'flex-start',
+            gap: isMobile ? 48 : 72,
+            alignItems: 'stretch',
             justifyContent: 'center',
           }}>
 
-            {/* LEFT — popup mockup */}
-            <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
-              {/* Browser chrome */}
-              <div style={{ width: 300, background: '#0a0d1a', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px 8px 0 0', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
+            {/* LEFT — pixel-faithful popup mockup */}
+            <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14 }}>
+              {/* Browser chrome bar */}
+              <div style={{ width: 340, background: '#0a0d1a', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px 8px 0 0', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
                 <div style={{ display: 'flex', gap: 5 }}>
                   {['#ff5f57','#ffbd2e','#28c840'].map(c => <div key={c} style={{ width: 8, height: 8, borderRadius: '50%', background: c }} />)}
                 </div>
                 <div style={{ flex: 1, background: 'rgba(255,255,255,0.04)', borderRadius: 3, padding: '3px 8px', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: '#3d4a5c' }}>etherscan.io/address/0x...</div>
-                <div style={{ width: 18, height: 18, borderRadius: 3, background: '#000', border: '1px solid rgba(6,182,212,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <svg width="10" height="10" viewBox="0 0 18 18" fill="none">
+                {/* Extension icon in toolbar */}
+                <div style={{ width: 20, height: 20, borderRadius: 3, background: 'rgba(6,182,212,0.1)', border: '1px solid rgba(6,182,212,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <svg width="11" height="11" viewBox="0 0 18 18" fill="none">
                     <path d="M9 1L16.5 5.25V12.75L9 17L1.5 12.75V5.25L9 1Z" stroke="#06b6d4" strokeWidth="1.6" fill="rgba(6,182,212,0.15)"/>
+                    <path d="M9 5.5L13 7.75V12.25L9 14.5L5 12.25V7.75L9 5.5Z" fill="#06b6d4" opacity="0.5"/>
                   </svg>
                 </div>
               </div>
-              {/* Popup body */}
-              <div style={{ width: 300, background: '#080b14', border: '1px solid rgba(6,182,212,0.15)', borderRadius: '0 0 8px 8px', overflow: 'hidden', boxShadow: '0 0 40px rgba(6,182,212,0.08), 0 24px 60px rgba(0,0,0,0.7)', marginTop: -1 }}>
-                <div style={{ padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+
+              {/* Popup shell — exact match to popup.html structure */}
+              <div style={{ width: 340, background: '#03040a', border: '1px solid rgba(6,182,212,0.15)', borderRadius: '0 0 8px 8px', overflow: 'hidden', boxShadow: '0 0 40px rgba(6,182,212,0.08), 0 24px 60px rgba(0,0,0,0.7)', marginTop: -1 }}>
+
+                {/* Header */}
+                <div style={{ background: '#080b14', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '11px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <svg width="16" height="16" viewBox="0 0 18 18" fill="none"><path d="M9 1L16.5 5.25V12.75L9 17L1.5 12.75V5.25L9 1Z" stroke="#06b6d4" strokeWidth="1.2" fill="rgba(6,182,212,0.08)"/><path d="M9 5L12.5 7V11L9 13L5.5 11V7L9 5Z" fill="#06b6d4" opacity="0.6"/></svg>
-                    <span style={{ fontFamily: 'var(--font-rubik-glitch)', fontSize: 12, letterSpacing: '0.15em', color: '#22d3ee' }}>CLEARCHAIN</span>
+                    <svg width="22" height="22" viewBox="0 0 18 18" fill="none">
+                      <path d="M9 1L16.5 5.25V12.75L9 17L1.5 12.75V5.25L9 1Z" stroke="#06b6d4" strokeWidth="1.2" fill="rgba(6,182,212,0.08)"/>
+                      <path d="M9 5L12.5 7V11L9 13L5.5 11V7L9 5Z" fill="#06b6d4" opacity="0.6"/>
+                    </svg>
+                    <span style={{ fontFamily: 'var(--font-rubik-glitch)', fontSize: 13, letterSpacing: '0.15em', color: '#22d3ee' }}>CLEARCHAIN</span>
                   </div>
-                  <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: '#06b6d4', background: 'rgba(6,182,212,0.1)', border: '1px solid rgba(6,182,212,0.2)', padding: '2px 7px', borderRadius: 2 }}>ETH</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', padding: '2px 7px', background: 'rgba(6,182,212,0.1)', border: '1px solid rgba(6,182,212,0.22)', borderRadius: 2, color: '#06b6d4' }}>ETH</span>
+                    <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M1 11L11 1M11 1H4M11 1V8" stroke="#3d4a5c" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                  </div>
                 </div>
-                <div style={{ padding: '14px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div>
-                    <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 44, fontWeight: 700, color: '#ff3b3b', lineHeight: 1 }}>78</div>
-                    <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: '#3d4a5c', marginTop: 2 }}>/ 100 RISK SCORE</div>
+
+                {/* Scanline */}
+                <div style={{ height: 1, background: 'linear-gradient(90deg, transparent 0%, rgba(6,182,212,0.2) 40%, rgba(34,211,238,0.12) 60%, transparent 100%)' }} />
+
+                {/* Tabs */}
+                <div style={{ display: 'flex', background: '#080b14', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                  {(['SCAN','HISTORY','WATCH'] as const).map((t, i) => (
+                    <div key={t} style={{ flex: 1, padding: '8px', textAlign: 'center', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, fontWeight: 700, letterSpacing: '0.14em', color: i === 0 ? '#06b6d4' : '#3d4a5c', borderBottom: i === 0 ? '2px solid #06b6d4' : '2px solid transparent' }}>{t}</div>
+                  ))}
+                </div>
+
+                {/* Mode toggle */}
+                <div style={{ display: 'flex', padding: '7px 10px', gap: 6, borderBottom: '1px solid rgba(255,255,255,0.06)', background: '#03040a' }}>
+                  {(['SINGLE','BULK'] as const).map((m, i) => (
+                    <div key={m} style={{ padding: '4px 12px', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', borderRadius: 2, background: i === 0 ? 'rgba(6,182,212,0.1)' : 'transparent', border: i === 0 ? '1px solid rgba(6,182,212,0.25)' : '1px solid rgba(255,255,255,0.06)', color: i === 0 ? '#06b6d4' : '#3d4a5c', cursor: 'default' }}>{m}</div>
+                  ))}
+                </div>
+
+                {/* Input section */}
+                <div style={{ padding: '10px 12px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#0d1220', border: '1px solid rgba(6,182,212,0.22)', borderRadius: 3, padding: '7px 10px', marginBottom: 7 }}>
+                    <span style={{ flex: 1, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: '#f0f4ff', letterSpacing: '0.03em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>0x1Da5847829B0C5e...b41c</span>
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="4" y="3" width="9" height="11" rx="1" stroke="#3d4a5c" strokeWidth="1.4"/><path d="M4 5H3a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1" stroke="#3d4a5c" strokeWidth="1.4"/></svg>
                   </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 13, fontWeight: 700, color: '#ff3b3b', marginBottom: 6 }}>CRITICAL</div>
-                    <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, padding: '3px 8px', background: 'rgba(255,59,59,0.1)', border: '1px solid rgba(255,59,59,0.3)', color: '#ff3b3b', borderRadius: 2, marginBottom: 4 }}>⚠ OFAC MATCH</div>
+                  <div style={{ width: '100%', background: '#06b6d4', borderRadius: 3, padding: '8px', textAlign: 'center', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', color: '#03040a' }}>SCAN</div>
+                </div>
+
+                {/* Gauge + meta */}
+                <div style={{ padding: '10px 14px 8px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <svg viewBox="0 0 200 120" width="136" height="82" style={{ flexShrink: 0 }}>
+                    <path d="M 20 110 A 80 80 0 0 1 180 110" stroke="rgba(255,255,255,0.06)" strokeWidth="12" fill="none" strokeLinecap="round"/>
+                    {/* 78/100 fill: dashoffset = 251.2 * (1 - 0.78) = 55.26 */}
+                    <path d="M 20 110 A 80 80 0 0 1 180 110" stroke="#ff3b3b" strokeWidth="12" fill="none" strokeLinecap="round" strokeDasharray="251.2" strokeDashoffset="55.26"/>
+                    <text x="100" y="96" textAnchor="middle" fill="#ff3b3b" fontSize="30" fontWeight="700" fontFamily="'JetBrains Mono', monospace">78</text>
+                    <text x="100" y="112" textAnchor="middle" fill="#3d4a5c" fontSize="11" fontFamily="'JetBrains Mono', monospace">/ 100</text>
+                  </svg>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                    <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 15, fontWeight: 700, color: '#ff3b3b' }}>CRITICAL</div>
+                    <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 8, padding: '2px 7px', background: 'rgba(255,59,59,0.1)', border: '1px solid rgba(255,59,59,0.3)', color: '#ff3b3b', borderRadius: 2, letterSpacing: '0.05em' }}>⚠ OFAC MATCH</div>
                     <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: '#3d4a5c' }}>ETH NETWORK</div>
                   </div>
                 </div>
+
+                {/* Stats row */}
                 <div style={{ display: 'flex', background: '#0d1220', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                  {[['2/6','SIGNALS'],['1','PATTERNS'],['47','TXS']].map(([v, l], i) => (
-                    <div key={i} style={{ flex: 1, padding: '8px', textAlign: 'center', borderRight: i < 2 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
+                  {([['2/6','SIGNALS HIT'],['1','PATTERNS'],['47','TXS']] as [string,string][]).map(([v, l], i) => (
+                    <div key={i} style={{ flex: 1, padding: '8px 4px', textAlign: 'center', borderRight: i < 2 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
                       <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 14, fontWeight: 700, color: '#f0f4ff' }}>{v}</div>
                       <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 7, color: '#3d4a5c', letterSpacing: '0.08em', marginTop: 2 }}>{l}</div>
                     </div>
                   ))}
                 </div>
-                {[{ name: 'OFAC match', score: '+40', hit: true }, { name: 'Mixer interaction', score: '+25', hit: true }, { name: 'Rapid movement', score: '0', hit: false }].map((s, i) => (
+
+                {/* Signals list */}
+                {[
+                  { name: 'OFAC match', score: '+40', hit: true },
+                  { name: 'Mixer interaction', score: '+25', hit: true },
+                  { name: 'Rapid movement', score: '0', hit: false },
+                ].map((s, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 12px', borderBottom: '1px solid rgba(255,255,255,0.03)', borderLeft: s.hit ? '2px solid #ff3b3b' : '2px solid transparent', background: s.hit ? 'rgba(255,59,59,0.03)' : 'transparent' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                       <div style={{ width: 5, height: 5, borderRadius: '50%', background: s.hit ? '#ff3b3b' : '#3d4a5c', flexShrink: 0 }} />
@@ -4293,12 +4343,18 @@ export default function HomePage() {
                     <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: s.hit ? '#ff3b3b' : '#3d4a5c' }}>{s.score}</span>
                   </div>
                 ))}
-                <div style={{ display: 'flex', gap: 6, padding: 10 }}>
+
+                {/* Actions */}
+                <div style={{ display: 'flex', gap: 6, padding: '10px 12px' }}>
                   <div style={{ flex: 2, padding: '7px', background: 'rgba(6,182,212,0.08)', border: '1px solid rgba(6,182,212,0.2)', borderRadius: 2, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#06b6d4', textAlign: 'center' }}>Full Report ↗</div>
                   <div style={{ flex: 1, padding: '7px', background: '#0d1220', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 2, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#8892a4', textAlign: 'center' }}>Copy ▾</div>
-                  <div style={{ flex: 1, padding: '7px', background: '#0d1220', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 2, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#8892a4', textAlign: 'center' }}>Watch</div>
+                  <div style={{ flex: 1, padding: '7px', background: '#0d1220', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 2, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#8892a4', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                    <svg width="9" height="9" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="#8892a4" strokeWidth="1.4"/><path d="M6 3v6M3 6h6" stroke="#8892a4" strokeWidth="1.4" strokeLinecap="round"/></svg>
+                    Watch
+                  </div>
                 </div>
               </div>
+
               {/* Chain pills */}
               <div style={{ display: 'flex', gap: 6 }}>
                 {([['ETH','#6366f1'],['BTC','#f97316'],['TRX','#ef4444'],['SOL','#a855f7']] as [string,string][]).map(([chain, color]) => (
@@ -4308,7 +4364,7 @@ export default function HomePage() {
             </div>
 
             {/* RIGHT — consumer get-it flow */}
-            <div style={{ flex: 1, maxWidth: 480 }}>
+            <div style={{ flex: 1, maxWidth: 460, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
 
               {/* Big download CTA */}
               <a
@@ -4347,69 +4403,76 @@ export default function HomePage() {
               </p>
 
               {/* 3-step consumer flow */}
-              <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.2em', color: '#1e4d5c', marginBottom: 24 }}>HOW IT WORKS</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.2em', color: '#1e4d5c', marginBottom: 20 }}>HOW IT WORKS</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                 {[
                   {
                     n: '1',
+                    color: '#06b6d4',
                     icon: (
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                        <rect x="3" y="14" width="18" height="5" rx="2" stroke="#06b6d4" strokeWidth="1.5"/>
-                        <path d="M12 3v10M8 9l4 4 4-4" stroke="#06b6d4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <rect x="3" y="14" width="18" height="5" rx="2" stroke="#06b6d4" strokeWidth="1.6"/>
+                        <path d="M12 3v10M8 9l4 4 4-4" stroke="#06b6d4" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
                     ),
                     title: 'Download & install',
-                    body: 'Click the button above. You\'ll follow a short one-time setup in Chrome — takes about 2 minutes. We\'ll walk you through it below.',
+                    body: 'Click the button above. Short one-time setup in Chrome — about 2 minutes. Instructions are below.',
                   },
                   {
                     n: '2',
+                    color: '#06b6d4',
                     icon: (
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                        <circle cx="12" cy="12" r="9" stroke="#06b6d4" strokeWidth="1.5"/>
-                        <path d="M8 12h8M14 9l3 3-3 3" stroke="#06b6d4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="9" stroke="#06b6d4" strokeWidth="1.6"/>
+                        <path d="M8 12h8M14 9l3 3-3 3" stroke="#06b6d4" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
                     ),
-                    title: 'Go anywhere on the web',
-                    body: 'Visit Etherscan, Uniswap, OpenSea — anywhere. ClearChain automatically highlights wallet addresses on the page. Or paste any address directly into the widget.',
+                    title: 'Browse normally',
+                    body: 'Visit Etherscan, Uniswap, OpenSea — anywhere. ClearChain auto-highlights every wallet address it finds on the page.',
                   },
                   {
                     n: '3',
+                    color: '#00ff88',
                     icon: (
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                        <path d="M9 12l2 2 4-4" stroke="#00ff88" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                        <circle cx="12" cy="12" r="9" stroke="#00ff88" strokeWidth="1.5"/>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="9" stroke="#00ff88" strokeWidth="1.6"/>
+                        <path d="M8.5 12l2.5 2.5 4.5-5" stroke="#00ff88" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
                     ),
-                    title: 'Get instant risk results',
-                    body: 'See the risk score, OFAC status, and flagged signals in seconds — right in your browser. No switching tabs. No copy-pasting.',
+                    title: 'Instant risk score',
+                    body: 'Risk score, OFAC status, and flagged signals appear in seconds. No tab switching. No copy-pasting.',
                   },
                 ].map((step, i) => (
                   <div key={i} style={{
                     display: 'flex',
+                    alignItems: 'flex-start',
                     gap: 16,
-                    padding: '18px 20px',
+                    padding: '16px 18px',
                     background: '#080b14',
                     border: '1px solid rgba(255,255,255,0.06)',
                     borderRadius: 4,
                     transition: 'border-color 0.2s',
                   }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(6,182,212,0.18)'; }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = `rgba(6,182,212,0.2)`; }}
                     onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.06)'; }}
                   >
-                    <div style={{ flexShrink: 0, marginTop: 2 }}>{step.icon}</div>
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                        <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: '#1e4d5c' }}>STEP {step.n}</span>
-                        <span style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 15, fontWeight: 600, color: '#f0f4ff' }}>{step.title}</span>
+                    {/* Icon in a pill container */}
+                    <div style={{ flexShrink: 0, width: 40, height: 40, borderRadius: '50%', background: step.n === '3' ? 'rgba(0,255,136,0.06)' : 'rgba(6,182,212,0.06)', border: step.n === '3' ? '1px solid rgba(0,255,136,0.15)' : '1px solid rgba(6,182,212,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {step.icon}
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5 }}>
+                        <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 8, color: '#1e4d5c', letterSpacing: '0.12em' }}>STEP {step.n}</span>
+                        <span style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 14, fontWeight: 600, color: '#f0f4ff' }}>{step.title}</span>
                       </div>
-                      <p style={{ fontFamily: 'var(--font-inter)', fontSize: 13, color: '#8892a4', lineHeight: 1.7, margin: 0 }}>{step.body}</p>
+                      <p style={{ fontFamily: 'var(--font-inter)', fontSize: 13, color: '#8892a4', lineHeight: 1.65, margin: 0 }}>{step.body}</p>
                     </div>
                   </div>
                 ))}
               </div>
 
-              {/* Expandable technical note */}
-              <div style={{ marginTop: 20, padding: '12px 16px', background: 'rgba(6,182,212,0.02)', border: '1px solid rgba(6,182,212,0.07)', borderRadius: 3 }}>
+              {/* One-time setup */}
+              <div style={{ marginTop: 18, padding: '12px 16px', background: 'rgba(6,182,212,0.02)', border: '1px solid rgba(6,182,212,0.07)', borderRadius: 3 }}>
                 <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: '#1e4d5c', letterSpacing: '0.12em', marginBottom: 8 }}>ONE-TIME SETUP STEPS</div>
                 {['Unzip the downloaded file into any folder on your computer.', 'In Chrome, open chrome://extensions and toggle on Developer Mode (top-right).', 'Click "Load unpacked" → select the unzipped folder. Done.', 'Click the puzzle piece in your toolbar → pin ClearChain for quick access.'].map((line, i) => (
                   <div key={i} style={{ display: 'flex', gap: 10, marginBottom: i < 3 ? 6 : 0 }}>
