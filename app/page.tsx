@@ -4281,7 +4281,7 @@ export default function HomePage() {
           }}>
 
             {/* LEFT — pixel-faithful popup mockup */}
-            <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, zoom: 1.2 }}>
+            <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, zoom: 1.38 }}>
               {/* Browser chrome bar */}
               <div style={{ width: 380, background: '#0a0d1a', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px 8px 0 0', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
                 <div style={{ display: 'flex', gap: 5 }}>
@@ -4381,6 +4381,12 @@ export default function HomePage() {
                     <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: s.hit ? '#ff3b3b' : '#3d4a5c' }}>{s.score}</span>
                   </div>
                 ))}
+
+                {/* AI Assessment collapsed row */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 12px', borderBottom: '1px solid rgba(255,255,255,0.04)', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+                  <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: '#3d4a5c', letterSpacing: '0.1em' }}>AI ASSESSMENT</span>
+                  <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: '#3d4a5c' }}>▾</span>
+                </div>
 
                 {/* Actions */}
                 <div style={{ display: 'flex', gap: 6, padding: '10px 12px' }}>
