@@ -1448,14 +1448,11 @@ function HeroContent({
                       ))}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 10 }}>
-                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 3, flexShrink: 0 }}>
-                        <span style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 22, fontWeight: 700, color: rc.color, lineHeight: 1 }}>{rc.score}</span>
-                        <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#3d4a5c' }}>/100</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <div style={{ width: 5, height: 5, borderRadius: '50%', background: rc.color, boxShadow: `0 0 6px ${rc.color}99`, flexShrink: 0 }} />
+                        <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.08em', color: '#3d4a5c' }}>LIVE SCORE ON ANALYSIS</span>
                       </div>
-                      <div style={{ flex: 1, height: 3, background: 'rgba(255,255,255,0.06)' }}>
-                        <div style={{ width: `${rc.score}%`, height: '100%', background: rc.color }} />
-                      </div>
-                      <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.1em', color: rc.color, border: `1px solid ${rc.color}59`, borderRadius: 3, padding: '5px 12px', background: `${rc.color}0f`, flexShrink: 0 }}>ANALYZE</span>
+                      <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.1em', color: rc.color, border: `1px solid ${rc.color}59`, borderRadius: 3, padding: '5px 12px', background: `${rc.color}0f`, flexShrink: 0 }}>ANALYZE →</span>
                     </div>
                   </button>
                 );
@@ -1591,14 +1588,11 @@ function HeroContent({
                       ))}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 10 }}>
-                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 3, flexShrink: 0 }}>
-                        <span style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 22, fontWeight: 700, color: rc.color, lineHeight: 1 }}>{rc.score}</span>
-                        <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#3d4a5c' }}>/100</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <div style={{ width: 5, height: 5, borderRadius: '50%', background: rc.color, boxShadow: `0 0 6px ${rc.color}99`, flexShrink: 0 }} />
+                        <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.08em', color: '#3d4a5c' }}>LIVE SCORE ON ANALYSIS</span>
                       </div>
-                      <div style={{ flex: 1, height: 3, background: 'rgba(255,255,255,0.06)' }}>
-                        <div style={{ width: `${rc.score}%`, height: '100%', background: rc.color }} />
-                      </div>
-                      <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.1em', color: rc.color, border: `1px solid ${rc.color}59`, borderRadius: 3, padding: '5px 12px', background: `${rc.color}0f`, flexShrink: 0 }}>ANALYZE</span>
+                      <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.1em', color: rc.color, border: `1px solid ${rc.color}59`, borderRadius: 3, padding: '5px 12px', background: `${rc.color}0f`, flexShrink: 0 }}>ANALYZE →</span>
                     </div>
                   </button>
                 );
