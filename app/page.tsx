@@ -14,6 +14,7 @@ import TransactionBreakdown from '@/components/TransactionBreakdown';
 import TransactionGraph from '@/components/TransactionGraph';
 import FundFlowDiagram from '@/components/FundFlowDiagram';
 import TransactionTimeline from '@/components/TransactionTimeline';
+import ExposureBreakdown from '@/components/ExposureBreakdown';
 import SkeletonLoader from '@/components/SkeletonLoader';
 import TerminalLoader from '@/components/TerminalLoader';
 import ExportButton from '@/components/ExportButton';
@@ -4185,6 +4186,9 @@ export default function HomePage() {
               </div>
             );
           })()}
+
+          {/* Exposure breakdown */}
+          <ExposureBreakdown analysis={analysis} />
 
           {/* Timeline chart */}
           <TransactionTimeline transactions={analysis.transactions} riskScore={analysis.riskScore.total} />

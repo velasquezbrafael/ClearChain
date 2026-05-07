@@ -824,6 +824,7 @@ export async function POST(request: NextRequest) {
         transactions: stableTxs,
         ofacResult: stableOfacResult,
         analyzedAt: new Date().toISOString(),
+        indirectExposureHits: stableIndirectHits,
       };
 
       const { narrative: stableNarrative, sarDraft: stableSarDraft } = await generateAll(stableAnalysis);
@@ -986,6 +987,7 @@ export async function POST(request: NextRequest) {
     transactions,
     ofacResult,
     analyzedAt: new Date().toISOString(),
+    indirectExposureHits,
   };
 
   // ── 9. Generate narrative + SAR ───────────────────────────────────────────

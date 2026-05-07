@@ -181,6 +181,8 @@ export interface WalletAnalysis {
   ofacResult: OFACResult;
   /** ISO 8601 timestamp of when this analysis was run */
   analyzedAt: string;
+  /** Structured indirect exposure hits — counterparties that are OFAC-listed or known mixers */
+  indirectExposureHits?: IndirectExposureHit[];
 }
 
 // ---------------------------------------------------------------------------
@@ -203,6 +205,23 @@ export interface ErrorResponse {
   success: false;
   error: string;
   code?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Indirect Exposure Types
+// ---------------------------------------------------------------------------
+
+/**
+ * A single indirect exposure hit — a direct counterparty of the analyzed wallet
+ * that is itself OFAC-listed or a known mixer.
+ */
+export interface IndirectExposureHit {
+  /** The counterparty address that triggered indirect exposure */
+  address: string;
+  /** Entity name — e.g. "LAZARUS GROUP" or "Tornado Cash / Known Mixer" */
+  entity: string;
+  /** Whether this hit is an OFAC SDN match or a known mixer */
+  type: 'ofac' | 'mixer';
 }
 
 // ---------------------------------------------------------------------------
