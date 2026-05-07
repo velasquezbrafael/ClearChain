@@ -331,6 +331,133 @@ function useWindowWidth() {
 }
 
 // ---------------------------------------------------------------------------
+// Signal detail section — scrollable, with fade + MORE pill
+// ---------------------------------------------------------------------------
+
+function SignalDetailSection({ signals }: { signals: ScoringSignal[] }) {
+  const scrollRef = React.useRef<HTMLDivElement>(null);
+  const [isScrolled, setIsScrolled] = React.useState(false);
+  const [canScroll, setCanScroll] = React.useState(false);
+
+  React.useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const check = () => {
+      setCanScroll(el.scrollHeight > el.clientHeight);
+      setIsScrolled(el.scrollTop + el.clientHeight >= el.scrollHeight - 8);
+    };
+    check();
+    el.addEventListener('scroll', check);
+    window.addEventListener('resize', check);
+    return () => {
+      el.removeEventListener('scroll', check);
+      window.removeEventListener('resize', check);
+    };
+  }, [signals]);
+
+  const showMore = canScroll && !isScrolled;
+
+  return (
+    <div
+      style={{
+        marginTop: 20,
+        paddingTop: 16,
+        borderTop: '1px solid rgba(6,182,212,0.05)',
+        position: 'relative',
+      }}
+    >
+      <style>{`
+        .signal-detail-scroll::-webkit-scrollbar { width: 3px; }
+        .signal-detail-scroll::-webkit-scrollbar-track { background: transparent; }
+        .signal-detail-scroll::-webkit-scrollbar-thumb { background: rgba(6,182,212,0.15); border-radius: 2px; }
+      `}</style>
+
+      {/* Scrollable content */}
+      <div
+        ref={scrollRef}
+        className="signal-detail-scroll"
+        style={{
+          maxHeight: 220,
+          overflowY: 'auto',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 10,
+          paddingRight: 4,
+          scrollbarWidth: 'thin',
+          scrollbarColor: 'rgba(6,182,212,0.15) transparent',
+        } as React.CSSProperties}
+      >
+        {signals.map(signal => (
+          <div key={signal.name}>
+            <div
+              style={{
+                fontFamily: 'var(--font-jetbrains-mono)',
+                fontSize: 9,
+                letterSpacing: '0.1em',
+                color: 'var(--text-dim)',
+                marginBottom: 3,
+              }}
+            >
+              {formatSignalName(signal.name)}
+            </div>
+            <p
+              style={{
+                fontFamily: 'var(--font-inter)',
+                fontSize: 12,
+                color: 'var(--text-secondary)',
+                lineHeight: 1.5,
+                margin: 0,
+              }}
+            >
+              {signal.detail}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {/* Bottom fade gradient — only when more content exists */}
+      {showMore && (
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: 48,
+            background: 'linear-gradient(to bottom, transparent, #080b14)',
+            pointerEvents: 'none',
+          }}
+        />
+      )}
+
+      {/* MORE pill */}
+      {showMore && (
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 6,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            fontFamily: 'var(--font-jetbrains-mono)',
+            fontSize: 8,
+            letterSpacing: '0.15em',
+            color: 'rgba(6,182,212,0.5)',
+            background: 'rgba(6,182,212,0.06)',
+            border: '1px solid rgba(6,182,212,0.12)',
+            borderRadius: 2,
+            padding: '3px 8px',
+            pointerEvents: 'none',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          MORE ↓
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Signal list — col 3
 // ---------------------------------------------------------------------------
 
@@ -479,43 +606,7 @@ function SignalList({ signals, isMobile, riskLevel }: { signals: Record<string, 
 
       {/* Detail section — desktop only */}
       {!isMobile && sorted.filter(s => s.triggered && s.detail).length > 0 && (
-        <div
-          style={{
-            marginTop: 20,
-            paddingTop: 16,
-            borderTop: '1px solid rgba(6,182,212,0.05)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 10,
-          }}
-        >
-          {sorted.filter(s => s.triggered && s.detail).map(signal => (
-            <div key={signal.name}>
-              <div
-                style={{
-                  fontFamily: 'var(--font-jetbrains-mono)',
-                  fontSize: 9,
-                  letterSpacing: '0.1em',
-                  color: 'var(--text-dim)',
-                  marginBottom: 3,
-                }}
-              >
-                {formatSignalName(signal.name)}
-              </div>
-              <p
-                style={{
-                  fontFamily: 'var(--font-inter)',
-                  fontSize: 12,
-                  color: 'var(--text-secondary)',
-                  lineHeight: 1.5,
-                  margin: 0,
-                }}
-              >
-                {signal.detail}
-              </p>
-            </div>
-          ))}
-        </div>
+        <SignalDetailSection signals={sorted.filter(s => s.triggered && s.detail)} />
       )}
     </div>
   );
