@@ -331,31 +331,15 @@ function useWindowWidth() {
 }
 
 // ---------------------------------------------------------------------------
-// Signal detail section — scrollable, with fade + MORE pill
+// Signal detail section — tabbed
 // ---------------------------------------------------------------------------
 
 function SignalDetailSection({ signals }: { signals: ScoringSignal[] }) {
-  const scrollRef = React.useRef<HTMLDivElement>(null);
-  const [isScrolled, setIsScrolled] = React.useState(false);
-  const [canScroll, setCanScroll] = React.useState(false);
+  const [activeTab, setActiveTab] = React.useState(0);
 
-  React.useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const check = () => {
-      setCanScroll(el.scrollHeight > el.clientHeight);
-      setIsScrolled(el.scrollTop + el.clientHeight >= el.scrollHeight - 8);
-    };
-    check();
-    el.addEventListener('scroll', check);
-    window.addEventListener('resize', check);
-    return () => {
-      el.removeEventListener('scroll', check);
-      window.removeEventListener('resize', check);
-    };
-  }, [signals]);
+  if (signals.length === 0) return null;
 
-  const showMore = canScroll && !isScrolled;
+  const active = signals[activeTab] ?? signals[0];
 
   return (
     <div
@@ -363,96 +347,68 @@ function SignalDetailSection({ signals }: { signals: ScoringSignal[] }) {
         marginTop: 20,
         paddingTop: 16,
         borderTop: '1px solid rgba(6,182,212,0.05)',
-        position: 'relative',
       }}
     >
-      <style>{`
-        .signal-detail-scroll::-webkit-scrollbar { width: 3px; }
-        .signal-detail-scroll::-webkit-scrollbar-track { background: transparent; }
-        .signal-detail-scroll::-webkit-scrollbar-thumb { background: rgba(6,182,212,0.15); border-radius: 2px; }
-      `}</style>
-
-      {/* Scrollable content */}
+      {/* Tab strip */}
       <div
-        ref={scrollRef}
-        className="signal-detail-scroll"
         style={{
-          maxHeight: 220,
-          overflowY: 'auto',
           display: 'flex',
-          flexDirection: 'column',
-          gap: 10,
-          paddingRight: 4,
-          scrollbarWidth: 'thin',
-          scrollbarColor: 'rgba(6,182,212,0.15) transparent',
-        } as React.CSSProperties}
+          gap: 4,
+          marginBottom: 12,
+          flexWrap: 'wrap',
+        }}
       >
-        {signals.map(signal => (
-          <div key={signal.name}>
-            <div
+        {signals.map((signal, i) => {
+          const isActive = i === activeTab;
+          return (
+            <button
+              key={signal.name}
+              onClick={() => setActiveTab(i)}
               style={{
                 fontFamily: 'var(--font-jetbrains-mono)',
-                fontSize: 9,
-                letterSpacing: '0.1em',
-                color: 'var(--text-dim)',
-                marginBottom: 3,
+                fontSize: 8,
+                letterSpacing: '0.12em',
+                padding: '4px 8px',
+                background: isActive ? 'rgba(6,182,212,0.08)' : 'transparent',
+                border: `1px solid ${isActive ? 'rgba(6,182,212,0.25)' : 'rgba(255,255,255,0.06)'}`,
+                borderRadius: 2,
+                color: isActive ? '#06b6d4' : '#3d4a5c',
+                cursor: 'pointer',
+                transition: 'all 0.12s',
+                whiteSpace: 'nowrap',
               }}
             >
               {formatSignalName(signal.name)}
-            </div>
-            <p
-              style={{
-                fontFamily: 'var(--font-inter)',
-                fontSize: 12,
-                color: 'var(--text-secondary)',
-                lineHeight: 1.5,
-                margin: 0,
-              }}
-            >
-              {signal.detail}
-            </p>
-          </div>
-        ))}
+            </button>
+          );
+        })}
       </div>
 
-      {/* Bottom fade gradient — only when more content exists */}
-      {showMore && (
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: 48,
-            background: 'linear-gradient(to bottom, transparent, #080b14)',
-            pointerEvents: 'none',
-          }}
-        />
-      )}
+      {/* Active tab label */}
+      <div
+        style={{
+          fontFamily: 'var(--font-jetbrains-mono)',
+          fontSize: 9,
+          letterSpacing: '0.1em',
+          color: 'var(--text-dim)',
+          marginBottom: 6,
+        }}
+      >
+        {formatSignalName(active.name)}
+      </div>
 
-      {/* MORE pill */}
-      {showMore && (
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 6,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            fontFamily: 'var(--font-jetbrains-mono)',
-            fontSize: 8,
-            letterSpacing: '0.15em',
-            color: 'rgba(6,182,212,0.5)',
-            background: 'rgba(6,182,212,0.06)',
-            border: '1px solid rgba(6,182,212,0.12)',
-            borderRadius: 2,
-            padding: '3px 8px',
-            pointerEvents: 'none',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          MORE ↓
-        </div>
-      )}
+      {/* Active tab detail text */}
+      <p
+        style={{
+          fontFamily: 'var(--font-inter)',
+          fontSize: 12,
+          color: 'var(--text-secondary)',
+          lineHeight: 1.6,
+          margin: 0,
+        }}
+      >
+        {active.detail}
+      </p>
     </div>
   );
 }
