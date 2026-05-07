@@ -1119,88 +1119,111 @@ function HeroContent({
           }}
         >
           {/* Chain selector */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 16 }}>
-            <div style={{ display: 'flex', gap: 6 }}>
-              {(['ETH', 'BTC', 'TRX', 'SOL'] as const).map(c => {
-                const chainColor = c === 'ETH' ? '#06b6d4' : c === 'BTC' ? '#f97316' : c === 'TRX' ? '#ff4500' : '#9945ff';
-                const isActive = selectedChain === c;
-                return (
-                  <button
-                    key={c}
-                    type="button"
-                    onClick={() => { setSelectedChain(c); setAddress(''); }}
-                    disabled={loading}
-                    style={{
-                      padding: '4px 14px',
-                      fontFamily: 'var(--font-jetbrains-mono)',
-                      fontSize: 11,
-                      letterSpacing: '0.12em',
-                      border: `1px solid ${isActive ? chainColor : 'rgba(255,255,255,0.12)'}`,
-                      borderRadius: 2,
-                      background: isActive ? `${chainColor}14` : 'none',
-                      color: isActive ? chainColor : 'var(--text-dim)',
-                      cursor: loading ? 'default' : 'pointer',
-                      transition: 'all 0.15s',
-                    }}
-                  >
-                    {c}
-                  </button>
-                );
-              })}
-              {/* Stablecoin group — expands to USDC / USDT / DAI sub-row */}
-              <button
-                type="button"
-                onClick={() => {
-                  if (isStablecoin(selectedChain)) setSelectedChain('ETH');
-                  else { setSelectedChain('USDC'); setAddress(''); }
-                }}
-                disabled={loading}
-                style={{
-                  padding: '4px 14px',
-                  fontFamily: 'var(--font-jetbrains-mono)',
-                  fontSize: 11,
-                  letterSpacing: '0.12em',
-                  border: `1px solid ${isStablecoin(selectedChain) ? STABLE_COLOR : 'rgba(255,255,255,0.12)'}`,
-                  borderRadius: 2,
-                  background: isStablecoin(selectedChain) ? `${STABLE_COLOR}14` : 'none',
-                  color: isStablecoin(selectedChain) ? STABLE_COLOR : 'var(--text-dim)',
-                  cursor: loading ? 'default' : 'pointer',
-                  transition: 'all 0.15s',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 4,
-                }}
-              >
-                STABLE
-                <span style={{ fontSize: 7, opacity: 0.6 }}>{isStablecoin(selectedChain) ? '▲' : '▾'}</span>
-              </button>
-            </div>
-            {/* Stablecoin token sub-row */}
-            {isStablecoin(selectedChain) && (
-              <div style={{ display: 'flex', gap: 5, paddingLeft: 6, borderLeft: `2px solid ${STABLE_COLOR}25` }}>
-                {(['USDC', 'USDT', 'DAI'] as const).map(s => (
+          <div style={{ display: 'flex', gap: 6, marginBottom: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+            {(['ETH', 'BTC', 'TRX', 'SOL'] as const).map(c => {
+              const chainColor = c === 'ETH' ? '#06b6d4' : c === 'BTC' ? '#f97316' : c === 'TRX' ? '#ff4500' : '#9945ff';
+              const isActive = selectedChain === c;
+              return (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => { setSelectedChain(c); setAddress(''); }}
+                  disabled={loading}
+                  style={{
+                    padding: '4px 14px',
+                    fontFamily: 'var(--font-jetbrains-mono)',
+                    fontSize: 11,
+                    letterSpacing: '0.12em',
+                    border: `1px solid ${isActive ? chainColor : 'rgba(255,255,255,0.12)'}`,
+                    borderRadius: 2,
+                    background: isActive ? `${chainColor}14` : 'none',
+                    color: isActive ? chainColor : 'var(--text-dim)',
+                    cursor: loading ? 'default' : 'pointer',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  {c}
+                </button>
+              );
+            })}
+
+            {/* Divider */}
+            <div style={{ width: 1, height: 12, background: 'rgba(255,255,255,0.08)', flexShrink: 0 }} />
+
+            {/* Stablecoin group — inline expansion in the same row */}
+            {isStablecoin(selectedChain) ? (
+              <>
+                {(['USDC', 'USDT', 'DAI'] as const).map((s, i) => (
                   <button
                     key={s}
                     type="button"
                     onClick={() => { setSelectedChain(s); setAddress(''); }}
                     disabled={loading}
                     style={{
-                      padding: '3px 10px',
+                      padding: '4px 14px',
                       fontFamily: 'var(--font-jetbrains-mono)',
-                      fontSize: 10,
-                      letterSpacing: '0.1em',
-                      border: `1px solid ${selectedChain === s ? STABLE_COLOR : `${STABLE_COLOR}30`}`,
+                      fontSize: 11,
+                      letterSpacing: '0.12em',
+                      border: `1px solid ${selectedChain === s ? STABLE_COLOR : `${STABLE_COLOR}35`}`,
                       borderRadius: 2,
-                      background: selectedChain === s ? `${STABLE_COLOR}18` : 'none',
-                      color: selectedChain === s ? STABLE_COLOR : `${STABLE_COLOR}80`,
+                      background: selectedChain === s ? `${STABLE_COLOR}14` : 'none',
+                      color: selectedChain === s ? STABLE_COLOR : `${STABLE_COLOR}70`,
                       cursor: loading ? 'default' : 'pointer',
                       transition: 'all 0.15s',
+                      animation: `fadeIn 0.15s ease both`,
+                      animationDelay: `${i * 0.03}s`,
                     }}
                   >
                     {s}
                   </button>
                 ))}
-              </div>
+                <button
+                  type="button"
+                  onClick={() => { setSelectedChain('ETH'); setAddress(''); }}
+                  disabled={loading}
+                  style={{
+                    padding: '4px 8px',
+                    fontFamily: 'var(--font-jetbrains-mono)',
+                    fontSize: 10,
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: 2,
+                    background: 'none',
+                    color: 'var(--text-dim)',
+                    cursor: loading ? 'default' : 'pointer',
+                    opacity: 0.5,
+                    transition: 'opacity 0.15s',
+                    animation: 'fadeIn 0.15s ease both',
+                    animationDelay: '0.09s',
+                  }}
+                  title="Collapse stablecoin selector"
+                >
+                  ×
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={() => { setSelectedChain('USDC'); setAddress(''); }}
+                disabled={loading}
+                style={{
+                  padding: '4px 14px',
+                  fontFamily: 'var(--font-jetbrains-mono)',
+                  fontSize: 11,
+                  letterSpacing: '0.12em',
+                  border: '1px solid rgba(255,255,255,0.12)',
+                  borderRadius: 2,
+                  background: 'none',
+                  color: 'var(--text-dim)',
+                  cursor: loading ? 'default' : 'pointer',
+                  transition: 'all 0.15s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 5,
+                }}
+              >
+                STABLE
+                <span style={{ fontSize: 7, opacity: 0.45, lineHeight: 1 }}>▾</span>
+              </button>
             )}
           </div>
 
@@ -1557,56 +1580,47 @@ function HeroContent({
             )}
 
             {/* Chain selector — inside the box on mobile */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginTop: 16, paddingTop: 14, borderTop: '1px solid rgba(6,182,212,0.06)' }}>
-              <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
-                {(['ETH', 'BTC', 'TRX', 'SOL'] as const).map(c => (
-                  <button
-                    key={c}
-                    type="button"
-                    onClick={() => { setSelectedChain(c); setAddress(''); }}
-                    style={{
-                      padding: '3px 10px',
-                      fontFamily: 'var(--font-jetbrains-mono)',
-                      fontSize: 9,
-                      letterSpacing: '0.1em',
-                      border: `1px solid ${selectedChain === c ? 'rgba(6,182,212,0.4)' : 'rgba(255,255,255,0.08)'}`,
-                      borderRadius: 2,
-                      background: selectedChain === c ? 'rgba(6,182,212,0.08)' : 'transparent',
-                      color: selectedChain === c ? '#06b6d4' : 'var(--text-dim)',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {c}
-                  </button>
-                ))}
+            <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', alignItems: 'center', marginTop: 16, paddingTop: 14, borderTop: '1px solid rgba(6,182,212,0.06)' }}>
+              {(['ETH', 'BTC', 'TRX', 'SOL'] as const).map(c => (
                 <button
+                  key={c}
                   type="button"
-                  onClick={() => { if (isStablecoin(selectedChain)) setSelectedChain('ETH'); else { setSelectedChain('USDC'); setAddress(''); } }}
+                  onClick={() => { setSelectedChain(c); setAddress(''); }}
                   style={{
                     padding: '3px 10px',
                     fontFamily: 'var(--font-jetbrains-mono)',
                     fontSize: 9,
                     letterSpacing: '0.1em',
-                    border: `1px solid ${isStablecoin(selectedChain) ? STABLE_COLOR : 'rgba(255,255,255,0.08)'}`,
+                    border: `1px solid ${selectedChain === c ? 'rgba(6,182,212,0.4)' : 'rgba(255,255,255,0.08)'}`,
                     borderRadius: 2,
-                    background: isStablecoin(selectedChain) ? `${STABLE_COLOR}14` : 'transparent',
-                    color: isStablecoin(selectedChain) ? STABLE_COLOR : 'var(--text-dim)',
+                    background: selectedChain === c ? 'rgba(6,182,212,0.08)' : 'transparent',
+                    color: selectedChain === c ? '#06b6d4' : 'var(--text-dim)',
                     cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', gap: 3,
+                    transition: 'all 0.15s',
                   }}
                 >
-                  STABLE <span style={{ fontSize: 6, opacity: 0.6 }}>{isStablecoin(selectedChain) ? '▲' : '▾'}</span>
+                  {c}
                 </button>
-              </div>
-              {isStablecoin(selectedChain) && (
-                <div style={{ display: 'flex', gap: 4, paddingLeft: 5, borderLeft: `2px solid ${STABLE_COLOR}25` }}>
-                  {(['USDC', 'USDT', 'DAI'] as const).map(s => (
+              ))}
+              <div style={{ width: 1, height: 10, background: 'rgba(255,255,255,0.08)', flexShrink: 0 }} />
+              {isStablecoin(selectedChain) ? (
+                <>
+                  {(['USDC', 'USDT', 'DAI'] as const).map((s, i) => (
                     <button key={s} type="button" onClick={() => { setSelectedChain(s); setAddress(''); }}
-                      style={{ padding: '2px 8px', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 8, letterSpacing: '0.1em', border: `1px solid ${selectedChain === s ? STABLE_COLOR : `${STABLE_COLOR}30`}`, borderRadius: 2, background: selectedChain === s ? `${STABLE_COLOR}18` : 'none', color: selectedChain === s ? STABLE_COLOR : `${STABLE_COLOR}80`, cursor: 'pointer' }}>
+                      style={{ padding: '3px 10px', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.1em', border: `1px solid ${selectedChain === s ? STABLE_COLOR : `${STABLE_COLOR}35`}`, borderRadius: 2, background: selectedChain === s ? `${STABLE_COLOR}14` : 'none', color: selectedChain === s ? STABLE_COLOR : `${STABLE_COLOR}70`, cursor: 'pointer', transition: 'all 0.15s', animation: 'fadeIn 0.15s ease both', animationDelay: `${i * 0.03}s` }}>
                       {s}
                     </button>
                   ))}
-                </div>
+                  <button type="button" onClick={() => { setSelectedChain('ETH'); setAddress(''); }}
+                    style={{ padding: '3px 6px', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, border: '1px solid rgba(255,255,255,0.08)', borderRadius: 2, background: 'none', color: 'var(--text-dim)', cursor: 'pointer', opacity: 0.5 }}>
+                    ×
+                  </button>
+                </>
+              ) : (
+                <button type="button" onClick={() => { setSelectedChain('USDC'); setAddress(''); }}
+                  style={{ padding: '3px 10px', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.1em', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 2, background: 'none', color: 'var(--text-dim)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3, transition: 'all 0.15s' }}>
+                  STABLE <span style={{ fontSize: 6, opacity: 0.45 }}>▾</span>
+                </button>
               )}
             </div>
           </div>
@@ -1729,56 +1743,47 @@ function HeroContent({
             )}
 
             {/* Chain selector — controls examples shown in this panel */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginTop: 24, paddingTop: 16, borderTop: '1px solid rgba(6,182,212,0.06)' }}>
-              <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
-                {(['ETH', 'BTC', 'TRX', 'SOL'] as const).map(c => (
-                  <button
-                    key={c}
-                    type="button"
-                    onClick={() => { setSelectedChain(c); setAddress(''); }}
-                    style={{
-                      padding: '3px 10px',
-                      fontFamily: 'var(--font-jetbrains-mono)',
-                      fontSize: 9,
-                      letterSpacing: '0.1em',
-                      border: `1px solid ${selectedChain === c ? 'rgba(6,182,212,0.4)' : 'rgba(255,255,255,0.08)'}`,
-                      borderRadius: 2,
-                      background: selectedChain === c ? 'rgba(6,182,212,0.08)' : 'transparent',
-                      color: selectedChain === c ? '#06b6d4' : 'var(--text-dim)',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {c}
-                  </button>
-                ))}
+            <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', alignItems: 'center', marginTop: 24, paddingTop: 16, borderTop: '1px solid rgba(6,182,212,0.06)' }}>
+              {(['ETH', 'BTC', 'TRX', 'SOL'] as const).map(c => (
                 <button
+                  key={c}
                   type="button"
-                  onClick={() => { if (isStablecoin(selectedChain)) setSelectedChain('ETH'); else { setSelectedChain('USDC'); setAddress(''); } }}
+                  onClick={() => { setSelectedChain(c); setAddress(''); }}
                   style={{
                     padding: '3px 10px',
                     fontFamily: 'var(--font-jetbrains-mono)',
                     fontSize: 9,
                     letterSpacing: '0.1em',
-                    border: `1px solid ${isStablecoin(selectedChain) ? STABLE_COLOR : 'rgba(255,255,255,0.08)'}`,
+                    border: `1px solid ${selectedChain === c ? 'rgba(6,182,212,0.4)' : 'rgba(255,255,255,0.08)'}`,
                     borderRadius: 2,
-                    background: isStablecoin(selectedChain) ? `${STABLE_COLOR}14` : 'transparent',
-                    color: isStablecoin(selectedChain) ? STABLE_COLOR : 'var(--text-dim)',
+                    background: selectedChain === c ? 'rgba(6,182,212,0.08)' : 'transparent',
+                    color: selectedChain === c ? '#06b6d4' : 'var(--text-dim)',
                     cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', gap: 3,
+                    transition: 'all 0.15s',
                   }}
                 >
-                  STABLE <span style={{ fontSize: 6, opacity: 0.6 }}>{isStablecoin(selectedChain) ? '▲' : '▾'}</span>
+                  {c}
                 </button>
-              </div>
-              {isStablecoin(selectedChain) && (
-                <div style={{ display: 'flex', gap: 4, paddingLeft: 5, borderLeft: `2px solid ${STABLE_COLOR}25` }}>
-                  {(['USDC', 'USDT', 'DAI'] as const).map(s => (
+              ))}
+              <div style={{ width: 1, height: 10, background: 'rgba(255,255,255,0.08)', flexShrink: 0 }} />
+              {isStablecoin(selectedChain) ? (
+                <>
+                  {(['USDC', 'USDT', 'DAI'] as const).map((s, i) => (
                     <button key={s} type="button" onClick={() => { setSelectedChain(s); setAddress(''); }}
-                      style={{ padding: '2px 8px', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 8, letterSpacing: '0.1em', border: `1px solid ${selectedChain === s ? STABLE_COLOR : `${STABLE_COLOR}30`}`, borderRadius: 2, background: selectedChain === s ? `${STABLE_COLOR}18` : 'none', color: selectedChain === s ? STABLE_COLOR : `${STABLE_COLOR}80`, cursor: 'pointer' }}>
+                      style={{ padding: '3px 10px', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.1em', border: `1px solid ${selectedChain === s ? STABLE_COLOR : `${STABLE_COLOR}35`}`, borderRadius: 2, background: selectedChain === s ? `${STABLE_COLOR}14` : 'none', color: selectedChain === s ? STABLE_COLOR : `${STABLE_COLOR}70`, cursor: 'pointer', transition: 'all 0.15s', animation: 'fadeIn 0.15s ease both', animationDelay: `${i * 0.03}s` }}>
                       {s}
                     </button>
                   ))}
-                </div>
+                  <button type="button" onClick={() => { setSelectedChain('ETH'); setAddress(''); }}
+                    style={{ padding: '3px 6px', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, border: '1px solid rgba(255,255,255,0.08)', borderRadius: 2, background: 'none', color: 'var(--text-dim)', cursor: 'pointer', opacity: 0.5 }}>
+                    ×
+                  </button>
+                </>
+              ) : (
+                <button type="button" onClick={() => { setSelectedChain('USDC'); setAddress(''); }}
+                  style={{ padding: '3px 10px', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.1em', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 2, background: 'none', color: 'var(--text-dim)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3, transition: 'all 0.15s' }}>
+                  STABLE <span style={{ fontSize: 6, opacity: 0.45 }}>▾</span>
+                </button>
               )}
             </div>
           </div>
