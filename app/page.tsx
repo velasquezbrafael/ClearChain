@@ -336,6 +336,24 @@ function useWindowWidth() {
 
 function SignalDetailSection({ signals }: { signals: ScoringSignal[] }) {
   const [activeTab, setActiveTab] = React.useState(0);
+  const scrollRef = React.useRef<HTMLDivElement>(null);
+  const [showMore, setShowMore] = React.useState(false);
+
+  // Reset scroll and recheck overflow when active tab changes
+  React.useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollTop = 0;
+    const check = () => {
+      setShowMore(el.scrollHeight > el.clientHeight + 4);
+    };
+    check();
+    const onScroll = () => {
+      setShowMore(el.scrollTop + el.clientHeight < el.scrollHeight - 4);
+    };
+    el.addEventListener('scroll', onScroll);
+    return () => el.removeEventListener('scroll', onScroll);
+  }, [activeTab]);
 
   if (signals.length === 0) return null;
 
@@ -397,18 +415,71 @@ function SignalDetailSection({ signals }: { signals: ScoringSignal[] }) {
         {formatSignalName(active.name)}
       </div>
 
-      {/* Active tab detail text */}
-      <p
-        style={{
-          fontFamily: 'var(--font-inter)',
-          fontSize: 12,
-          color: 'var(--text-secondary)',
-          lineHeight: 1.6,
-          margin: 0,
-        }}
-      >
-        {active.detail}
-      </p>
+      {/* Scrollable detail text */}
+      <div style={{ position: 'relative' }}>
+        <style>{`
+          .signal-scroll::-webkit-scrollbar { width: 2px; }
+          .signal-scroll::-webkit-scrollbar-track { background: transparent; }
+          .signal-scroll::-webkit-scrollbar-thumb { background: rgba(6,182,212,0.2); border-radius: 2px; }
+        `}</style>
+
+        <div
+          ref={scrollRef}
+          className="signal-scroll"
+          style={{
+            maxHeight: 140,
+            overflowY: 'auto',
+            scrollbarWidth: 'thin',
+            scrollbarColor: 'rgba(6,182,212,0.2) transparent',
+            paddingRight: 8,
+            paddingBottom: showMore ? 16 : 0,
+          } as React.CSSProperties}
+        >
+          <p
+            style={{
+              fontFamily: 'var(--font-inter)',
+              fontSize: 12,
+              color: 'var(--text-secondary)',
+              lineHeight: 1.6,
+              margin: 0,
+            }}
+          >
+            {active.detail}
+          </p>
+        </div>
+
+        {/* Fade gradient — only when more content below */}
+        {showMore && (
+          <div
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: 36,
+              background: 'linear-gradient(to bottom, transparent, #080b14)',
+              pointerEvents: 'none',
+            }}
+          />
+        )}
+
+        {/* Scroll arrow — bottom right, disappears when fully scrolled */}
+        {showMore && (
+          <div
+            style={{
+              position: 'absolute',
+              bottom: 4,
+              right: 10,
+              pointerEvents: 'none',
+              opacity: 0.35,
+            }}
+          >
+            <svg width="10" height="6" viewBox="0 0 10 6" fill="none">
+              <path d="M1 1L5 5L9 1" stroke="#06b6d4" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
