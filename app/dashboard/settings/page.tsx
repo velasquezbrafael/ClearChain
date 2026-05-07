@@ -1,8 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import type { RiskProfile, SignalWeights, RiskThresholds } from '@/types'
+import { DEFAULT_SIGNAL_WEIGHTS, DEFAULT_RISK_THRESHOLDS } from '@/types'
 
 interface ApiKey {
   id: string
@@ -87,6 +89,344 @@ function defaultWebhookEdit(key: ApiKey): WebhookEdit {
   return { url: key.webhook_url ?? '', secret: '', secretVisible: false, saving: false, saved: false, testing: false, testResult: null }
 }
 
+// ---------------------------------------------------------------------------
+// Signal display metadata
+// ---------------------------------------------------------------------------
+
+const SIGNAL_META: { key: keyof SignalWeights; label: string; defaultWeight: number }[] = [
+  { key: 'ofac_match',             label: 'OFAC/SDN Match',           defaultWeight: 40 },
+  { key: 'mixer_interaction',      label: 'Mixer/Tumbler Interaction', defaultWeight: 25 },
+  { key: 'rapid_fund_movement',    label: 'Rapid Fund Movement',       defaultWeight: 15 },
+  { key: 'high_risk_counterparty', label: 'High-Risk Counterparty',    defaultWeight: 10 },
+  { key: 'indirect_exposure',      label: 'Indirect Exposure',         defaultWeight: 8  },
+  { key: 'volume_anomaly',         label: 'Volume Anomaly',            defaultWeight: 5  },
+  { key: 'community_red_flags',    label: 'Community Red Flags',       defaultWeight: 5  },
+]
+
+// ---------------------------------------------------------------------------
+// RiskProfilesSection component
+// ---------------------------------------------------------------------------
+
+interface RiskProfilesSectionProps {
+  profiles: RiskProfile[]
+  loading: boolean
+  showForm: boolean
+  editingProfile: RiskProfile | null
+  draftName: string
+  draftWeights: SignalWeights
+  draftThresholds: RiskThresholds
+  thresholdError: string | null
+  profileError: string | null
+  profileSaving: boolean
+  activatingId: string | null
+  deletingId: string | null
+  onOpenNew: () => void
+  onOpenEdit: (p: RiskProfile) => void
+  onClose: () => void
+  onSave: (e: React.FormEvent) => void
+  onActivate: (id: string) => void
+  onDelete: (id: string) => void
+  onDraftNameChange: (v: string) => void
+  onDraftWeightChange: (key: keyof SignalWeights, val: number) => void
+  onDraftThresholdChange: (key: keyof RiskThresholds, val: number) => void
+}
+
+function RiskProfilesSection({
+  profiles, loading, showForm, editingProfile,
+  draftName, draftWeights, draftThresholds,
+  thresholdError, profileError, profileSaving,
+  activatingId, deletingId,
+  onOpenNew, onOpenEdit, onClose, onSave, onActivate, onDelete,
+  onDraftNameChange, onDraftWeightChange, onDraftThresholdChange,
+}: RiskProfilesSectionProps) {
+
+  const inputStyle: React.CSSProperties = {
+    background: 'transparent', border: 'none',
+    borderBottom: '1px solid rgba(255,255,255,0.12)', color: '#ecfeff',
+    fontSize: 13, padding: '8px 0', outline: 'none',
+    fontFamily: 'var(--font-jetbrains-mono)', width: '100%',
+  }
+
+  // Total weight for normalization note
+  const totalWeight = Object.values(draftWeights).reduce((a, b) => a + b, 0)
+  const maxBarWeight = Math.max(...Object.values(draftWeights), 1)
+
+  // Live preview: how would a 65-raw-pt wallet look under this profile?
+  const PREVIEW_RAW = 65
+  const previewTotal = totalWeight > 0 ? Math.min(100, Math.round((PREVIEW_RAW / totalWeight) * 100)) : 0
+  const previewLevel =
+    previewTotal >= draftThresholds.critical ? 'CRITICAL' :
+    previewTotal >= draftThresholds.high ? 'HIGH' :
+    previewTotal >= draftThresholds.medium ? 'MEDIUM' : 'LOW'
+  const previewColor =
+    previewLevel === 'CRITICAL' ? '#ff3b3b' :
+    previewLevel === 'HIGH' ? '#ff8c00' :
+    previewLevel === 'MEDIUM' ? '#ffd60a' : '#22d3ee'
+
+  return (
+    <div style={{ marginBottom: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+        <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, letterSpacing: '0.2em', color: '#7ec8d8' }}>RISK PROFILES</div>
+        {!showForm && (
+          <button
+            onClick={onOpenNew}
+            style={{ padding: '8px 18px', background: 'rgba(6,182,212,0.1)', border: '1px solid rgba(6,182,212,0.3)', borderRadius: 4, color: '#06b6d4', fontSize: 11, letterSpacing: '0.1em', cursor: 'pointer', fontFamily: 'var(--font-jetbrains-mono)' }}
+          >
+            + NEW PROFILE
+          </button>
+        )}
+      </div>
+
+      {/* Profile editor */}
+      {showForm && (
+        <form onSubmit={onSave} className="glass" style={{ borderRadius: 4, padding: '24px', marginBottom: 24 }}>
+          <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.18em', color: '#7ec8d8', marginBottom: 20 }}>
+            {editingProfile ? 'EDIT PROFILE' : 'NEW PROFILE'}
+          </div>
+
+          {/* Name */}
+          <div style={{ marginBottom: 24 }}>
+            <label style={{ display: 'block', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.14em', color: '#1e4d5c', marginBottom: 6 }}>PROFILE NAME</label>
+            <input
+              type="text"
+              value={draftName}
+              onChange={e => onDraftNameChange(e.target.value)}
+              placeholder="e.g. Conservative Compliance, Exchange Monitoring..."
+              maxLength={60}
+              style={inputStyle}
+              autoFocus
+            />
+          </div>
+
+          {/* Signal Weights */}
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.14em', color: '#1e4d5c', marginBottom: 14 }}>SIGNAL WEIGHTS</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {SIGNAL_META.map(({ key, label }) => {
+                const val = draftWeights[key]
+                const barPct = maxBarWeight > 0 ? (val / maxBarWeight) * 100 : 0
+                return (
+                  <div key={key} style={{ display: 'grid', gridTemplateColumns: '1fr 60px 80px', alignItems: 'center', gap: 12 }}>
+                    <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: '#7ec8d8' }}>{label}</span>
+                    <input
+                      type="number"
+                      min={0}
+                      max={100}
+                      value={val}
+                      onChange={e => {
+                        const n = Math.max(0, Math.min(100, parseInt(e.target.value, 10) || 0))
+                        onDraftWeightChange(key, n)
+                      }}
+                      style={{ ...inputStyle, width: '100%', fontSize: 12, textAlign: 'right' }}
+                    />
+                    <div style={{ height: 4, background: 'rgba(6,182,212,0.08)', borderRadius: 2, overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${barPct}%`, background: '#06b6d4', borderRadius: 2, transition: 'width 0.15s ease' }} />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+            <div style={{ marginTop: 12, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: totalWeight === 100 ? '#06b6d4' : '#ffd60a', letterSpacing: '0.08em' }}>
+              TOTAL WEIGHT: {totalWeight} pts{totalWeight !== 100 ? ` — normalizes to 100` : ''}
+            </div>
+          </div>
+
+          {/* Risk Thresholds */}
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.14em', color: '#1e4d5c', marginBottom: 14 }}>RISK THRESHOLDS (normalized score)</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+              {([
+                { key: 'medium' as keyof RiskThresholds, label: 'MEDIUM CUTOFF', color: '#ffd60a' },
+                { key: 'high' as keyof RiskThresholds, label: 'HIGH CUTOFF', color: '#ff8c00' },
+                { key: 'critical' as keyof RiskThresholds, label: 'CRITICAL CUTOFF', color: '#ff3b3b' },
+              ]).map(({ key, label, color }) => (
+                <div key={key}>
+                  <label style={{ display: 'block', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.12em', color, marginBottom: 6 }}>{label}</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={99}
+                    value={draftThresholds[key]}
+                    onChange={e => {
+                      const n = Math.max(1, Math.min(99, parseInt(e.target.value, 10) || 1))
+                      onDraftThresholdChange(key, n)
+                    }}
+                    style={{ ...inputStyle, fontSize: 18, fontWeight: 700, color }}
+                  />
+                </div>
+              ))}
+            </div>
+            {thresholdError && (
+              <div style={{ marginTop: 10, fontSize: 11, color: '#ff3b3b', fontFamily: 'var(--font-jetbrains-mono)' }}>{thresholdError}</div>
+            )}
+          </div>
+
+          {/* Live Preview */}
+          <div style={{ marginBottom: 24, background: 'rgba(6,182,212,0.03)', border: '1px solid rgba(6,182,212,0.1)', borderRadius: 4, padding: '14px 16px' }}>
+            <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.14em', color: '#1e4d5c', marginBottom: 10 }}>LIVE PREVIEW — wallet scoring 65 raw pts</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 28, fontWeight: 700, color: previewColor }}>{previewTotal}</div>
+              <div>
+                <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.12em', color: previewColor, fontWeight: 700 }}>{previewLevel}</div>
+                <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: '#1e4d5c', marginTop: 2 }}>
+                  {totalWeight !== 100 ? `${PREVIEW_RAW}/${totalWeight} raw → normalized` : `${PREVIEW_RAW} pts`}
+                </div>
+              </div>
+              <div style={{ flex: 1, height: 4, background: 'rgba(6,182,212,0.08)', borderRadius: 2, overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${previewTotal}%`, background: previewColor, borderRadius: 2, transition: 'width 0.15s ease' }} />
+              </div>
+            </div>
+            <div style={{ marginTop: 10, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: '#1e4d5c', letterSpacing: '0.06em' }}>
+              LOW &lt;{draftThresholds.medium} &nbsp;|&nbsp; MEDIUM {draftThresholds.medium}–{draftThresholds.high - 1} &nbsp;|&nbsp; HIGH {draftThresholds.high}–{draftThresholds.critical - 1} &nbsp;|&nbsp; CRITICAL {draftThresholds.critical}+
+            </div>
+          </div>
+
+          {profileError && (
+            <div style={{ marginBottom: 14, fontSize: 12, color: '#ff3b3b', fontFamily: 'var(--font-jetbrains-mono)' }}>{profileError}</div>
+          )}
+
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button
+              type="submit"
+              disabled={profileSaving}
+              style={{ padding: '8px 20px', background: 'rgba(6,182,212,0.1)', border: '1px solid rgba(6,182,212,0.3)', borderRadius: 4, color: '#06b6d4', fontSize: 11, letterSpacing: '0.1em', cursor: profileSaving ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-jetbrains-mono)', opacity: profileSaving ? 0.5 : 1 }}
+            >
+              {profileSaving ? 'SAVING...' : 'SAVE'}
+            </button>
+            <button type="button" onClick={onClose} style={{ padding: '8px 16px', background: 'none', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 4, color: '#7ec8d8', fontSize: 11, cursor: 'pointer', fontFamily: 'var(--font-jetbrains-mono)' }}>
+              CANCEL
+            </button>
+          </div>
+        </form>
+      )}
+
+      {/* Profile list */}
+      {loading ? (
+        <div style={{ padding: '32px', textAlign: 'center', color: '#1e4d5c', fontSize: 13 }}>Loading...</div>
+      ) : profiles.length === 0 && !showForm ? (
+        <div className="glass" style={{ borderRadius: 4, padding: '40px 32px', textAlign: 'center' }}>
+          <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12, color: '#7ec8d8', letterSpacing: '0.12em', marginBottom: 12 }}>NO CUSTOM PROFILES</div>
+          <div style={{ fontSize: 13, color: '#1e4d5c', lineHeight: 1.7, marginBottom: 24, maxWidth: 440, margin: '0 auto 24px' }}>
+            ClearChain&apos;s standard methodology is active by default.<br />
+            Create a profile to customize signal weights and risk thresholds<br />
+            for your institution&apos;s compliance requirements.
+          </div>
+          <button
+            onClick={onOpenNew}
+            style={{ padding: '10px 24px', background: 'rgba(6,182,212,0.1)', border: '1px solid rgba(6,182,212,0.3)', borderRadius: 4, color: '#06b6d4', fontSize: 11, letterSpacing: '0.1em', cursor: 'pointer', fontFamily: 'var(--font-jetbrains-mono)' }}
+          >
+            CREATE YOUR FIRST PROFILE
+          </button>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {profiles.map(profile => {
+            const isActive = profile.is_active
+            const totalW = Object.values(profile.signal_weights).reduce((a, b) => a + b, 0)
+            const maxW = Math.max(...Object.values(profile.signal_weights), 1)
+            return (
+              <div
+                key={profile.id}
+                className="glass"
+                style={{
+                  borderRadius: 4,
+                  borderLeft: isActive ? '3px solid #06b6d4' : '3px solid transparent',
+                  opacity: showForm && editingProfile?.id !== profile.id ? 0.4 : 1,
+                  transition: 'opacity 0.2s',
+                }}
+              >
+                {/* Header */}
+                <div style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 13, color: '#ecfeff', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {profile.name}
+                    </div>
+                    <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: '#1e4d5c', letterSpacing: '0.08em' }}>
+                      {new Date(profile.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </div>
+                  </div>
+                  {isActive && (
+                    <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.14em', color: '#06b6d4', border: '1px solid rgba(6,182,212,0.3)', borderRadius: 2, padding: '2px 6px' }}>ACTIVE</span>
+                  )}
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    {!isActive && (
+                      <button
+                        onClick={() => onActivate(profile.id)}
+                        disabled={activatingId === profile.id}
+                        style={{ padding: '6px 12px', background: 'rgba(6,182,212,0.08)', border: '1px solid rgba(6,182,212,0.2)', borderRadius: 4, color: '#06b6d4', fontSize: 10, letterSpacing: '0.1em', cursor: activatingId === profile.id ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-jetbrains-mono)', opacity: activatingId === profile.id ? 0.5 : 1 }}
+                      >
+                        {activatingId === profile.id ? '...' : 'SET ACTIVE'}
+                      </button>
+                    )}
+                    <button
+                      onClick={() => onOpenEdit(profile)}
+                      disabled={!!showForm}
+                      style={{ padding: '6px 12px', background: 'none', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 4, color: '#7ec8d8', fontSize: 10, letterSpacing: '0.1em', cursor: showForm ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-jetbrains-mono)', opacity: showForm ? 0.4 : 1 }}
+                    >
+                      EDIT
+                    </button>
+                    {!isActive && (
+                      <button
+                        onClick={() => onDelete(profile.id)}
+                        disabled={deletingId === profile.id}
+                        style={{ padding: '6px 12px', background: 'none', border: 'none', color: '#ff3b3b', fontSize: 10, letterSpacing: '0.1em', cursor: deletingId === profile.id ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-jetbrains-mono)', opacity: deletingId === profile.id ? 0.5 : 1 }}
+                      >
+                        {deletingId === profile.id ? '...' : 'DELETE'}
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Signal weight table */}
+                <div style={{ borderTop: '1px solid rgba(6,182,212,0.05)', padding: '14px 20px' }}>
+                  <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.14em', color: '#1e4d5c', marginBottom: 10 }}>SIGNAL WEIGHTS</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {SIGNAL_META.map(({ key, label }) => {
+                      const w = profile.signal_weights[key]
+                      const barPct = maxW > 0 ? (w / maxW) * 100 : 0
+                      return (
+                        <div key={key} style={{ display: 'grid', gridTemplateColumns: '1fr 40px 80px', alignItems: 'center', gap: 10 }}>
+                          <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#7ec8d8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
+                          <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#ecfeff', textAlign: 'right' }}>{w}</span>
+                          <div style={{ height: 3, background: 'rgba(6,182,212,0.08)', borderRadius: 2, overflow: 'hidden' }}>
+                            <div style={{ height: '100%', width: `${barPct}%`, background: '#06b6d4', borderRadius: 2 }} />
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                  <div style={{ marginTop: 8, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: '#1e4d5c', letterSpacing: '0.06em' }}>
+                    TOTAL: {totalW} pts{totalW !== 100 ? ' — normalized to 100' : ''}
+                  </div>
+                </div>
+
+                {/* Thresholds */}
+                <div style={{ borderTop: '1px solid rgba(6,182,212,0.05)', padding: '12px 20px', display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+                  {[
+                    { label: 'LOW', range: `<${profile.risk_thresholds.medium}`, color: '#22d3ee' },
+                    { label: 'MEDIUM', range: `${profile.risk_thresholds.medium}–${profile.risk_thresholds.high - 1}`, color: '#ffd60a' },
+                    { label: 'HIGH', range: `${profile.risk_thresholds.high}–${profile.risk_thresholds.critical - 1}`, color: '#ff8c00' },
+                    { label: 'CRITICAL', range: `${profile.risk_thresholds.critical}+`, color: '#ff3b3b' },
+                  ].map(({ label, range, color }) => (
+                    <div key={label}>
+                      <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color, letterSpacing: '0.1em' }}>{label}</span>
+                      <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, color: '#1e4d5c', marginLeft: 6 }}>{range}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// SettingsPage
+// ---------------------------------------------------------------------------
+
 export default function SettingsPage() {
   const router = useRouter()
   const supabase = createClient()
@@ -116,19 +456,40 @@ export default function SettingsPage() {
   const [disabling, setDisabling] = useState(false)
   const [secretCopied, setSecretCopied] = useState(false)
 
+  // Risk profiles state
+  const [profiles, setProfiles] = useState<RiskProfile[]>([])
+  const [profilesLoading, setProfilesLoading] = useState(true)
+  const [showProfileForm, setShowProfileForm] = useState(false)
+  const [editingProfile, setEditingProfile] = useState<RiskProfile | null>(null)
+  const [profileError, setProfileError] = useState<string | null>(null)
+  const [profileSaving, setProfileSaving] = useState(false)
+  const [activatingId, setActivatingId] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+
+  // Profile editor draft state
+  const [draftName, setDraftName] = useState('')
+  const [draftWeights, setDraftWeights] = useState<SignalWeights>({ ...DEFAULT_SIGNAL_WEIGHTS })
+  const [draftThresholds, setDraftThresholds] = useState<RiskThresholds>({ ...DEFAULT_RISK_THRESHOLDS })
+  const [thresholdError, setThresholdError] = useState<string | null>(null)
+
   useEffect(() => {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/auth/login'); return }
       setUserEmail(user.email ?? '')
 
-      const [{ data: keysData }, { data: factors }] = await Promise.all([
+      const [{ data: keysData }, { data: factors }, { data: profilesData }] = await Promise.all([
         supabase
           .from('api_keys')
           .select('id, label, tier, usage_count, daily_usage_count, daily_reset_at, last_used_at, created_at, is_active, webhook_url')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false }),
         supabase.auth.mfa.listFactors(),
+        supabase
+          .from('risk_profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false }),
       ])
 
       const loadedKeys = (keysData as ApiKey[] ?? [])
@@ -145,6 +506,8 @@ export default function SettingsPage() {
         setFactorId(totpFactors[0].id)
       }
 
+      setProfiles((profilesData as RiskProfile[]) ?? [])
+      setProfilesLoading(false)
       setLoading(false)
     }
     load()
@@ -260,6 +623,101 @@ export default function SettingsPage() {
       setCopiedKey(true)
       setTimeout(() => setCopiedKey(false), 1500)
     })
+  }
+
+  // ── Risk Profile handlers ─────────────────────────────────────────────────
+
+  const openNewProfileForm = useCallback(() => {
+    setEditingProfile(null)
+    setDraftName('')
+    setDraftWeights({ ...DEFAULT_SIGNAL_WEIGHTS })
+    setDraftThresholds({ ...DEFAULT_RISK_THRESHOLDS })
+    setThresholdError(null)
+    setProfileError(null)
+    setShowProfileForm(true)
+  }, [])
+
+  const openEditProfileForm = useCallback((p: RiskProfile) => {
+    setEditingProfile(p)
+    setDraftName(p.name)
+    setDraftWeights({ ...p.signal_weights })
+    setDraftThresholds({ ...p.risk_thresholds })
+    setThresholdError(null)
+    setProfileError(null)
+    setShowProfileForm(true)
+  }, [])
+
+  const closeProfileForm = useCallback(() => {
+    setShowProfileForm(false)
+    setEditingProfile(null)
+    setProfileError(null)
+    setThresholdError(null)
+  }, [])
+
+  function validateThresholdDraft(t: RiskThresholds): string | null {
+    if (t.medium >= t.high) return 'MEDIUM cutoff must be less than HIGH cutoff.'
+    if (t.high >= t.critical) return 'HIGH cutoff must be less than CRITICAL cutoff.'
+    if (t.medium < 1 || t.high < 1 || t.critical < 1) return 'All thresholds must be at least 1.'
+    if (t.medium > 99 || t.high > 99 || t.critical > 99) return 'All thresholds must be at most 99.'
+    return null
+  }
+
+  async function handleSaveProfile(e: React.FormEvent) {
+    e.preventDefault()
+    const tErr = validateThresholdDraft(draftThresholds)
+    if (tErr) { setThresholdError(tErr); return }
+    if (!draftName.trim()) { setProfileError('Profile name is required.'); return }
+
+    setProfileSaving(true)
+    setProfileError(null)
+
+    const url = editingProfile ? `/api/profiles/${editingProfile.id}` : '/api/profiles'
+    const method = editingProfile ? 'PUT' : 'POST'
+
+    const res = await fetch(url, {
+      method,
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: draftName.trim(), signal_weights: draftWeights, risk_thresholds: draftThresholds }),
+    })
+    const json = await res.json()
+
+    if (!res.ok) {
+      setProfileError(json.error ?? 'Save failed.')
+      setProfileSaving(false)
+      return
+    }
+
+    const saved = json.profile as RiskProfile
+    if (editingProfile) {
+      setProfiles(prev => prev.map(p => p.id === saved.id ? saved : p))
+    } else {
+      setProfiles(prev => [saved, ...prev])
+    }
+    setProfileSaving(false)
+    closeProfileForm()
+  }
+
+  async function handleActivateProfile(id: string) {
+    setActivatingId(id)
+    const res = await fetch(`/api/profiles/${id}/activate`, { method: 'POST', credentials: 'include' })
+    const json = await res.json()
+    if (res.ok && json.profile) {
+      setProfiles(prev => prev.map(p => ({ ...p, is_active: p.id === id })))
+    }
+    setActivatingId(null)
+  }
+
+  async function handleDeleteProfile(id: string) {
+    setDeletingId(id)
+    const res = await fetch(`/api/profiles/${id}`, { method: 'DELETE', credentials: 'include' })
+    const json = await res.json()
+    if (res.ok) {
+      setProfiles(prev => prev.filter(p => p.id !== id))
+    } else {
+      alert(json.error ?? 'Delete failed.')
+    }
+    setDeletingId(null)
   }
 
   // ── 2FA handlers ──────────────────────────────────────────────────────────
@@ -382,6 +840,36 @@ export default function SettingsPage() {
             </div>
           </div>
         )}
+
+        {/* ── Risk Profiles section ── */}
+        <RiskProfilesSection
+          profiles={profiles}
+          loading={profilesLoading}
+          showForm={showProfileForm}
+          editingProfile={editingProfile}
+          draftName={draftName}
+          draftWeights={draftWeights}
+          draftThresholds={draftThresholds}
+          thresholdError={thresholdError}
+          profileError={profileError}
+          profileSaving={profileSaving}
+          activatingId={activatingId}
+          deletingId={deletingId}
+          onOpenNew={openNewProfileForm}
+          onOpenEdit={openEditProfileForm}
+          onClose={closeProfileForm}
+          onSave={handleSaveProfile}
+          onActivate={handleActivateProfile}
+          onDelete={handleDeleteProfile}
+          onDraftNameChange={setDraftName}
+          onDraftWeightChange={(key, val) => setDraftWeights(prev => ({ ...prev, [key]: val }))}
+          onDraftThresholdChange={(key, val) => {
+            setDraftThresholds(prev => ({ ...prev, [key]: val }))
+            setThresholdError(null)
+          }}
+        />
+
+        <div style={{ borderTop: '1px solid rgba(6,182,212,0.08)', marginBottom: 48 }} />
 
         {/* ── API Keys section ── */}
         <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, letterSpacing: '0.2em', color: '#7ec8d8', marginBottom: 20 }}>API KEYS</div>

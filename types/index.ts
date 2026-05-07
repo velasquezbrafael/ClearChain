@@ -206,6 +206,68 @@ export interface ErrorResponse {
 }
 
 // ---------------------------------------------------------------------------
+// Custom Risk Profile Types
+// ---------------------------------------------------------------------------
+
+/**
+ * Per-signal scoring weights. Each value is an integer 0–100 representing the
+ * maximum points that signal can contribute to the raw total before normalization.
+ */
+export interface SignalWeights {
+  ofac_match: number;
+  mixer_interaction: number;
+  rapid_fund_movement: number;
+  high_risk_counterparty: number;
+  indirect_exposure: number;
+  volume_anomaly: number;
+  community_red_flags: number;
+}
+
+/**
+ * Risk level threshold breakpoints (0–100 normalized score).
+ * Thresholds must be strictly ascending: medium < high < critical.
+ * score >= critical → CRITICAL
+ * score >= high → HIGH
+ * score >= medium → MEDIUM
+ * otherwise → LOW
+ */
+export interface RiskThresholds {
+  medium: number;
+  high: number;
+  critical: number;
+}
+
+/** A saved custom risk profile belonging to an authenticated user. */
+export interface RiskProfile {
+  id: string;
+  user_id: string;
+  name: string;
+  is_active: boolean;
+  signal_weights: SignalWeights;
+  risk_thresholds: RiskThresholds;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Default signal weights — matches the hardcoded scoring engine values. */
+export const DEFAULT_SIGNAL_WEIGHTS: SignalWeights = {
+  ofac_match: 40,
+  mixer_interaction: 25,
+  rapid_fund_movement: 15,
+  high_risk_counterparty: 10,
+  indirect_exposure: 8,
+  volume_anomaly: 5,
+  community_red_flags: 5,
+};
+
+/** Default risk thresholds — matches the hardcoded scoring engine thresholds. */
+export const DEFAULT_RISK_THRESHOLDS: RiskThresholds = {
+  medium: 25,
+  high: 50,
+  critical: 75,
+};
+
+// ---------------------------------------------------------------------------
 // Community Label Types (Supabase)
 // ---------------------------------------------------------------------------
 

@@ -17,7 +17,8 @@
  *   Total possible:               100 pts
  */
 
-import type { WalletTransaction, OFACResult, RiskScore, RiskLevel, ScoringSignal } from '@/types';
+import type { WalletTransaction, OFACResult, RiskScore, RiskLevel, ScoringSignal, SignalWeights, RiskThresholds } from '@/types';
+import { DEFAULT_SIGNAL_WEIGHTS, DEFAULT_RISK_THRESHOLDS } from '@/types';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -96,10 +97,11 @@ const FALLBACK_VOLUME_THRESHOLD = 0.5;
  * HIGH:     Escalate to AML team; consider STR/SAR
  * CRITICAL: Immediate SAR consideration; potential OFAC nexus
  */
-export function getRiskLevel(score: number): RiskLevel {
-  if (score >= 75) return 'CRITICAL';
-  if (score >= 50) return 'HIGH';
-  if (score >= 25) return 'MEDIUM';
+export function getRiskLevel(score: number, thresholds?: RiskThresholds): RiskLevel {
+  const t = thresholds ?? DEFAULT_RISK_THRESHOLDS;
+  if (score >= t.critical) return 'CRITICAL';
+  if (score >= t.high)     return 'HIGH';
+  if (score >= t.medium)   return 'MEDIUM';
   return 'LOW';
 }
 
@@ -114,17 +116,18 @@ export function getRiskLevel(score: number): RiskLevel {
  * Any OFAC-listed address is a mandatory SAR trigger for covered institutions
  * under 31 CFR § 501.604 and should be escalated immediately.
  */
-function evaluateOFACSignal(ofacResult: OFACResult): ScoringSignal {
+function evaluateOFACSignal(ofacResult: OFACResult, weight = 40): ScoringSignal {
   const triggered = ofacResult.matched && ofacResult.confidence >= 0.9;
+  const customNote = weight !== 40 ? ` (weighted ${weight} pts in your active profile)` : '';
   return {
     name: 'ofac_match',
-    weight: 40,
+    weight,
     triggered,
-    score: triggered ? 40 : 0,
+    score: triggered ? weight : 0,
     detail: triggered
       ? `Address is listed on the OFAC SDN list as "${ofacResult.matchedEntity}". ` +
         'Transactions with this wallet may constitute a sanctions violation under IEEPA/TWEA. ' +
-        'Mandatory SAR filing required for covered financial institutions.'
+        `Mandatory SAR filing required for covered financial institutions.${customNote}`
       : 'No match found on OFAC SDN list.',
   };
 }
@@ -137,7 +140,7 @@ function evaluateOFACSignal(ofacResult: OFACResult): ScoringSignal {
  * Even post-designation, interacting with these contracts carries significant
  * legal and reputational risk.
  */
-function evaluateMixerSignal(transactions: WalletTransaction[], queriedAddress: string): ScoringSignal {
+function evaluateMixerSignal(transactions: WalletTransaction[], queriedAddress: string, weight = 25): ScoringSignal {
   const isMixer = KNOWN_MIXER_ADDRESSES.has(queriedAddress.toLowerCase());
   const mixerTxs = transactions.filter(
     (tx) =>
@@ -146,11 +149,12 @@ function evaluateMixerSignal(transactions: WalletTransaction[], queriedAddress: 
   );
 
   const triggered = isMixer || mixerTxs.length > 0;
+  const customNote = weight !== 25 ? ` (weighted ${weight} pts in your active profile)` : '';
 
   if (!triggered) {
     return {
       name: 'mixer_interaction',
-      weight: 25,
+      weight,
       triggered: false,
       score: 0,
       detail: 'No interactions with known mixer or tumbler contracts detected.',
@@ -160,14 +164,14 @@ function evaluateMixerSignal(transactions: WalletTransaction[], queriedAddress: 
   if (isMixer) {
     return {
       name: 'mixer_interaction',
-      weight: 25,
+      weight,
       triggered: true,
-      score: 25,
+      score: weight,
       detail:
         'Queried address IS a known OFAC-designated mixer contract (Tornado Cash). ' +
         'Direct interaction — not a counterparty exposure. ' +
         'Tornado Cash was designated by OFAC on 08/08/2022 (SDN). ' +
-        'Mandatory SAR filing required for covered financial institutions.',
+        `Mandatory SAR filing required for covered financial institutions.${customNote}`,
     };
   }
 
@@ -181,14 +185,14 @@ function evaluateMixerSignal(transactions: WalletTransaction[], queriedAddress: 
 
   return {
     name: 'mixer_interaction',
-    weight: 25,
+    weight,
     triggered: true,
-    score: 25,
+    score: weight,
     detail:
       `${mixerTxs.length} transaction(s) directly involving known mixer contracts. ` +
       `Mixer addresses: ${uniqueMixerAddresses.map((a) => a.slice(0, 10) + '...').join(', ')}. ` +
       'Tornado Cash was designated by OFAC on 08/08/2022 (SDN). ' +
-      'This interaction pattern is consistent with the "mixer_obfuscation" AML typology.',
+      `This interaction pattern is consistent with the "mixer_obfuscation" AML typology.${customNote}`,
   };
 }
 
@@ -217,14 +221,16 @@ function evaluateRapidHopSignal(
   transactions: WalletTransaction[],
   ofacResult: OFACResult,
   mixerSignalTriggered: boolean,
+  weight = 15,
 ): ScoringSignal {
+  const customNote = weight !== 15 ? ` (weighted ${weight} pts in your active profile)` : '';
   // Contextual gate: rapid movement is only meaningful alongside OFAC exposure
   // or mixer interaction. Alone it is consistent with normal high-frequency
   // wallet behavior and would produce false positives on active legitimate wallets.
   if (!ofacResult.matched && !mixerSignalTriggered) {
     return {
       name: 'rapid_fund_movement',
-      weight: 15,
+      weight,
       triggered: false,
       score: 0,
       detail:
@@ -240,7 +246,7 @@ function evaluateRapidHopSignal(
   if (outbound.length < RAPID_HOP_MIN_COUNT) {
     return {
       name: 'rapid_fund_movement',
-      weight: 15,
+      weight,
       triggered: false,
       score: 0,
       detail: `Insufficient outbound transactions for rapid hop analysis (${outbound.length} found, ${RAPID_HOP_MIN_COUNT} required).`,
@@ -314,7 +320,7 @@ function evaluateRapidHopSignal(
     if (uniqueCounterparties > 30 && hopRecipients > 5) {
       return {
         name: 'rapid_fund_movement',
-        weight: 15,
+        weight,
         triggered: false,
         score: 0,
         detail:
@@ -327,14 +333,14 @@ function evaluateRapidHopSignal(
     const hours = Math.max(1, Math.round((layeringWindowEnd - layeringWindowStart) / 3600));
     return {
       name: 'rapid_fund_movement',
-      weight: 15,
+      weight,
       triggered: true,
-      score: 15,
+      score: weight,
       detail:
         `${maxLayeringHops} layering hops detected within ${hours} hour(s): ` +
         'each outbound moved ≥80% of the ETH received in the immediately preceding inbound. ' +
         'Consistent with wire-stripping layering techniques. ' +
-        'Per FATF Report on Virtual Assets (2021), this is a recognised red flag indicator.',
+        `Per FATF Report on Virtual Assets (2021), this is a recognised red flag indicator.${customNote}`,
     };
   }
 
@@ -374,7 +380,7 @@ function evaluateRapidHopSignal(
     if (uniqueCounterparties > 30 && hopRecipients > 5) {
       return {
         name: 'rapid_fund_movement',
-        weight: 15,
+        weight,
         triggered: false,
         score: 0,
         detail:
@@ -385,14 +391,14 @@ function evaluateRapidHopSignal(
 
     return {
       name: 'rapid_fund_movement',
-      weight: 15,
+      weight,
       triggered: true,
-      score: 15,
+      score: weight,
       detail:
         `${fallbackHops} outbound transactions within 3 hours representing ` +
         `${Math.round(volumeFraction * 100)}% of total analyzed volume. ` +
         'High-velocity fund concentration without clear business rationale — ' +
-        'consistent with rapid layering activity.',
+        `consistent with rapid layering activity.${customNote}`,
     };
   }
 
@@ -400,7 +406,7 @@ function evaluateRapidHopSignal(
   const layeringHopCount = taggedOutbound.filter(t => t.isLayeringHop).length;
   return {
     name: 'rapid_fund_movement',
-    weight: 15,
+    weight,
     triggered: false,
     score: 0,
     detail:
@@ -419,7 +425,7 @@ function evaluateRapidHopSignal(
  * address set. Direct interaction doesn't necessarily mean the wallet owner
  * is complicit, but it requires source-of-funds investigation.
  */
-function evaluateCounterpartySignal(transactions: WalletTransaction[]): ScoringSignal {
+function evaluateCounterpartySignal(transactions: WalletTransaction[], weight = 10): ScoringSignal {
   const riskCounterparties = transactions.filter(
     (tx) =>
       HIGH_RISK_COUNTERPARTIES.has(tx.to.toLowerCase()) ||
@@ -427,11 +433,12 @@ function evaluateCounterpartySignal(transactions: WalletTransaction[]): ScoringS
   );
 
   const triggered = riskCounterparties.length > 0;
+  const customNote = weight !== 10 ? ` (weighted ${weight} pts in your active profile)` : '';
 
   if (!triggered) {
     return {
       name: 'high_risk_counterparty',
-      weight: 10,
+      weight,
       triggered: false,
       score: 0,
       detail: 'No interactions with known high-risk counterparty addresses.',
@@ -448,13 +455,13 @@ function evaluateCounterpartySignal(transactions: WalletTransaction[]): ScoringS
 
   return {
     name: 'high_risk_counterparty',
-    weight: 10,
+    weight,
     triggered: true,
-    score: 10,
+    score: weight,
     detail:
       `${riskCounterparties.length} transaction(s) with ${uniqueRisky.length} known high-risk counterparty address(es): ` +
       `${uniqueRisky.map((a) => a.slice(0, 10) + '...').join(', ')}. ` +
-      'Enhanced due diligence and source-of-funds investigation required.',
+      `Enhanced due diligence and source-of-funds investigation required.${customNote}`,
   };
 }
 
@@ -470,12 +477,15 @@ function evaluateCounterpartySignal(transactions: WalletTransaction[]): ScoringS
  * every counterparty against the full OFAC SDN list passed in from the route.
  */
 function evaluateIndirectExposureSignal(
-  indirectHits: Array<{ address: string; entity: string; type: 'ofac' | 'mixer' }>
+  indirectHits: Array<{ address: string; entity: string; type: 'ofac' | 'mixer' }>,
+  weight = 8,
 ): ScoringSignal {
+  const customNote = weight !== 8 ? ` (weighted ${weight} pts in your active profile)` : '';
+
   if (indirectHits.length === 0) {
     return {
       name: 'indirect_exposure',
-      weight: 8,
+      weight,
       triggered: false,
       score: 0,
       detail: 'No indirect exposure detected. Counterparty addresses show no OFAC designations or mixer linkages beyond direct interactions.',
@@ -500,14 +510,16 @@ function evaluateIndirectExposureSignal(
   }
   parts.push(
     'Indirect exposure does not imply direct wrongdoing but warrants source-of-funds inquiry ' +
-    'into why the wallet interacted with these counterparties.'
+    `into why the wallet interacted with these counterparties.${customNote}`
   );
 
+  // Scale with hits but cap at the configured weight
+  const rawScore = Math.min(weight, indirectHits.length * Math.ceil(weight / 2));
   return {
     name: 'indirect_exposure',
-    weight: 8,
+    weight,
     triggered: true,
-    score: Math.min(8, indirectHits.length * 4),
+    score: rawScore,
     detail: parts.join(' '),
   };
 }
@@ -523,9 +535,10 @@ function evaluateIndirectExposureSignal(
 
 const STABLECOIN_SYMBOLS = new Set(['USDC', 'USDT', 'DAI', 'BUSD', 'TUSD', 'FRAX', 'LUSD', 'USDE']);
 
-function evaluateVolumeAnomalySignal(transactions: WalletTransaction[]): ScoringSignal {
+function evaluateVolumeAnomalySignal(transactions: WalletTransaction[], weight = 5): ScoringSignal {
   const ethTxs = transactions.filter((tx) => !tx.tokenSymbol);
   const stableTxs = transactions.filter(tx => tx.tokenSymbol && STABLECOIN_SYMBOLS.has(tx.tokenSymbol));
+  const customNote = weight !== 5 ? ` (weighted ${weight} pts in your active profile)` : '';
 
   // Stablecoin values are token amounts — convert to rough ETH equivalent at ~3000 USD/ETH
   const ETH_USD_APPROX = 3000;
@@ -536,7 +549,7 @@ function evaluateVolumeAnomalySignal(transactions: WalletTransaction[]): Scoring
   if (ethTxs.length === 0) {
     return {
       name: 'volume_anomaly',
-      weight: 5,
+      weight,
       triggered: false,
       score: 0,
       detail: 'No native ETH transactions to analyze for volume anomaly.',
@@ -556,7 +569,7 @@ function evaluateVolumeAnomalySignal(transactions: WalletTransaction[]): Scoring
   if (!triggered) {
     return {
       name: 'volume_anomaly',
-      weight: 5,
+      weight,
       triggered: false,
       score: 0,
       detail:
@@ -567,13 +580,13 @@ function evaluateVolumeAnomalySignal(transactions: WalletTransaction[]): Scoring
 
   return {
     name: 'volume_anomaly',
-    weight: 5,
+    weight,
     triggered: true,
-    score: 5,
+    score: weight,
     detail:
       `${totalVolume.toFixed(2)} ETH moved in a wallet only ${walletAgeDays} days old. ` +
       `Volume exceeds the ${volumeThreshold} ETH threshold for wallets under ${ageThresholdDays} days. ` +
-      'This is inconsistent with normal wallet activity and warrants source-of-funds inquiry.',
+      `This is inconsistent with normal wallet activity and warrants source-of-funds inquiry.${customNote}`,
   };
 }
 
@@ -584,16 +597,17 @@ function evaluateVolumeAnomalySignal(transactions: WalletTransaction[]): Scoring
  * Supabase community label layer. The communityFlags parameter is the
  * count of distinct confirmed red-flag tags on the wallet or its counterparties.
  */
-function evaluateCommunityFlagsSignal(communityFlags: number): ScoringSignal {
+function evaluateCommunityFlagsSignal(communityFlags: number, weight = 5): ScoringSignal {
   const triggered = communityFlags > 0;
+  const customNote = weight !== 5 ? ` (weighted ${weight} pts in your active profile)` : '';
   return {
     name: 'community_red_flags',
-    weight: 5,
+    weight,
     triggered,
-    score: triggered ? Math.min(5, communityFlags * 2) : 0, // Scale with flag count, cap at 5
+    score: triggered ? Math.min(weight, communityFlags * Math.ceil(weight / 2)) : 0,
     detail: triggered
       ? `${communityFlags} community red-flag tag(s) associated with this wallet or its counterparties. ` +
-        'Community labels are crowdsourced and should be treated as supplementary intelligence, not definitive evidence.'
+        `Community labels are crowdsourced and should be treated as supplementary intelligence, not definitive evidence.${customNote}`
       : 'No community red-flag tags found for this wallet.',
   };
 }
@@ -621,27 +635,41 @@ export function computeRiskScore(params: {
   communityFlags: number;
   address: string;
   indirectExposureHits?: Array<{ address: string; entity: string; type: 'ofac' | 'mixer' }>;
+  customWeights?: SignalWeights;
+  customThresholds?: RiskThresholds;
 }): RiskScore {
-  const { transactions, ofacResult, communityFlags, address, indirectExposureHits = [] } = params;
+  const {
+    transactions,
+    ofacResult,
+    communityFlags,
+    address,
+    indirectExposureHits = [],
+    customWeights,
+    customThresholds,
+  } = params;
+
+  const weights = customWeights ?? DEFAULT_SIGNAL_WEIGHTS;
+  const thresholds = customThresholds ?? DEFAULT_RISK_THRESHOLDS;
 
   // Evaluate OFAC and mixer first — rapid movement gate depends on them
-  const ofacSignal    = evaluateOFACSignal(ofacResult);
-  const mixerSignal   = evaluateMixerSignal(transactions, address);
-  const rapidSignal   = evaluateRapidHopSignal(transactions, ofacResult, mixerSignal.triggered);
+  const ofacSignal    = evaluateOFACSignal(ofacResult, weights.ofac_match);
+  const mixerSignal   = evaluateMixerSignal(transactions, address, weights.mixer_interaction);
+  const rapidSignal   = evaluateRapidHopSignal(transactions, ofacResult, mixerSignal.triggered, weights.rapid_fund_movement);
 
   const signalList: ScoringSignal[] = [
     ofacSignal,
     mixerSignal,
     rapidSignal,
-    evaluateCounterpartySignal(transactions),
-    evaluateIndirectExposureSignal(indirectExposureHits),
-    evaluateVolumeAnomalySignal(transactions),
-    evaluateCommunityFlagsSignal(communityFlags),
+    evaluateCounterpartySignal(transactions, weights.high_risk_counterparty),
+    evaluateIndirectExposureSignal(indirectExposureHits, weights.indirect_exposure),
+    evaluateVolumeAnomalySignal(transactions, weights.volume_anomaly),
+    evaluateCommunityFlagsSignal(communityFlags, weights.community_red_flags),
   ];
 
-  // Sum triggered scores, cap at 100
+  // Normalize to 0–100 using the sum of all weights as the max possible
+  const maxPossible = Object.values(weights).reduce((a, b) => a + b, 0);
   const rawTotal = signalList.reduce((sum, signal) => sum + signal.score, 0);
-  const total = Math.min(100, rawTotal);
+  const total = maxPossible > 0 ? Math.min(100, Math.round((rawTotal / maxPossible) * 100)) : 0;
 
   // Convert to dict keyed by signal name
   const signals: Record<string, ScoringSignal> = Object.fromEntries(
@@ -650,7 +678,7 @@ export function computeRiskScore(params: {
 
   return {
     total,
-    level: getRiskLevel(total),
+    level: getRiskLevel(total, thresholds),
     signals,
   };
 }

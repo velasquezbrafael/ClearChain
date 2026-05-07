@@ -25,7 +25,7 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { incrementGlobalStats } from '@/lib/supabase/server';
 
-import type { WalletTransaction, WalletAnalysis, RiskScore, ScoringSignal } from '@/types';
+import type { WalletTransaction, WalletAnalysis, RiskScore, ScoringSignal, SignalWeights, RiskThresholds } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -930,8 +930,49 @@ export async function POST(request: NextRequest) {
 
   const indirectExposureHits = [...mixerIndirectHits, ...ofacIndirectHits];
 
-  // ── 6. Risk scoring ────────────────────────────────────────────────────────
-  const riskScore = computeRiskScore({ transactions, ofacResult, communityFlags: 0, address, indirectExposureHits });
+  // ── 6a. Fetch active risk profile (authenticated users only) ──────────────
+  let customWeights: SignalWeights | undefined;
+  let customThresholds: RiskThresholds | undefined;
+  let activeProfileId: string | undefined;
+
+  {
+    // We need a Supabase client here for the profile lookup. Reuse the same
+    // cookie-forwarding pattern used in the save block below.
+    try {
+      const profileCookieStore = await cookies();
+      const profileSupabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          cookies: {
+            getAll() { return profileCookieStore.getAll() },
+            setAll(cookiesToSet) {
+              try { cookiesToSet.forEach(({ name, value, options }) => profileCookieStore.set(name, value, options)) } catch {}
+            },
+          },
+        }
+      );
+      const { data: { user: profileUser } } = await profileSupabase.auth.getUser();
+      if (profileUser) {
+        const { data: activeProfile } = await profileSupabase
+          .from('risk_profiles')
+          .select('id, signal_weights, risk_thresholds')
+          .eq('user_id', profileUser.id)
+          .eq('is_active', true)
+          .single();
+        if (activeProfile) {
+          customWeights = activeProfile.signal_weights as SignalWeights;
+          customThresholds = activeProfile.risk_thresholds as RiskThresholds;
+          activeProfileId = activeProfile.id;
+        }
+      }
+    } catch {
+      // Non-blocking: fall back to defaults on any error
+    }
+  }
+
+  // ── 6b. Risk scoring ───────────────────────────────────────────────────────
+  const riskScore = computeRiskScore({ transactions, ofacResult, communityFlags: 0, address, indirectExposureHits, customWeights, customThresholds });
 
   // ── 7. Typology matching ───────────────────────────────────────────────────
   const typologies = matchTypologies(transactions, riskScore, address);
@@ -998,6 +1039,7 @@ export async function POST(request: NextRequest) {
         narrative,
         sar_draft: sarDraftRaw,
         analyzed_at: analysis.analyzedAt,
+        profile_id: activeProfileId ?? null,
       });
       if (insertError) console.error('[ClearChain/analyze] ETH insert failed:', insertError.message, insertError.code);
       else console.info('[ClearChain/analyze] ETH analysis saved for user', saveUserId);
