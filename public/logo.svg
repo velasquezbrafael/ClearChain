@@ -1,25 +1,41 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
-  <!-- Shield bottom curve -->
-  <path
-    d="M 18 38 L 18 68 Q 18 94 60 104 Q 102 94 102 68 L 102 38"
-    stroke="rgba(34,211,238,0.45)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none"
-  />
-  <!-- Shield top: left arm → center peak → right arm -->
-  <polyline
-    points="13,38  44,38  60,22  76,38  107,38"
-    stroke="rgba(34,211,238,0.45)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none"
-  />
-  <!-- EKG flat baseline -->
-  <line
-    x1="24" y1="63" x2="86" y2="63"
-    stroke="rgba(34,211,238,0.55)" stroke-width="3.5" stroke-linecap="round"
-  />
-  <!-- EKG spike (bright cyan) -->
-  <polyline
-    points="38,63  47,45  57,63"
-    stroke="#22d3ee" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"
-  />
-  <!-- Green endpoint dot -->
-  <circle cx="86" cy="63" r="10" fill="#00ff88"/>
-  <circle cx="86" cy="63" r="10" stroke="rgba(0,0,0,0.3)" stroke-width="2" fill="none"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <defs>
+    <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#2994cc"/>
+      <stop offset="100%" stop-color="#2dcc42"/>
+    </linearGradient>
+    <linearGradient id="shieldGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%"   stop-color="#182638"/>
+      <stop offset="100%" stop-color="#243652"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Corner brackets -->
+  <polyline points="57,72  57,57  72,57"  stroke="#2d3f5c" stroke-width="6" stroke-linecap="square" stroke-linejoin="miter" fill="none"/>
+  <polyline points="143,72 143,57 128,57" stroke="#2d3f5c" stroke-width="6" stroke-linecap="square" stroke-linejoin="miter" fill="none"/>
+  <polyline points="57,128  57,143  72,143"  stroke="#2d3f5c" stroke-width="6" stroke-linecap="square" stroke-linejoin="miter" fill="none"/>
+  <polyline points="143,128 143,143 128,143" stroke="#2d3f5c" stroke-width="6" stroke-linecap="square" stroke-linejoin="miter" fill="none"/>
+
+  <!-- Shield body -->
+  <path d="M100,28 L58,45 L50,50 L50,118 Q50,154 100,172 Q150,154 150,118 L150,50 L142,45 Z"
+    fill="url(#shieldGrad)"/>
+
+  <!-- Shield right-side depth highlight -->
+  <path d="M100,28 L142,45 L150,50 L150,118 Q150,154 100,172 Q126,156 128,118 L128,50 L124,46 Z"
+    fill="#243a58" opacity="0.55"/>
+
+  <!-- Chain row 1 -->
+  <line x1="85" y1="94" x2="115" y2="94" stroke="url(#lineGrad)" stroke-width="2.5"/>
+  <circle cx="80" cy="94" r="7" stroke="#2994cc" stroke-width="3"/>
+  <circle cx="120" cy="94" r="7.5" fill="#2dcc42"/>
+
+  <!-- Chain row 2 -->
+  <line x1="85" y1="113" x2="115" y2="113" stroke="url(#lineGrad)" stroke-width="2.5"/>
+  <circle cx="80" cy="113" r="7" stroke="#2994cc" stroke-width="3"/>
+  <circle cx="120" cy="113" r="7.5" fill="#2dcc42"/>
+
+  <!-- Chain row 3 -->
+  <line x1="85" y1="132" x2="115" y2="132" stroke="url(#lineGrad)" stroke-width="2.5"/>
+  <circle cx="80" cy="132" r="7" stroke="#2994cc" stroke-width="3"/>
+  <circle cx="120" cy="132" r="7.5" fill="#2dcc42"/>
 </svg>

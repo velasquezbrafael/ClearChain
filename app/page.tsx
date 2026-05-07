@@ -3380,10 +3380,10 @@ export default function HomePage() {
             }}
           >
             <img
-              src="/logo.png"
+              src="/logo.svg"
               alt="ClearChain"
-              width={44}
-              height={44}
+              width={48}
+              height={48}
               style={{ display: 'block', flexShrink: 0 }}
             />
             <span
