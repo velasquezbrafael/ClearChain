@@ -12,6 +12,7 @@
  */
 
 import { createClient } from '@/lib/supabase/server';
+import { INTEL_ARTICLES } from '@/lib/intel-articles';
 
 const RISK_COLORS: Record<string, string> = {
   LOW: '#22d3ee',
@@ -250,6 +251,46 @@ export default async function IntelPage() {
             </div>
           </div>
         )}
+
+        {/* Field Guide */}
+        <div style={{ marginBottom: 48 }}>
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, letterSpacing: '0.2em', color: '#1e4d5c', marginBottom: 8, textTransform: 'uppercase' }}>Field Guide</div>
+            <h2 style={{ fontFamily: 'var(--font-space-grotesk), system-ui', fontSize: 22, fontWeight: 700, color: '#ecfeff', margin: '0 0 6px' }}>Learn How It Works</h2>
+            <p style={{ fontFamily: 'var(--font-inter), system-ui', fontSize: 13, color: '#7ec8d8', margin: 0, lineHeight: 1.6 }}>
+              Plain-language breakdowns of crypto financial crime — how it happens, how it's tracked.
+            </p>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
+            {INTEL_ARTICLES.map(article => {
+              const tagBg: Record<string, string> = {
+                '#22d3ee': 'rgba(34,211,238,0.1)',
+                '#00ff88': 'rgba(0,255,136,0.1)',
+                '#ff3b3b': 'rgba(255,59,59,0.1)',
+                '#ff8c00': 'rgba(255,140,0,0.1)',
+                '#ffd60a': 'rgba(255,214,10,0.1)',
+              };
+              const bg = tagBg[article.tagColor] ?? 'rgba(255,255,255,0.06)';
+              return (
+                <a
+                  key={article.slug}
+                  href={`/intel/${article.slug}`}
+                  style={{ display: 'flex', flexDirection: 'column', background: '#001824', border: '1px solid rgba(6,182,212,0.08)', borderRadius: 8, padding: '20px 22px', textDecoration: 'none', transition: 'border-color 0.15s' }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                    <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '2px 8px', borderRadius: 2, background: bg, color: article.tagColor }}>
+                      {article.tag}
+                    </span>
+                    <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#1e4d5c' }}>{article.readTime}</span>
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 15, fontWeight: 600, color: '#ecfeff', marginBottom: 8, lineHeight: 1.3 }}>{article.title}</div>
+                  <div style={{ fontFamily: 'var(--font-inter), system-ui', fontSize: 12, color: '#7ec8d8', lineHeight: 1.6, flex: 1 }}>{article.summary}</div>
+                  <div style={{ marginTop: 16, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.08em', color: '#22d3ee' }}>Read →</div>
+                </a>
+              );
+            })}
+          </div>
+        </div>
 
         {/* Footer note */}
         <div style={{ borderTop: '1px solid rgba(6,182,212,0.05)', paddingTop: 24, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, color: '#1e4d5c', letterSpacing: '0.08em', lineHeight: 1.7 }}>
