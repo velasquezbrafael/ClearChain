@@ -3380,7 +3380,7 @@ export default function HomePage() {
             }}
           >
             <img
-              src="/logo.svg"
+              src="/logo.png"
               alt="ClearChain"
               width={48}
               height={48}
