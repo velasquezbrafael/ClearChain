@@ -27,170 +27,147 @@ const S = {
 };
 
 // ─── ARTICLE 1 ─────────────────────────────────────────────────────────────
-const howToReadARiskReport: IntelArticle = {
-  slug: 'how-to-read-a-risk-report',
-  title: 'How to Read a ClearChain Risk Report',
-  subtitle: 'Every number, signal, and flag explained — and what to do with it.',
-  tag: 'Guide',
-  tagColor: '#22d3ee',
+const bitfinexHack: IntelArticle = {
+  slug: 'bitfinex-hack',
+  title: 'The Bitfinex Hack: $72M Stolen, $3.6B Recovered, 6 Years Later',
+  subtitle: 'How blockchain forensics traced a peel chain across 2,000 wallets — and caught the launderers in a Walmart bag.',
+  tag: 'Case Study',
+  tagColor: '#ff8c00',
   readTime: '5 min',
   publishedAt: 'May 2025',
-  summary: 'ClearChain scores wallets 0–100 across 6 signals. Here\'s exactly what each one means and how to act on the result.',
+  summary: 'In 2016, hackers stole 119,754 BTC from Bitfinex. Six years later, the DOJ seized $3.6B of it — the largest financial seizure in US history. Here\'s exactly how the trail was followed.',
   body: (
     <>
-      <p style={S.p}>When you paste a wallet into ClearChain, you get back a risk score, a risk level, and a breakdown of which signals fired. This guide walks through exactly what each piece means.</p>
+      <p style={S.p}>On August 2, 2016, hackers exploited Bitfinex's multi-signature wallet system and walked away with 119,754 BTC — worth $72 million at the time. The funds sat mostly dormant for years. Then, in 2022, blockchain investigators finally traced the full laundering trail and the DOJ seized $3.6 billion of it — the largest ever. What they found was a masterclass in on-chain forensics.</p>
 
-      <h2 style={S.h2}>The risk score (0–100)</h2>
-      <p style={S.p}>The score is a weighted sum of 6 signals. It's not a probability — it's an urgency indicator. A score of 75 doesn't mean "75% chance of fraud." It means multiple serious risk factors are present and you should investigate before transacting.</p>
+      <h2 style={S.h2}>The laundering playbook</h2>
+      <p style={S.p}>Ilya Lichtenstein and Heather Morgan didn't cash out quickly. They spent six years attempting to layer the funds through a technique called a <strong style={{ color: '#ecfeff' }}>peel chain</strong> — one of the most common BTC laundering patterns and one of the most traceable.</p>
 
+      {[
+        { n: '01', t: 'Peel chain fragmentation', d: 'The 119,754 BTC was split across thousands of wallets. Each wallet received funds and forwarded most to the next, "peeling off" small amounts at each hop. The result: a 2,000-node transaction graph that took analysts months to map.' },
+        { n: '02', t: 'Conversion to Monero', d: 'Some funds were converted to Monero (XMR) — a privacy coin designed to be untraceable. This is where the trail genuinely went cold for investigators. Converting back out of Monero created fresh, unlinked BTC.' },
+        { n: '03', t: 'Darknet markets & gift cards', d: 'Small amounts were cycled through darknet markets and converted to Walmart gift cards — classic layering to create distance from the original theft.' },
+        { n: '04', t: 'Failed DEX mixing', d: 'Attempts were made to use AlphaBay and decentralized exchanges to further obscure origin. Investigators identified these hops through address clustering — wallets that transact together frequently are likely controlled by the same entity.' },
+      ].map(s => (
+        <div key={s.n} style={{ display: 'flex', gap: 16, marginBottom: 12, alignItems: 'flex-start' }}>
+          <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 22, color: 'rgba(255,140,0,0.3)', fontWeight: 700, lineHeight: 1, flexShrink: 0, width: 36 }}>{s.n}</div>
+          <div style={{ ...S.card, flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#ecfeff', marginBottom: 4 }}>{s.t}</div>
+            <p style={{ ...S.p, fontSize: 13, margin: 0 }}>{s.d}</p>
+          </div>
+        </div>
+      ))}
+
+      <h2 style={S.h2}>How they were caught</h2>
+      <p style={S.p}>The breakthrough came from a cloud storage account. Investigators found an encrypted file on Lichtenstein's cloud drive that contained the private keys to the original Bitfinex hack wallets — essentially a self-incriminating ledger of every address in the chain.</p>
+
+      <div style={S.warn}>
+        Despite years of layering, the BTC trail was never fully broken. Every address Lichtenstein controlled was eventually mapped through on-chain analysis — peel chains leave a visible fingerprint because the forwarding pattern is statistically identifiable even across thousands of hops.
+      </div>
+
+      <h2 style={S.h2}>What this looks like in ClearChain</h2>
       <table style={S.table}>
         <thead><tr>
-          <th style={S.th}>Range</th>
-          <th style={S.th}>Level</th>
-          <th style={S.th}>What it means</th>
-          <th style={S.th}>Action</th>
+          <th style={S.th}>Pattern observed</th>
+          <th style={S.th}>ClearChain signal</th>
         </tr></thead>
         <tbody>
           {[
-            ['0–24', 'LOW', 'No significant flags. Wallet looks clean.', 'Proceed normally'],
-            ['25–49', 'MEDIUM', 'Minor signals present. Worth a closer look.', 'Review signals before transacting'],
-            ['50–74', 'HIGH', 'Multiple flags. Strong red indicators.', 'Do not transact without investigation'],
-            ['75–100', 'CRITICAL', 'OFAC match or mixer + multiple signals.', 'Stop. File a SAR if applicable.'],
-          ].map(([r, l, m, a]) => (
-            <tr key={r}>
-              <td style={{ ...S.td, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 13, color: l === 'LOW' ? '#00ff88' : l === 'MEDIUM' ? '#ffd60a' : l === 'HIGH' ? '#ff8c00' : '#ff3b3b' }}>{r}</td>
-              <td style={{ ...S.td, fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, fontWeight: 700, color: l === 'LOW' ? '#00ff88' : l === 'MEDIUM' ? '#ffd60a' : l === 'HIGH' ? '#ff8c00' : '#ff3b3b' }}>{l}</td>
-              <td style={S.td}>{m}</td>
-              <td style={{ ...S.td, color: '#f0f4ff' }}>{a}</td>
+            ['2,000+ single-use wallets forwarding >95% of funds', 'Rapid fund movement + high-risk counterparty'],
+            ['Interaction with known darknet market addresses', 'High-risk counterparty (+10 pts)'],
+            ['Wallets on OFAC SDN list (post-designation)', 'OFAC/SDN match (+40 pts) → CRITICAL'],
+            ['Volume anomaly on fresh wallets moving large BTC', 'Volume anomaly (+5 pts)'],
+          ].map(([p, s]) => (
+            <tr key={p}>
+              <td style={S.td}>{p}</td>
+              <td style={{ ...S.td, color: '#22d3ee', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 12 }}>{s}</td>
             </tr>
           ))}
         </tbody>
       </table>
 
-      <h2 style={S.h2}>The 6 signals</h2>
-      <p style={S.p}>Each signal has a maximum point value. Here's what triggers each one and why it matters.</p>
-
-      {[
-        { name: 'OFAC / SDN Match', pts: 40, color: '#ff3b3b', desc: 'The wallet appears on the U.S. Treasury\'s Specially Designated Nationals list. Transacting with a sanctioned address is a federal crime in the US — regardless of whether you knew. This is the highest-weight signal for a reason.' },
-        { name: 'Mixer Interaction', pts: 25, color: '#ff8c00', desc: 'The wallet sent to, received from, or IS a known mixing service (Tornado Cash, Railgun, etc.). Mixers exist specifically to break the transaction trail — their presence is a strong laundering indicator.' },
-        { name: 'Rapid Fund Movement', pts: 15, color: '#ffd60a', desc: 'Funds moved through this wallet very quickly. Importantly, this signal only fires if OFAC or mixer also triggered — to avoid flagging legitimate DeFi users who naturally move fast. If you see this alone, it\'s a bug — report it.' },
-        { name: 'High-Risk Counterparty', pts: 10, color: '#ffd60a', desc: 'This wallet transacted with another wallet in our high-risk labels database (exploit addresses, known scams, darknet markets). You may be 2 hops from a serious incident.' },
-        { name: 'Volume Anomaly', pts: 5, color: '#8892a4', desc: 'The transaction volume is unusually high for a wallet of this age. A brand-new wallet moving millions is a classic layering tell.' },
-        { name: 'Community Flags', pts: 5, color: '#8892a4', desc: 'Community-labeled address — reported as a scam, phishing, or fraud by the broader crypto security community.' },
-      ].map(sig => (
-        <div key={sig.name} style={{ ...S.card, marginBottom: 10 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-            <span style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 14, fontWeight: 600, color: sig.color }}>{sig.name}</span>
-            <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, color: sig.color }}>+{sig.pts} pts max</span>
-          </div>
-          <p style={{ ...S.p, margin: 0, fontSize: 13 }}>{sig.desc}</p>
-        </div>
-      ))}
-
       <div style={S.callout}>
-        <strong style={{ color: '#ecfeff' }}>Vitalik test:</strong> vitalik.eth should always score 0/CLEAN. If it scores anything else, the contextual gate on Rapid Fund Movement is broken. Use it as a sanity check.
-      </div>
-
-      <h2 style={S.h2}>What to do with the result</h2>
-      <div style={S.grid2}>
-        <div style={S.card}>
-          <div style={{ color: '#00ff88', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>LOW / MEDIUM</div>
-          <p style={{ ...S.p, fontSize: 13, margin: 0 }}>Proceed. If MEDIUM, note which signals fired and consider saving to a case for your records.</p>
-        </div>
-        <div style={S.card}>
-          <div style={{ color: '#ff3b3b', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>HIGH / CRITICAL</div>
-          <p style={{ ...S.p, fontSize: 13, margin: 0 }}>Don't transact. Open a case in ClearChain, use Investigation Mode to trace counterparties, and export the SAR draft if filing.</p>
-        </div>
+        The lesson from Bitfinex: peel chains look complex but are mathematically traceable. The forwarding pattern — wallet receives, immediately sends 95%+ to one new address — is a fingerprint. ClearChain's Investigation Mode lets you follow exactly these hops visually.
       </div>
     </>
   ),
 };
 
 // ─── ARTICLE 2 ─────────────────────────────────────────────────────────────
-const typologies: IntelArticle = {
-  slug: 'typologies',
-  title: 'The 7 Money Laundering Typologies ClearChain Detects',
-  subtitle: 'FATF and FinCEN patterns — what they are, how they work, and why they flag.',
-  tag: 'Reference',
-  tagColor: '#ffd60a',
-  readTime: '6 min',
+const silkRoad: IntelArticle = {
+  slug: 'silk-road',
+  title: 'Silk Road: How the FBI Traced $1B in "Anonymous" Bitcoin',
+  subtitle: 'The takedown that proved Bitcoin was never anonymous — and built the forensics playbook still used today.',
+  tag: 'Case Study',
+  tagColor: '#ff8c00',
+  readTime: '5 min',
   publishedAt: 'May 2025',
-  summary: 'ClearChain automatically detects 7 FATF/FinCEN typologies. Here\'s the playbook criminals use and how each pattern surfaces in on-chain data.',
+  summary: 'Ross Ulbricht built the first major darknet market on Bitcoin\'s anonymity. The FBI dismantled it using the blockchain itself — the same techniques ClearChain is built on.',
   body: (
     <>
-      <p style={S.p}>Financial regulators categorize money laundering into named "typologies" — recurring patterns of behavior used to clean dirty money. ClearChain's detection engine is built around 7 of the most common ones seen in crypto.</p>
+      <p style={S.p}>Silk Road launched in 2011. By the time the FBI shut it down in October 2013, it had processed over 9.5 million BTC in transactions — roughly $1.2 billion at the time. Ross Ulbricht believed Bitcoin's pseudonymity made it untraceable. The investigation proved the opposite: the blockchain is a permanent, public ledger, and every move leaves a mark.</p>
 
-      <div style={S.callout}>These aren't theoretical. Every typology below has been used in real-world cases — Lazarus Group, Silk Road, BitFinex hack, and more.</div>
+      <h2 style={S.h2}>Why Ulbricht thought Bitcoin was safe</h2>
+      <p style={S.p}>Bitcoin addresses aren't names — they're random strings. No bank, no identity, no obvious link to a real person. Ulbricht used a new address for each transaction, avoided reuse, and operated entirely through Tor. By traditional financial surveillance standards, this was nearly impossible to trace.</p>
+
+      <div style={S.callout}>
+        The flaw: every transaction is permanently and publicly recorded. The blockchain doesn't hide the money — it just hides the name. Once investigators tied one address to a real identity, the entire transaction graph opened up.
+      </div>
+
+      <h2 style={S.h2}>How the FBI traced it</h2>
 
       {[
         {
-          name: '1. Structuring (Smurfing)',
-          color: '#ff8c00',
-          what: 'Breaking up large amounts into smaller transactions to stay below reporting thresholds ($10,000 in the US).',
-          onchain: 'Multiple transactions of similar size in rapid succession from a single wallet. E.g., 9 x 0.9 ETH sent over 2 hours instead of 1 x 8.1 ETH.',
-          signal: 'Volume anomaly + rapid movement pattern',
+          t: 'Forum post OPSEC failure',
+          d: 'The earliest break came from Google — a search result linked a Silk Road promotional post to a Gmail account that Ulbricht had created before learning to use Tor consistently. One unmasked IP address at the right moment connected the pseudonym "Dread Pirate Roberts" to a real person.',
         },
         {
-          name: '2. Layering via Chain-Hopping',
-          color: '#ff8c00',
-          what: 'Moving funds across multiple blockchains to lose the trail. ETH → BSC → Avalanche → SOL through bridges.',
-          onchain: 'Short-lived wallet receiving and immediately bridging funds. Counterparties are bridge contracts. Trail ends at a fresh wallet on another chain.',
-          signal: 'Rapid fund movement + high-risk counterparty (known bridge exploiters)',
+          t: 'Address clustering',
+          d: 'Investigators used a technique called co-spend analysis: when two addresses appear together as inputs in a single transaction, they\'re almost certainly controlled by the same wallet. Silk Road\'s commission wallet co-spent with dozens of addresses — mapping the full revenue stream without ever touching private keys.',
         },
         {
-          name: '3. Mixer / Tumbler Use',
-          color: '#ff3b3b',
-          what: 'Sending funds through a service that pools and re-mixes transactions to obscure origin and destination.',
-          onchain: 'Direct interaction with Tornado Cash, Railgun, or similar protocol. Equal-denomination deposits and withdrawals with time delays.',
-          signal: 'Mixer interaction (25 pts) — highest non-OFAC signal',
+          t: 'Exchange subpoenas',
+          d: 'When Silk Road vendors cashed out BTC to fiat, they used exchanges that had KYC records. Investigators subpoenaed those records, then walked the blockchain backward from the exchange deposit to the Silk Road payout address. The chain was never broken.',
         },
         {
-          name: '4. Peel Chain',
-          color: '#ff8c00',
-          what: 'Funds move through a long chain of wallets, each peeling off a small amount. Like passing a hot potato down a line.',
-          onchain: 'Wallet A sends 99% to B, B sends 99% to C, etc. Each wallet is used once and never seen again. Classic BTC pattern.',
-          signal: 'High-risk counterparty + rapid movement (if OFAC/mixer present)',
+          t: 'Seized wallet — 144,000 BTC',
+          d: 'After arrest, the FBI seized Ulbricht\'s laptop — unlocked and logged in — with private keys to 144,000 BTC. In 2020, the DOJ seized an additional 69,370 BTC from a Silk Road hacker who had exploited the site\'s own wallet. Total seized: over $1 billion.',
         },
-        {
-          name: '5. DeFi Wash Trading',
-          color: '#ffd60a',
-          what: 'Trading an asset between self-controlled wallets on a DEX to artificially inflate volume and create a "legitimate" transaction history.',
-          onchain: 'Wallet A sends token X to B; B sends it back. Repeated. Both wallets have the same first-funded source.',
-          signal: 'Community flags + volume anomaly',
-        },
-        {
-          name: '6. NFT Manipulation',
-          color: '#ffd60a',
-          what: 'Selling an NFT to a self-owned wallet at an inflated price to convert dirty money into "sale proceeds" with provenance.',
-          onchain: 'Same wallet funded buyer and seller. NFT sold at 100x floor price. No prior collection history.',
-          signal: 'High-risk counterparty + volume anomaly',
-        },
-        {
-          name: '7. OFAC Sanctions Evasion',
-          color: '#ff3b3b',
-          what: 'Directly interacting with a sanctioned entity — or using intermediary wallets to transact indirectly.',
-          onchain: 'Wallet appears on SDN list. Or: counterparty trace leads to SDN wallet within 2 hops.',
-          signal: 'OFAC/SDN match (40 pts) — automatic CRITICAL',
-        },
-      ].map(t => (
-        <div key={t.name} style={{ ...S.card, marginBottom: 12, borderLeft: `3px solid ${t.color}` }}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: t.color, marginBottom: 12, fontFamily: 'var(--font-space-grotesk)' }}>{t.name}</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 10 }}>
-            <div>
-              <div style={{ fontSize: 10, letterSpacing: '0.1em', color: '#3d4a5c', textTransform: 'uppercase', marginBottom: 4, fontFamily: 'var(--font-jetbrains-mono)' }}>What it is</div>
-              <p style={{ ...S.p, fontSize: 13, margin: 0 }}>{t.what}</p>
-            </div>
-            <div>
-              <div style={{ fontSize: 10, letterSpacing: '0.1em', color: '#3d4a5c', textTransform: 'uppercase', marginBottom: 4, fontFamily: 'var(--font-jetbrains-mono)' }}>On-chain pattern</div>
-              <p style={{ ...S.p, fontSize: 13, margin: 0 }}>{t.onchain}</p>
-            </div>
-          </div>
-          <div style={{ background: 'rgba(0,0,0,0.3)', borderRadius: 4, padding: '6px 10px', display: 'inline-block' }}>
-            <span style={{ fontSize: 10, color: '#3d4a5c', fontFamily: 'var(--font-jetbrains-mono)', letterSpacing: '0.08em' }}>CLEARCHAIN SIGNAL: </span>
-            <span style={{ fontSize: 11, color: t.color, fontFamily: 'var(--font-jetbrains-mono)' }}>{t.signal}</span>
-          </div>
+      ].map(s => (
+        <div key={s.t} style={{ ...S.card, marginBottom: 10 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: '#ecfeff', marginBottom: 6 }}>{s.t}</div>
+          <p style={{ ...S.p, fontSize: 13, margin: 0 }}>{s.d}</p>
         </div>
       ))}
+
+      <h2 style={S.h2}>The forensics techniques that came out of this</h2>
+      <p style={S.p}>Silk Road built the modern crypto forensics playbook. Every technique used then is still used — and automated — today:</p>
+
+      <table style={S.table}>
+        <thead><tr>
+          <th style={S.th}>Technique</th>
+          <th style={S.th}>What it finds</th>
+          <th style={S.th}>In ClearChain</th>
+        </tr></thead>
+        <tbody>
+          {[
+            ['Co-spend / address clustering', 'Wallets controlled by same entity', 'High-risk counterparty graph'],
+            ['Transaction graph tracing', 'Fund flow across hops', 'Investigation Mode'],
+            ['Exchange deposit matching', 'Real-world identity at cash-out', 'Known label database'],
+            ['Darknet market address flags', 'Interaction with illicit platforms', 'High-risk counterparty signal'],
+          ].map(([t, w, c]) => (
+            <tr key={t}>
+              <td style={{ ...S.td, color: '#f0f4ff' }}>{t}</td>
+              <td style={S.td}>{w}</td>
+              <td style={{ ...S.td, color: '#22d3ee', fontSize: 12 }}>{c}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <div style={S.warn}>
+        Bitcoin's public ledger is permanent. Transactions from 2012 are still fully traceable today. If a wallet touched Silk Road, that interaction still shows up — eleven years later — in any blockchain intelligence tool, including ClearChain.
+      </div>
     </>
   ),
 };
@@ -336,8 +313,8 @@ const lazarusGroup: IntelArticle = {
 
 // ─── EXPORT ────────────────────────────────────────────────────────────────
 export const INTEL_ARTICLES: IntelArticle[] = [
-  howToReadARiskReport,
-  typologies,
+  bitfinexHack,
+  silkRoad,
   tornadoCash,
   lazarusGroup,
 ];
