@@ -47,6 +47,14 @@ export const metadata: Metadata = {
   title: 'ClearChain — Check Any Wallet Before You Send',
   description:
     'Know in seconds if a wallet is safe to send to. Free scam detection, sanctions screening, and risk scores for any ETH, BTC, TRX, or SOL address.',
+  icons: {
+    icon: [
+      { url: '/logo.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico', sizes: '32x32', type: 'image/x-icon' },
+    ],
+    shortcut: '/logo.svg',
+    apple: '/logo.svg',
+  },
   openGraph: {
     title: 'ClearChain — Check Any Wallet Before You Send',
     description:
@@ -54,14 +62,14 @@ export const metadata: Metadata = {
     url: 'https://clearchain.vercel.app',
     siteName: 'ClearChain',
     type: 'website',
-    images: ['/clearchainlogo.jpg'],
+    images: ['/og-image.png'],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'ClearChain — Check Any Wallet Before You Send',
     description:
       'Know in seconds if a wallet is safe to send to. Free scam detection, sanctions screening, and risk scores for any ETH, BTC, TRX, or SOL address.',
-    images: ['/clearchainlogo.jpg'],
+    images: ['/og-image.png'],
   },
 };
 
