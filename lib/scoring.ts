@@ -23,8 +23,8 @@ import type { WalletTransaction, OFACResult, RiskScore, RiskLevel, ScoringSignal
 // Constants
 // ---------------------------------------------------------------------------
 
-/** Tornado Cash router/proxy contracts — OFAC designated 08/08/2022 */
-const KNOWN_MIXER_ADDRESSES = new Set([
+/** Tornado Cash router/proxy contracts — OFAC designated 08/08/2022. Exported for use in indirect exposure checks. */
+export const KNOWN_MIXER_ADDRESSES = new Set([
   '0x722122df12d4e14e13ac3b6895a86e84145b6967', // TC ETH Tornado Proxy
   '0xdd4c48c0b24039969fc16d1cdf626eab821d3384', // TC 100 ETH pool
   '0xd90e2f925da726b50c4ed8d0fb90ad053324f31b', // TC 10 ETH pool
@@ -459,17 +459,79 @@ function evaluateCounterpartySignal(transactions: WalletTransaction[]): ScoringS
 }
 
 /**
+ * Signal: Indirect Exposure (8 pts)
+ *
+ * Fires when a direct counterparty of the analyzed wallet is itself OFAC-listed
+ * or a known mixer — meaning the wallet may have received or sent tainted funds
+ * without any direct mixer/OFAC interaction of its own.
+ *
+ * This is distinct from the mixer_interaction signal (direct contact) and the
+ * high_risk_counterparty signal (our small hardcoded set). This signal checks
+ * every counterparty against the full OFAC SDN list passed in from the route.
+ */
+function evaluateIndirectExposureSignal(
+  indirectHits: Array<{ address: string; entity: string; type: 'ofac' | 'mixer' }>
+): ScoringSignal {
+  if (indirectHits.length === 0) {
+    return {
+      name: 'indirect_exposure',
+      weight: 8,
+      triggered: false,
+      score: 0,
+      detail: 'No indirect exposure detected. Counterparty addresses show no OFAC designations or mixer linkages beyond direct interactions.',
+    };
+  }
+
+  const ofacHits = indirectHits.filter(h => h.type === 'ofac');
+  const mixerHits = indirectHits.filter(h => h.type === 'mixer');
+
+  const parts: string[] = [];
+  if (ofacHits.length > 0) {
+    parts.push(
+      `${ofacHits.length} counterparty address(es) are OFAC SDN-listed: ` +
+      ofacHits.map(h => `${h.address.slice(0, 10)}… (${h.entity})`).join(', ') + '.'
+    );
+  }
+  if (mixerHits.length > 0) {
+    parts.push(
+      `${mixerHits.length} counterparty address(es) are known mixers. ` +
+      'The queried wallet may have received funds that passed through obfuscation services.'
+    );
+  }
+  parts.push(
+    'Indirect exposure does not imply direct wrongdoing but warrants source-of-funds inquiry ' +
+    'into why the wallet interacted with these counterparties.'
+  );
+
+  return {
+    name: 'indirect_exposure',
+    weight: 8,
+    triggered: true,
+    score: Math.min(8, indirectHits.length * 4),
+    detail: parts.join(' '),
+  };
+}
+
+/**
  * Signal 5: Transaction Volume Anomaly (5 pts)
  *
- * Flags wallets where ETH volume is disproportionate to the wallet's age.
- * A wallet < 30 days old moving > 100 ETH has no standard business explanation
- * and is a key risk indicator per FATF Guidance for a Risk-Based Approach (2019).
- *
- * Note: Only counts native ETH transactions — ERC-20 volume is a v2 addition.
+ * Flags wallets where total value (ETH + stablecoins) is disproportionate
+ * to wallet age. A wallet under 30 days old moving >100 ETH equivalent
+ * has no standard business explanation and is a key risk indicator per
+ * FATF Guidance for a Risk-Based Approach (2019).
  */
+
+const STABLECOIN_SYMBOLS = new Set(['USDC', 'USDT', 'DAI', 'BUSD', 'TUSD', 'FRAX', 'LUSD', 'USDE']);
+
 function evaluateVolumeAnomalySignal(transactions: WalletTransaction[]): ScoringSignal {
   const ethTxs = transactions.filter((tx) => !tx.tokenSymbol);
-  const totalVolume = ethTxs.reduce((sum, tx) => sum + tx.value, 0);
+  const stableTxs = transactions.filter(tx => tx.tokenSymbol && STABLECOIN_SYMBOLS.has(tx.tokenSymbol));
+
+  // Stablecoin values are token amounts — convert to rough ETH equivalent at ~3000 USD/ETH
+  const ETH_USD_APPROX = 3000;
+  const stableVolumeEthEquiv = stableTxs.reduce((sum, tx) => sum + tx.value / ETH_USD_APPROX, 0);
+  const ethVolume = ethTxs.reduce((sum, tx) => sum + tx.value, 0);
+  const totalVolume = ethVolume + stableVolumeEthEquiv;
 
   if (ethTxs.length === 0) {
     return {
@@ -558,8 +620,9 @@ export function computeRiskScore(params: {
   ofacResult: OFACResult;
   communityFlags: number;
   address: string;
+  indirectExposureHits?: Array<{ address: string; entity: string; type: 'ofac' | 'mixer' }>;
 }): RiskScore {
-  const { transactions, ofacResult, communityFlags, address } = params;
+  const { transactions, ofacResult, communityFlags, address, indirectExposureHits = [] } = params;
 
   // Evaluate OFAC and mixer first — rapid movement gate depends on them
   const ofacSignal    = evaluateOFACSignal(ofacResult);
@@ -571,6 +634,7 @@ export function computeRiskScore(params: {
     mixerSignal,
     rapidSignal,
     evaluateCounterpartySignal(transactions),
+    evaluateIndirectExposureSignal(indirectExposureHits),
     evaluateVolumeAnomalySignal(transactions),
     evaluateCommunityFlagsSignal(communityFlags),
   ];

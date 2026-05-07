@@ -43,6 +43,14 @@ const BINANCE_TRX   = 'TLyqzVGLV1srkB7dToTAEqgDSfPtXRJZYH';
 // Solana — base58, case-sensitive
 const LAZARUS_SOL   = 'DRpbCBMxVnDK7maPM5tGv6MvB3v1sRMC73bMBiibYaUn'; // OFAC SDN — Lazarus Group / DPRK
 const RAYDIUM_SOL   = '675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8'; // Raydium AMM v4 program
+// Stablecoin example wallets (Ethereum addresses with notable stablecoin activity)
+const CIRCLE_USDC   = '0x55FE002aEFf02F77364de339a1292923A15844B8'; // Circle USDC treasury — clean high-volume baseline
+const TETHER_USDT   = '0x5754284f345afc66a98fbb0a0afe71e0f007b949'; // Tether treasury — USDT issuance wallet
+const MAKERDAO_DAI  = '0x9759A6Ac90977b93B58547b4A71c78317f391A28'; // MakerDAO DAI treasury
+
+type ChainType = 'ETH' | 'BTC' | 'TRX' | 'SOL' | 'USDC' | 'USDT' | 'DAI';
+const isStablecoin = (c: string): c is 'USDC' | 'USDT' | 'DAI' => c === 'USDC' || c === 'USDT' || c === 'DAI';
+const STABLE_COLOR = '#10b981';
 
 const LOADING_STEPS = [
   'Fetching on-chain transactions...',
@@ -833,7 +841,7 @@ function getRichCard(
   label: string,
   address: string,
   style: QFStyle,
-  chain: 'ETH' | 'BTC' | 'TRX' | 'SOL',
+  chain: ChainType,
 ): RichCard {
   if (chain === 'ETH' && ETH_CARD_OVERRIDES[label]) return ETH_CARD_OVERRIDES[label];
   if (chain === 'BTC' && BTC_CARD_OVERRIDES[label]) return BTC_CARD_OVERRIDES[label];
@@ -874,8 +882,8 @@ function HeroContent({
   onSimulatorFill: () => void;
   onOnboardingPick: (addr: string) => void;
   error: ErrorState | null;
-  selectedChain: 'ETH' | 'BTC' | 'TRX' | 'SOL';
-  setSelectedChain: (c: 'ETH' | 'BTC' | 'TRX' | 'SOL') => void;
+  selectedChain: ChainType;
+  setSelectedChain: (c: ChainType) => void;
   history: HistoryEntry[];
   onRemoveHistory: (addr: string) => void;
 }) {
@@ -1004,8 +1012,11 @@ function HeroContent({
     { label: 'Garantex',      sub: 'OFAC SDN · TRX',   address: GARANTEX_TRX,  chain: 'TRX' as const, style: 'red'    as const },
     { label: 'Lazarus TRX',   sub: 'OFAC SDN · DPRK',  address: LAZARUS_TRX,   chain: 'TRX' as const, style: 'red'    as const },
     { label: 'Binance TRX',   sub: 'Exchange',          address: BINANCE_TRX,   chain: 'TRX' as const, style: 'orange' as const },
-    { label: 'Lazarus SOL',   sub: 'OFAC SDN · DPRK',  address: LAZARUS_SOL,   chain: 'SOL' as const, style: 'red'    as const },
-    { label: 'Raydium AMM',   sub: 'DeFi · DEX',       address: RAYDIUM_SOL,   chain: 'SOL' as const, style: 'green'  as const },
+    { label: 'Lazarus SOL',   sub: 'OFAC SDN · DPRK',  address: LAZARUS_SOL,   chain: 'SOL'  as const, style: 'red'   as const },
+    { label: 'Raydium AMM',   sub: 'DeFi · DEX',       address: RAYDIUM_SOL,   chain: 'SOL'  as const, style: 'green' as const },
+    { label: 'Circle Treasury', sub: 'USDC issuer',    address: CIRCLE_USDC,   chain: 'USDC' as const, style: 'green' as const },
+    { label: 'Tether Treasury', sub: 'USDT issuance',  address: TETHER_USDT,   chain: 'USDT' as const, style: 'blue'  as const },
+    { label: 'MakerDAO',        sub: 'DAI treasury',   address: MAKERDAO_DAI,  chain: 'DAI'  as const, style: 'blue'  as const },
   ];
 
   const visibleQuickFills = quickFills.filter(q => q.chain === selectedChain);
@@ -1108,33 +1119,89 @@ function HeroContent({
           }}
         >
           {/* Chain selector */}
-          <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
-            {(['ETH', 'BTC', 'TRX', 'SOL'] as const).map(c => {
-              const chainColor = c === 'ETH' ? '#06b6d4' : c === 'BTC' ? '#f97316' : c === 'TRX' ? '#ff4500' : '#9945ff';
-              const isActive = selectedChain === c;
-              return (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => { setSelectedChain(c); setAddress(''); }}
-                  disabled={loading}
-                  style={{
-                    padding: '4px 14px',
-                    fontFamily: 'var(--font-jetbrains-mono)',
-                    fontSize: 11,
-                    letterSpacing: '0.12em',
-                    border: `1px solid ${isActive ? chainColor : 'rgba(255,255,255,0.12)'}`,
-                    borderRadius: 2,
-                    background: isActive ? `${chainColor}14` : 'none',
-                    color: isActive ? chainColor : 'var(--text-dim)',
-                    cursor: loading ? 'default' : 'pointer',
-                    transition: 'all 0.15s',
-                  }}
-                >
-                  {c}
-                </button>
-              );
-            })}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 16 }}>
+            <div style={{ display: 'flex', gap: 6 }}>
+              {(['ETH', 'BTC', 'TRX', 'SOL'] as const).map(c => {
+                const chainColor = c === 'ETH' ? '#06b6d4' : c === 'BTC' ? '#f97316' : c === 'TRX' ? '#ff4500' : '#9945ff';
+                const isActive = selectedChain === c;
+                return (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => { setSelectedChain(c); setAddress(''); }}
+                    disabled={loading}
+                    style={{
+                      padding: '4px 14px',
+                      fontFamily: 'var(--font-jetbrains-mono)',
+                      fontSize: 11,
+                      letterSpacing: '0.12em',
+                      border: `1px solid ${isActive ? chainColor : 'rgba(255,255,255,0.12)'}`,
+                      borderRadius: 2,
+                      background: isActive ? `${chainColor}14` : 'none',
+                      color: isActive ? chainColor : 'var(--text-dim)',
+                      cursor: loading ? 'default' : 'pointer',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    {c}
+                  </button>
+                );
+              })}
+              {/* Stablecoin group — expands to USDC / USDT / DAI sub-row */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (isStablecoin(selectedChain)) setSelectedChain('ETH');
+                  else { setSelectedChain('USDC'); setAddress(''); }
+                }}
+                disabled={loading}
+                style={{
+                  padding: '4px 14px',
+                  fontFamily: 'var(--font-jetbrains-mono)',
+                  fontSize: 11,
+                  letterSpacing: '0.12em',
+                  border: `1px solid ${isStablecoin(selectedChain) ? STABLE_COLOR : 'rgba(255,255,255,0.12)'}`,
+                  borderRadius: 2,
+                  background: isStablecoin(selectedChain) ? `${STABLE_COLOR}14` : 'none',
+                  color: isStablecoin(selectedChain) ? STABLE_COLOR : 'var(--text-dim)',
+                  cursor: loading ? 'default' : 'pointer',
+                  transition: 'all 0.15s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                }}
+              >
+                STABLE
+                <span style={{ fontSize: 7, opacity: 0.6 }}>{isStablecoin(selectedChain) ? '▲' : '▾'}</span>
+              </button>
+            </div>
+            {/* Stablecoin token sub-row */}
+            {isStablecoin(selectedChain) && (
+              <div style={{ display: 'flex', gap: 5, paddingLeft: 6, borderLeft: `2px solid ${STABLE_COLOR}25` }}>
+                {(['USDC', 'USDT', 'DAI'] as const).map(s => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => { setSelectedChain(s); setAddress(''); }}
+                    disabled={loading}
+                    style={{
+                      padding: '3px 10px',
+                      fontFamily: 'var(--font-jetbrains-mono)',
+                      fontSize: 10,
+                      letterSpacing: '0.1em',
+                      border: `1px solid ${selectedChain === s ? STABLE_COLOR : `${STABLE_COLOR}30`}`,
+                      borderRadius: 2,
+                      background: selectedChain === s ? `${STABLE_COLOR}18` : 'none',
+                      color: selectedChain === s ? STABLE_COLOR : `${STABLE_COLOR}80`,
+                      cursor: loading ? 'default' : 'pointer',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Onboarding nudge — first-visit only, dismissed via localStorage */}
@@ -1245,12 +1312,12 @@ function HeroContent({
               onChange={e => setAddress(e.target.value)}
               onFocus={() => setInputFocused(true)}
               onBlur={() => setInputFocused(false)}
-              placeholder={selectedChain === 'BTC' ? '1A1zP1... or bc1q...' : selectedChain === 'TRX' ? 'T... Tron address' : selectedChain === 'SOL' ? 'Base58 Solana address...' : '0x...'}
+              placeholder={selectedChain === 'BTC' ? '1A1zP1... or bc1q...' : selectedChain === 'TRX' ? 'T... Tron address' : selectedChain === 'SOL' ? 'Base58 Solana address...' : isStablecoin(selectedChain) ? `0x... Ethereum address (${selectedChain} transfers)` : '0x...'}
               spellCheck={false}
               autoComplete="off"
               autoCorrect="off"
               disabled={loading}
-              aria-label={selectedChain === 'BTC' ? 'Bitcoin wallet address' : selectedChain === 'TRX' ? 'Tron wallet address' : selectedChain === 'SOL' ? 'Solana wallet address' : 'Ethereum wallet address'}
+              aria-label={selectedChain === 'BTC' ? 'Bitcoin wallet address' : selectedChain === 'TRX' ? 'Tron wallet address' : selectedChain === 'SOL' ? 'Solana wallet address' : isStablecoin(selectedChain) ? `Ethereum wallet address for ${selectedChain} analysis` : 'Ethereum wallet address'}
               style={{
                 flex: 1,
                 background: 'none',
@@ -1490,27 +1557,57 @@ function HeroContent({
             )}
 
             {/* Chain selector — inside the box on mobile */}
-            <div style={{ display: 'flex', gap: 6, marginTop: 16, paddingTop: 14, borderTop: '1px solid rgba(6,182,212,0.06)' }}>
-              {(['ETH', 'BTC', 'TRX', 'SOL'] as const).map(c => (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginTop: 16, paddingTop: 14, borderTop: '1px solid rgba(6,182,212,0.06)' }}>
+              <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+                {(['ETH', 'BTC', 'TRX', 'SOL'] as const).map(c => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => { setSelectedChain(c); setAddress(''); }}
+                    style={{
+                      padding: '3px 10px',
+                      fontFamily: 'var(--font-jetbrains-mono)',
+                      fontSize: 9,
+                      letterSpacing: '0.1em',
+                      border: `1px solid ${selectedChain === c ? 'rgba(6,182,212,0.4)' : 'rgba(255,255,255,0.08)'}`,
+                      borderRadius: 2,
+                      background: selectedChain === c ? 'rgba(6,182,212,0.08)' : 'transparent',
+                      color: selectedChain === c ? '#06b6d4' : 'var(--text-dim)',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {c}
+                  </button>
+                ))}
                 <button
-                  key={c}
                   type="button"
-                  onClick={() => { setSelectedChain(c); setAddress(''); }}
+                  onClick={() => { if (isStablecoin(selectedChain)) setSelectedChain('ETH'); else { setSelectedChain('USDC'); setAddress(''); } }}
                   style={{
                     padding: '3px 10px',
                     fontFamily: 'var(--font-jetbrains-mono)',
                     fontSize: 9,
                     letterSpacing: '0.1em',
-                    border: `1px solid ${selectedChain === c ? 'rgba(6,182,212,0.4)' : 'rgba(255,255,255,0.08)'}`,
+                    border: `1px solid ${isStablecoin(selectedChain) ? STABLE_COLOR : 'rgba(255,255,255,0.08)'}`,
                     borderRadius: 2,
-                    background: selectedChain === c ? 'rgba(6,182,212,0.08)' : 'transparent',
-                    color: selectedChain === c ? '#06b6d4' : 'var(--text-dim)',
+                    background: isStablecoin(selectedChain) ? `${STABLE_COLOR}14` : 'transparent',
+                    color: isStablecoin(selectedChain) ? STABLE_COLOR : 'var(--text-dim)',
                     cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', gap: 3,
                   }}
                 >
-                  {c}
+                  STABLE <span style={{ fontSize: 6, opacity: 0.6 }}>{isStablecoin(selectedChain) ? '▲' : '▾'}</span>
                 </button>
-              ))}
+              </div>
+              {isStablecoin(selectedChain) && (
+                <div style={{ display: 'flex', gap: 4, paddingLeft: 5, borderLeft: `2px solid ${STABLE_COLOR}25` }}>
+                  {(['USDC', 'USDT', 'DAI'] as const).map(s => (
+                    <button key={s} type="button" onClick={() => { setSelectedChain(s); setAddress(''); }}
+                      style={{ padding: '2px 8px', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 8, letterSpacing: '0.1em', border: `1px solid ${selectedChain === s ? STABLE_COLOR : `${STABLE_COLOR}30`}`, borderRadius: 2, background: selectedChain === s ? `${STABLE_COLOR}18` : 'none', color: selectedChain === s ? STABLE_COLOR : `${STABLE_COLOR}80`, cursor: 'pointer' }}>
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -1632,27 +1729,57 @@ function HeroContent({
             )}
 
             {/* Chain selector — controls examples shown in this panel */}
-            <div style={{ display: 'flex', gap: 6, marginTop: 24, paddingTop: 16, borderTop: '1px solid rgba(6,182,212,0.06)' }}>
-              {(['ETH', 'BTC', 'TRX', 'SOL'] as const).map(c => (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginTop: 24, paddingTop: 16, borderTop: '1px solid rgba(6,182,212,0.06)' }}>
+              <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+                {(['ETH', 'BTC', 'TRX', 'SOL'] as const).map(c => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => { setSelectedChain(c); setAddress(''); }}
+                    style={{
+                      padding: '3px 10px',
+                      fontFamily: 'var(--font-jetbrains-mono)',
+                      fontSize: 9,
+                      letterSpacing: '0.1em',
+                      border: `1px solid ${selectedChain === c ? 'rgba(6,182,212,0.4)' : 'rgba(255,255,255,0.08)'}`,
+                      borderRadius: 2,
+                      background: selectedChain === c ? 'rgba(6,182,212,0.08)' : 'transparent',
+                      color: selectedChain === c ? '#06b6d4' : 'var(--text-dim)',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {c}
+                  </button>
+                ))}
                 <button
-                  key={c}
                   type="button"
-                  onClick={() => { setSelectedChain(c); setAddress(''); }}
+                  onClick={() => { if (isStablecoin(selectedChain)) setSelectedChain('ETH'); else { setSelectedChain('USDC'); setAddress(''); } }}
                   style={{
                     padding: '3px 10px',
                     fontFamily: 'var(--font-jetbrains-mono)',
                     fontSize: 9,
                     letterSpacing: '0.1em',
-                    border: `1px solid ${selectedChain === c ? 'rgba(6,182,212,0.4)' : 'rgba(255,255,255,0.08)'}`,
+                    border: `1px solid ${isStablecoin(selectedChain) ? STABLE_COLOR : 'rgba(255,255,255,0.08)'}`,
                     borderRadius: 2,
-                    background: selectedChain === c ? 'rgba(6,182,212,0.08)' : 'transparent',
-                    color: selectedChain === c ? '#06b6d4' : 'var(--text-dim)',
+                    background: isStablecoin(selectedChain) ? `${STABLE_COLOR}14` : 'transparent',
+                    color: isStablecoin(selectedChain) ? STABLE_COLOR : 'var(--text-dim)',
                     cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', gap: 3,
                   }}
                 >
-                  {c}
+                  STABLE <span style={{ fontSize: 6, opacity: 0.6 }}>{isStablecoin(selectedChain) ? '▲' : '▾'}</span>
                 </button>
-              ))}
+              </div>
+              {isStablecoin(selectedChain) && (
+                <div style={{ display: 'flex', gap: 4, paddingLeft: 5, borderLeft: `2px solid ${STABLE_COLOR}25` }}>
+                  {(['USDC', 'USDT', 'DAI'] as const).map(s => (
+                    <button key={s} type="button" onClick={() => { setSelectedChain(s); setAddress(''); }}
+                      style={{ padding: '2px 8px', fontFamily: 'var(--font-jetbrains-mono)', fontSize: 8, letterSpacing: '0.1em', border: `1px solid ${selectedChain === s ? STABLE_COLOR : `${STABLE_COLOR}30`}`, borderRadius: 2, background: selectedChain === s ? `${STABLE_COLOR}18` : 'none', color: selectedChain === s ? STABLE_COLOR : `${STABLE_COLOR}80`, cursor: 'pointer' }}>
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>{/* end hero-right */}
@@ -2710,7 +2837,7 @@ function ResultsAddressBar({
 }: {
   address: string;
   analyzedAt: string;
-  chain?: 'ETH' | 'BTC' | 'TRX' | 'SOL';
+  chain?: ChainType;
   onNewAnalysis: () => void;
   inputValue: string;
   setInputValue: (v: string) => void;
@@ -2953,10 +3080,10 @@ export default function HomePage() {
     if (urlChain === 'TRX' && /^T[a-zA-Z0-9]{33}$/.test(urlAddr)) return urlAddr;
     return /^0x[a-fA-F0-9]{40}$/.test(urlAddr) ? urlAddr : '';
   });
-  const [selectedChain, setSelectedChain] = useState<'ETH' | 'BTC' | 'TRX' | 'SOL'>(() => {
+  const [selectedChain, setSelectedChain] = useState<ChainType>(() => {
     if (typeof window === 'undefined') return 'ETH';
     const c = new URLSearchParams(window.location.search).get('chain');
-    return (c === 'BTC' || c === 'TRX' || c === 'SOL') ? c : 'ETH';
+    return (c === 'BTC' || c === 'TRX' || c === 'SOL' || c === 'USDC' || c === 'USDT' || c === 'DAI') ? (c as ChainType) : 'ETH';
   });
   const [loading, setLoading]       = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
@@ -3081,8 +3208,9 @@ export default function HomePage() {
       if (!session) { setShowAuthModal(true); return; }
 
       const urlChain = params.get('chain');
-      const chain: 'ETH' | 'BTC' | 'TRX' | 'SOL' =
-        urlChain === 'BTC' ? 'BTC' : urlChain === 'TRX' ? 'TRX' : urlChain === 'SOL' ? 'SOL' : 'ETH';
+      const chain: ChainType =
+        urlChain === 'BTC' ? 'BTC' : urlChain === 'TRX' ? 'TRX' : urlChain === 'SOL' ? 'SOL' :
+        urlChain === 'USDC' ? 'USDC' : urlChain === 'USDT' ? 'USDT' : urlChain === 'DAI' ? 'DAI' : 'ETH';
       const isEth = /^0x[a-fA-F0-9]{40}$/.test(urlAddr) || urlAddr.includes('.');
       const isBtc = /^(1|3)[a-km-zA-HJ-NP-Z1-9]{25,34}$/.test(urlAddr) || /^bc1[a-z0-9]{39,59}$/.test(urlAddr);
       const isTrx = /^T[a-zA-Z0-9]{33}$/.test(urlAddr);
@@ -3157,7 +3285,7 @@ export default function HomePage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showResults]);
 
-  async function runAnalysis(addr: string, chain?: 'ETH' | 'BTC' | 'TRX' | 'SOL') {
+  async function runAnalysis(addr: string, chain?: ChainType) {
     if (typeof window !== 'undefined') localStorage.setItem('cc_onboarded', '1');
     const activeChain = chain ?? selectedChain;
     playStartSound();   // Sound A — analysis begin
@@ -3241,6 +3369,7 @@ export default function HomePage() {
         selectedChain === 'BTC' ? 'Please enter a Bitcoin address.' :
         selectedChain === 'TRX' ? 'Please enter a Tron address.' :
         selectedChain === 'SOL' ? 'Please enter a Solana address.' :
+        isStablecoin(selectedChain) ? `Please enter an Ethereum wallet address to analyze its ${selectedChain} transaction history.` :
         'Please enter an Ethereum wallet address or ENS name.',
         'MISSING INPUT',
       ));
@@ -3258,10 +3387,16 @@ export default function HomePage() {
       const isSol = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(trimmed);
       if (!isSol) { setError(makeError('Not a valid Solana address. Must be a 32–44 character base58 string (no 0, O, I, or l).', 'FORMAT ERROR')); return; }
     } else {
+      // ETH + all stablecoins (USDC, USDT, DAI) — same address format
       const isHexAddr = /^0x[a-fA-F0-9]{40}$/.test(trimmed);
       const isEns = trimmed.includes('.');
       if (!isHexAddr && !isEns) {
-        setError(makeError('Not a valid Ethereum address. Use a 0x hex address (42 chars) or an ENS name like vitalik.eth.', 'FORMAT ERROR'));
+        setError(makeError(
+          isStablecoin(selectedChain)
+            ? `Not a valid Ethereum address. ${selectedChain} wallets use 0x hex addresses (42 chars) or ENS names.`
+            : 'Not a valid Ethereum address. Use a 0x hex address (42 chars) or an ENS name like vitalik.eth.',
+          'FORMAT ERROR'
+        ));
         return;
       }
     }
@@ -3441,6 +3576,21 @@ export default function HomePage() {
                 onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-dim)'; }}
               >
                 INTEL →
+              </a>
+              <a
+                href="/pricing"
+                style={{
+                  fontFamily: 'var(--font-jetbrains-mono)',
+                  fontSize: 10,
+                  letterSpacing: '0.1em',
+                  color: 'var(--text-dim)',
+                  textDecoration: 'none',
+                  transition: 'color 0.15s',
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-secondary)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-dim)'; }}
+              >
+                PRICING
               </a>
               <a
                 href="#extension"

@@ -14,6 +14,7 @@ const SIGNAL_LABELS: Record<string, string> = {
   mixer_interaction: 'Mixer Interaction',
   rapid_fund_movement: 'Rapid Fund Movement',
   high_risk_counterparty: 'High-Risk Counterparty',
+  indirect_exposure: 'Indirect Exposure',
   volume_anomaly: 'Volume Anomaly',
   community_red_flags: 'Community Red Flags',
 };
@@ -23,7 +24,8 @@ const SIGNAL_TOOLTIPS: Record<string, string> = {
   mixer_interaction: 'Wallet is a known mixer or directly transacted with one (e.g. Tornado Cash, OFAC-designated 08/08/2022). Mandatory SAR trigger. See /docs#scoring.',
   rapid_fund_movement: '3+ outbound txns in 24h, each forwarding ≥80% of balance. Only fires alongside OFAC or mixer signal to avoid false positives on exchange hot wallets. See /docs#scoring.',
   high_risk_counterparty: 'At least one counterparty is labeled OFAC-designated or known-malicious, even if the queried wallet itself is not sanctioned. See /docs#scoring.',
-  volume_anomaly: 'Total transaction volume exceeds 100 ETH in a wallet less than 30 days old — source-of-funds inquiry required. See /docs#scoring.',
+  indirect_exposure: 'One or more direct counterparties of this wallet are themselves OFAC-listed or known mixers — 2-hop taint detection. The wallet may have received or forwarded funds without knowing their origin. See /docs#scoring.',
+  volume_anomaly: 'Total transaction volume (ETH + stablecoins) exceeds 100 ETH equivalent in a wallet less than 30 days old — source-of-funds inquiry required. See /docs#scoring.',
   community_red_flags: 'Wallet or counterparties carry red-flag labels from the open-source eth-labels community dataset. See /docs#scoring.',
 };
 
@@ -32,6 +34,44 @@ function riskColor(level: string): string {
   if (level === 'HIGH') return '#ff8c00';
   if (level === 'MEDIUM') return '#ffd60a';
   return '#06b6d4';
+}
+
+function generateRationale(signals: RiskScore['signals'], level: string, total: number): string {
+  const triggered = Object.values(signals)
+    .filter(s => s.triggered)
+    .sort((a, b) => b.score - a.score);
+
+  if (triggered.length === 0) {
+    return `No risk signals fired. This wallet has no known OFAC designations, mixer interactions, or high-risk counterparty links on record. Score: ${total}/100. Standard monitoring applies.`;
+  }
+
+  const parts: string[] = [];
+
+  const ofac       = triggered.find(s => s.name === 'ofac_match');
+  const mixer      = triggered.find(s => s.name === 'mixer_interaction');
+  const rapid      = triggered.find(s => s.name === 'rapid_fund_movement');
+  const hrcp       = triggered.find(s => s.name === 'high_risk_counterparty');
+  const indirect   = triggered.find(s => s.name === 'indirect_exposure');
+  const volume     = triggered.find(s => s.name === 'volume_anomaly');
+  const community  = triggered.find(s => s.name === 'community_red_flags');
+
+  if (ofac) parts.push(`This wallet matches a U.S. Treasury OFAC Specially Designated Nationals (SDN) entry (+${ofac.score} pts) — the single highest-weight signal in the scoring engine. Transacting with a sanctioned address may violate federal law regardless of intent.`);
+  if (mixer) parts.push(`The wallet ${ofac ? 'also ' : ''}${mixer.score === mixer.weight ? 'is a known mixing service or' : 'has'} directly interacted with a sanctioned mixing protocol such as Tornado Cash (+${mixer.score} pts). Mixer use is the primary on-chain indicator of deliberate transaction trail obfuscation.`);
+  if (rapid) parts.push(`Rapid fund movement was detected (+${rapid.score} pts): multiple outbound transactions forwarding ≥80% of balance within 24 hours, consistent with layering behavior. This signal only fires when OFAC or mixer exposure is also present.`);
+  if (hrcp) parts.push(`One or more counterparties of this wallet are flagged as high-risk (+${hrcp.score} pts) — labeled OFAC-designated, exploit-linked, or known-malicious. The queried wallet itself may not be sanctioned, but exposure through counterparties is a recognized AML risk factor.`);
+  if (indirect) parts.push(`Indirect exposure detected (+${indirect.score} pts): one or more direct counterparties of this wallet are themselves OFAC-listed or linked to known mixing services. This 2-hop taint analysis flags wallets that may have handled tainted funds without direct interaction with sanctioned entities.`);
+  if (volume) parts.push(`Unusual transaction volume for wallet age was detected (+${volume.score} pts): ETH and stablecoin activity exceeding typical thresholds for a wallet of this maturity, requiring source-of-funds inquiry.`);
+  if (community) parts.push(`Community intelligence flags are present (+${community.score} pts): this wallet or its counterparties carry labels from open-source blockchain threat databases indicating reported scam, phishing, or fraud activity.`);
+
+  const levelNote: Record<string, string> = {
+    CRITICAL: `Combined score of ${total}/100 meets the CRITICAL threshold. SAR filing should be strongly considered and transaction should not proceed without compliance review.`,
+    HIGH:     `Combined score of ${total}/100 meets the HIGH threshold. Enhanced due diligence required before transacting. Open a case to document your investigation.`,
+    MEDIUM:   `Combined score of ${total}/100 meets the MEDIUM threshold. Elevated caution warranted. Review the flagged signals and monitor for continued activity.`,
+    LOW:      `Combined score of ${total}/100. Despite signals, overall risk remains LOW.`,
+  };
+
+  parts.push(levelNote[level] ?? '');
+  return parts.filter(Boolean).join(' ');
 }
 
 function barChars(triggered: boolean, score: number, weight: number, total: number = 20): string {
@@ -245,7 +285,17 @@ export default function ScoreModal({ riskScore, onClose }: ScoreModalProps) {
             textAlign: 'center',
           }}
         >
-          {riskScore.level} RISK
+          {riskScore.level === 'LOW' ? 'CLEAN' : `${riskScore.level} RISK`}
+        </div>
+
+        {/* Rationale */}
+        <div style={{ marginTop: 20, borderTop: '1px solid rgba(6,182,212,0.06)', paddingTop: 18 }}>
+          <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 9, letterSpacing: '0.16em', color: 'var(--text-dim)', marginBottom: 10 }}>
+            WHY THIS SCORE
+          </div>
+          <p style={{ fontFamily: 'var(--font-inter), system-ui', fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.75, margin: 0 }}>
+            {generateRationale(riskScore.signals, riskScore.level, riskScore.total)}
+          </p>
         </div>
       </div>
     </div>

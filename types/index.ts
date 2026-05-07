@@ -170,7 +170,7 @@ export interface WalletAnalysis {
   /** The Ethereum address that was analyzed (checksummed, lowercase) */
   address: string;
   /** Blockchain analyzed */
-  chain: 'ETH' | 'BTC' | 'TRX' | 'SOL';
+  chain: 'ETH' | 'BTC' | 'TRX' | 'SOL' | 'USDC' | 'USDT' | 'DAI';
   /** Computed risk score with full signal breakdown */
   riskScore: RiskScore;
   /** All evaluated AML typologies (triggered and clean) */

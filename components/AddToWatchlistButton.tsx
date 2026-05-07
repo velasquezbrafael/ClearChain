@@ -4,7 +4,7 @@ import { useState } from 'react';
 
 interface AddToWatchlistButtonProps {
   address: string;
-  chain?: 'ETH' | 'BTC' | 'TRX' | 'SOL';
+  chain?: 'ETH' | 'BTC' | 'TRX' | 'SOL' | 'USDC' | 'USDT' | 'DAI';
 }
 
 export default function AddToWatchlistButton({ address, chain = 'ETH' }: AddToWatchlistButtonProps) {

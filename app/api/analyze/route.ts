@@ -15,7 +15,7 @@ import { getTronTransactions, getTronTRC20Transfers, detectTrxPatterns } from '@
 import { getSolBalance, getSolTransactions, getSPLTokenTransfers, detectSolPatterns, validateSolAddress } from '@/lib/solana';
 import OFAC_TRX from '@/data/ofac-trx-addresses.json';
 import { checkAddress, checkOfacSol, checkOfacBtc } from '@/lib/ofac';
-import { computeRiskScore } from '@/lib/scoring';
+import { computeRiskScore, KNOWN_MIXER_ADDRESSES } from '@/lib/scoring';
 import { scoreSolana } from '@/lib/scoring-sol';
 import { matchTypologies } from '@/lib/typology';
 import { generateAll } from '@/lib/claude';
@@ -195,10 +195,13 @@ export async function POST(request: NextRequest) {
 
   const rawAddress = ((body as Record<string, unknown>).address as string).trim();
   const rawChain = (body as Record<string, unknown>).chain;
-  const chain: 'ETH' | 'BTC' | 'TRX' | 'SOL' =
-    rawChain === 'BTC' ? 'BTC' :
-    rawChain === 'TRX' ? 'TRX' :
-    rawChain === 'SOL' ? 'SOL' : 'ETH';
+  const chain: 'ETH' | 'BTC' | 'TRX' | 'SOL' | 'USDC' | 'USDT' | 'DAI' =
+    rawChain === 'BTC'  ? 'BTC'  :
+    rawChain === 'TRX'  ? 'TRX'  :
+    rawChain === 'SOL'  ? 'SOL'  :
+    rawChain === 'USDC' ? 'USDC' :
+    rawChain === 'USDT' ? 'USDT' :
+    rawChain === 'DAI'  ? 'DAI'  : 'ETH';
 
   if (!rawAddress) {
     return NextResponse.json(
@@ -236,6 +239,17 @@ export async function POST(request: NextRequest) {
       );
     }
     address = rawAddress;
+  } else if (chain === 'USDC' || chain === 'USDT' || chain === 'DAI') {
+    // Stablecoins are ERC-20 tokens on Ethereum — validate as 0x hex or ENS
+    try {
+      address = await resolveENS(rawAddress);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Could not resolve address or ENS name';
+      return NextResponse.json(
+        { success: false, error: message, code: 'ENS_RESOLUTION_FAILED' },
+        { status: 400, headers: CORS_HEADERS }
+      );
+    }
   } else {
     try {
       address = await resolveENS(rawAddress);
@@ -687,6 +701,175 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  // ── STABLECOIN pipeline (USDC / USDT / DAI) ──────────────────────────────
+  if (chain === 'USDC' || chain === 'USDT' || chain === 'DAI') {
+    // Token symbol → contract address (Ethereum mainnet)
+    const STABLE_CONTRACTS: Record<string, string> = {
+      USDC: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      USDT: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+      DAI:  '0x6b175474e89094c44da98b954eedeac495271d0f',
+    };
+    const tokenContract = STABLE_CONTRACTS[chain];
+    const tokenSymbol   = chain; // 'USDC' | 'USDT' | 'DAI'
+
+    try {
+      // Fetch all ERC-20 transfers then filter to chosen token
+      const allTokenTxs = await getTokenTransfers(address);
+      const stableTxs = allTokenTxs
+        .filter(tx => tx.tokenAddress?.toLowerCase() === tokenContract || tx.tokenSymbol === tokenSymbol)
+        .map(tx => ({ ...tx, isInbound: tx.to.toLowerCase() === address.toLowerCase() }));
+
+      // OFAC check (same ETH SDN list — stablecoin wallets are Ethereum addresses)
+      let stableOfacResult: { matched: boolean; confidence: number; matchedEntity?: string; listLastFetched?: string };
+      try {
+        stableOfacResult = await checkAddress(address);
+      } catch {
+        stableOfacResult = { matched: false, confidence: 0 };
+      }
+
+      // ── Build scoring signals for stablecoins ────────────────────────────
+      // Volume anomaly: USD-denominated ($300k threshold instead of 100 ETH)
+      const USD_VOLUME_THRESHOLD = 300_000;
+      const WALLET_AGE_DAYS      = 30;
+      const earliestTs = stableTxs.length > 0 ? Math.min(...stableTxs.map(tx => tx.timestamp)) : Date.now() / 1000;
+      const walletAgeDays = Math.floor((Date.now() / 1000 - earliestTs) / 86400);
+      const totalUsdVolume = stableTxs.reduce((sum, tx) => sum + tx.value, 0); // values already in token units (1 USDC = 1)
+
+      // Counterparty OFAC indirect exposure (capped at 20)
+      const uniqueCounterpartiesStable = [
+        ...new Set(
+          stableTxs
+            .map(tx => (tx.isInbound ? tx.from : tx.to).toLowerCase())
+            .filter(addr => addr !== address.toLowerCase() && /^0x[0-9a-f]{40}$/.test(addr))
+        ),
+      ].slice(0, 20);
+
+      const stableMixerIndirectHits = uniqueCounterpartiesStable
+        .filter(addr => KNOWN_MIXER_ADDRESSES.has(addr))
+        .map(addr => ({ address: addr, entity: 'Tornado Cash / Known Mixer', type: 'mixer' as const }));
+
+      const stableOfacCounterpartyChecks = await Promise.allSettled(
+        uniqueCounterpartiesStable
+          .filter(addr => !KNOWN_MIXER_ADDRESSES.has(addr))
+          .map(addr => checkAddress(addr).then(result => ({ addr, result })))
+      );
+      const stableOfacIndirectHits = stableOfacCounterpartyChecks
+        .filter(r => r.status === 'fulfilled' && (r as PromiseFulfilledResult<{ addr: string; result: { matched: boolean; matchedEntity?: string } }>).value.result.matched)
+        .map(r => {
+          const { addr, result } = (r as PromiseFulfilledResult<{ addr: string; result: { matched: boolean; matchedEntity?: string } }>).value;
+          return { address: addr, entity: result.matchedEntity ?? 'SDN Entity', type: 'ofac' as const };
+        });
+
+      const stableIndirectHits = [...stableMixerIndirectHits, ...stableOfacIndirectHits];
+
+      const stableSignals: ScoringSignal[] = [
+        {
+          name: 'ofac_match',
+          weight: 40,
+          triggered: stableOfacResult.matched && stableOfacResult.confidence >= 0.9,
+          score: stableOfacResult.matched && stableOfacResult.confidence >= 0.9 ? 40 : 0,
+          detail: stableOfacResult.matched
+            ? `Address is listed on the OFAC SDN list as "${stableOfacResult.matchedEntity}". Mandatory SAR filing required.`
+            : 'No match found on OFAC SDN list.',
+        },
+        {
+          name: 'high_risk_counterparty',
+          weight: 10,
+          triggered: stableIndirectHits.filter(h => h.type === 'ofac').length > 0,
+          score: stableIndirectHits.filter(h => h.type === 'ofac').length > 0 ? 10 : 0,
+          detail: stableIndirectHits.filter(h => h.type === 'ofac').length > 0
+            ? `${stableIndirectHits.filter(h => h.type === 'ofac').length} OFAC-designated counterparty address(es) detected in ${tokenSymbol} transaction history.`
+            : `No known high-risk counterparties in ${tokenSymbol} transaction history.`,
+        },
+        {
+          name: 'indirect_exposure',
+          weight: 8,
+          triggered: stableIndirectHits.filter(h => h.type === 'mixer').length > 0,
+          score: stableIndirectHits.filter(h => h.type === 'mixer').length > 0 ? Math.min(8, stableIndirectHits.filter(h => h.type === 'mixer').length * 4) : 0,
+          detail: stableIndirectHits.filter(h => h.type === 'mixer').length > 0
+            ? `${stableIndirectHits.filter(h => h.type === 'mixer').length} counterparty address(es) linked to known mixers — ${tokenSymbol} funds may have passed through obfuscation services.`
+            : `No indirect mixer exposure detected in ${tokenSymbol} counterparties.`,
+        },
+        {
+          name: 'volume_anomaly',
+          weight: 5,
+          triggered: totalUsdVolume > USD_VOLUME_THRESHOLD && walletAgeDays < WALLET_AGE_DAYS,
+          score: totalUsdVolume > USD_VOLUME_THRESHOLD && walletAgeDays < WALLET_AGE_DAYS ? 5 : 0,
+          detail: totalUsdVolume > USD_VOLUME_THRESHOLD && walletAgeDays < WALLET_AGE_DAYS
+            ? `$${(totalUsdVolume / 1_000_000).toFixed(2)}M ${tokenSymbol} moved in a wallet only ${walletAgeDays} day(s) old — exceeds $${(USD_VOLUME_THRESHOLD / 1_000).toFixed(0)}k threshold for wallets under ${WALLET_AGE_DAYS} days.`
+            : `${tokenSymbol} volume ($${(totalUsdVolume / 1_000).toFixed(1)}k) within expected range for wallet age (${walletAgeDays} days).`,
+        },
+        {
+          name: 'community_red_flags',
+          weight: 5,
+          triggered: false,
+          score: 0,
+          detail: 'Community flag check not yet available for stablecoin-specific analysis.',
+        },
+      ];
+
+      const stableTotalScore = Math.min(100, stableSignals.reduce((s, sig) => s + sig.score, 0));
+      const stableLevel = stableTotalScore >= 75 ? 'CRITICAL' : stableTotalScore >= 50 ? 'HIGH' : stableTotalScore >= 25 ? 'MEDIUM' : 'LOW';
+      const stableRiskScore: RiskScore = {
+        total: stableTotalScore,
+        level: stableLevel,
+        signals: Object.fromEntries(stableSignals.map(s => [s.name, s])),
+      };
+
+      const stableAnalysis: WalletAnalysis = {
+        address,
+        chain: chain as 'USDC' | 'USDT' | 'DAI',
+        riskScore: stableRiskScore,
+        typologies: [],
+        transactions: stableTxs,
+        ofacResult: stableOfacResult,
+        analyzedAt: new Date().toISOString(),
+      };
+
+      const { narrative: stableNarrative, sarDraft: stableSarDraft } = await generateAll(stableAnalysis);
+
+      // Save to Supabase (non-blocking)
+      try {
+        const cookieStore = await cookies();
+        const supabase = createServerClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+          {
+            cookies: {
+              getAll() { return cookieStore.getAll(); },
+              setAll(s) { try { s.forEach(({ name, value, options }) => cookieStore.set(name, value, options)); } catch {} },
+            },
+          }
+        );
+        const { data: { user } } = await supabase.auth.getUser();
+        const saveUserId = user?.id ?? apiKeyUserId;
+        if (saveUserId) {
+          await supabase.from('analyses').insert({
+            user_id: saveUserId, address, chain,
+            risk_score: stableTotalScore, risk_level: stableLevel,
+            signals: stableRiskScore.signals, typologies: [],
+            narrative: stableNarrative, sar_draft: stableSarDraft,
+            analyzed_at: stableAnalysis.analyzedAt,
+          });
+        }
+      } catch { /* non-blocking */ }
+
+      analysisCache.set(cacheKey, { data: stableAnalysis, narrative: stableNarrative ?? '', sarDraft: stableSarDraft ?? '', hopData: [], cachedAt: Date.now() });
+      void incrementGlobalStats({ ofacHit: stableOfacResult.matched, highRisk: stableTotalScore >= 50 });
+
+      return NextResponse.json(
+        { success: true, data: stableAnalysis, narrative: stableNarrative ?? '', sarDraft: stableSarDraft ?? '', hopData: [], resolvedAddress: address },
+        { status: 200, headers: CORS_HEADERS }
+      );
+    } catch (err) {
+      console.error('[ClearChain/analyze] Stablecoin fetch failed:', err);
+      return NextResponse.json(
+        { success: false, error: 'Failed to fetch stablecoin transaction history', code: 'STABLE_FETCH_ERROR' },
+        { status: 503, headers: CORS_HEADERS }
+      );
+    }
+  }
+
   // ── ETH pipeline ──────────────────────────────────────────────────────────
   let ethTxs: WalletTransaction[];
   let tokenTxs: WalletTransaction[];
@@ -715,8 +898,40 @@ export async function POST(request: NextRequest) {
   // ── 5. Merge + deduplicate ─────────────────────────────────────────────────
   transactions = mergeAndDedup(ethTxs, tokenTxs, address);
 
+  // ── 6. Indirect exposure — check counterparty addresses against OFAC + mixer set ──
+  // We cap at 20 unique counterparties to keep latency manageable. Direct interactions
+  // with the analyzed wallet are excluded (covered by mixer/OFAC signals already).
+  const uniqueCounterparties = [
+    ...new Set(
+      transactions
+        .map(tx => (tx.isInbound ? tx.from : tx.to).toLowerCase())
+        .filter(addr => addr !== address.toLowerCase() && /^0x[0-9a-f]{40}$/.test(addr))
+    ),
+  ].slice(0, 20);
+
+  // Mixer hits — synchronous O(1) lookup
+  const mixerIndirectHits = uniqueCounterparties
+    .filter(addr => KNOWN_MIXER_ADDRESSES.has(addr))
+    .map(addr => ({ address: addr, entity: 'Tornado Cash / Known Mixer', type: 'mixer' as const }));
+
+  // OFAC hits — async, skip addresses already flagged as mixers
+  const nonMixerCounterparties = uniqueCounterparties.filter(addr => !KNOWN_MIXER_ADDRESSES.has(addr));
+  const ofacCounterpartyChecks = await Promise.allSettled(
+    nonMixerCounterparties.map(addr =>
+      checkAddress(addr).then(result => ({ addr, result }))
+    )
+  );
+  const ofacIndirectHits = ofacCounterpartyChecks
+    .filter(r => r.status === 'fulfilled' && (r as PromiseFulfilledResult<{ addr: string; result: { matched: boolean; matchedEntity?: string } }>).value.result.matched)
+    .map(r => {
+      const { addr, result } = (r as PromiseFulfilledResult<{ addr: string; result: { matched: boolean; matchedEntity?: string } }>).value;
+      return { address: addr, entity: result.matchedEntity ?? 'SDN Entity', type: 'ofac' as const };
+    });
+
+  const indirectExposureHits = [...mixerIndirectHits, ...ofacIndirectHits];
+
   // ── 6. Risk scoring ────────────────────────────────────────────────────────
-  const riskScore = computeRiskScore({ transactions, ofacResult, communityFlags: 0, address });
+  const riskScore = computeRiskScore({ transactions, ofacResult, communityFlags: 0, address, indirectExposureHits });
 
   // ── 7. Typology matching ───────────────────────────────────────────────────
   const typologies = matchTypologies(transactions, riskScore, address);
