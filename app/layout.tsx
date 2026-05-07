@@ -48,12 +48,9 @@ export const metadata: Metadata = {
   description:
     'Know in seconds if a wallet is safe to send to. Free scam detection, sanctions screening, and risk scores for any ETH, BTC, TRX, or SOL address.',
   icons: {
-    icon: [
-      { url: '/logo.png', type: 'image/png' },
-      { url: '/favicon.ico', sizes: '32x32', type: 'image/x-icon' },
-    ],
-    shortcut: '/logo.png',
-    apple: '/logo.png',
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/favicon.ico',
   },
   openGraph: {
     title: 'ClearChain — Check Any Wallet Before You Send',
