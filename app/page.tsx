@@ -3379,6 +3379,13 @@ export default function HomePage() {
               gap: 10,
             }}
           >
+            <img
+              src="/logo.svg"
+              alt="ClearChain"
+              width={32}
+              height={32}
+              style={{ display: 'block', flexShrink: 0 }}
+            />
             <span
               style={{
                 fontFamily: 'var(--font-rubik-glitch)',
