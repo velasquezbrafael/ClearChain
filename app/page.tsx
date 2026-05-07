@@ -3382,8 +3382,8 @@ export default function HomePage() {
             <img
               src="/logo.png"
               alt="ClearChain"
-              width={48}
-              height={48}
+              width={64}
+              height={64}
               style={{ display: 'block', flexShrink: 0 }}
             />
             <span
