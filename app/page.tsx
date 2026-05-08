@@ -15,6 +15,7 @@ import TransactionGraph from '@/components/TransactionGraph';
 import FundFlowDiagram from '@/components/FundFlowDiagram';
 import TransactionTimeline from '@/components/TransactionTimeline';
 import ExposureBreakdown from '@/components/ExposureBreakdown';
+import AdSlot from '@/components/AdSlot';
 import SkeletonLoader from '@/components/SkeletonLoader';
 import TerminalLoader from '@/components/TerminalLoader';
 import ExportButton from '@/components/ExportButton';
@@ -3224,6 +3225,7 @@ export default function HomePage() {
   useEffect(() => { setHistory(loadHistory()); }, []);
   const [navUser, setNavUser] = useState<{ email: string; name: string } | null>(null);
   const [isAuthed, setIsAuthed] = useState(false);
+  const [isPro, setIsPro] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   useEffect(() => {
@@ -3325,6 +3327,7 @@ export default function HomePage() {
     // Initial check + URL auto-analyze
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       await setUserFromSupabase(session?.user ?? null);
+      setIsPro(session?.user?.user_metadata?.is_pro === true);
 
       const params = new URLSearchParams(window.location.search);
       const urlAddr = params.get('address');
@@ -4307,6 +4310,9 @@ export default function HomePage() {
 
           {/* Exposure breakdown */}
           <ExposureBreakdown analysis={analysis} />
+
+          {/* Ad slot — free users only */}
+          <AdSlot isPro={isPro} slot="results-banner" />
 
           {/* Timeline chart */}
           <TransactionTimeline transactions={analysis.transactions} riskScore={analysis.riskScore.total} />

@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 
 export const metadata = {
   title: 'Pricing — ClearChain',
-  description: 'Free wallet screening for everyone. Pro plan for investigators and compliance teams.',
+  description: 'Free wallet safety checks for everyone. Go Pro for $7/mo to remove ads and unlock unlimited scans.',
 };
 
 const CHECK = (
@@ -57,10 +57,10 @@ export default async function PricingPage() {
         <div style={{ textAlign: 'center', marginBottom: 64 }}>
           <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 11, letterSpacing: '0.2em', color: '#1e4d5c', marginBottom: 12, textTransform: 'uppercase' }}>Pricing</div>
           <h1 style={{ fontFamily: 'var(--font-space-grotesk)', fontSize: 40, fontWeight: 700, color: '#ecfeff', margin: '0 0 16px', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
-            Free for everyone.<br />Pro for those who need more.
+            Free to use.<br />$7/mo to go Pro.
           </h1>
           <p style={{ fontFamily: 'var(--font-inter), system-ui', fontSize: 15, color: '#7ec8d8', margin: 0, lineHeight: 1.6, maxWidth: 480, marginLeft: 'auto', marginRight: 'auto' }}>
-            Every wallet scan is free up to a point. Upgrade for unlimited access, API integration, and full compliance tooling.
+            Check any wallet before you send or receive crypto. Free forever — upgrade to Pro to remove ads and unlock unlimited scans.
           </p>
         </div>
 
@@ -92,6 +92,7 @@ export default async function PricingPage() {
               {row(DASH, 'Case management')}
               {row(DASH, 'SAR draft export')}
               {row(DASH, 'Watchlist alerts')}
+              {row(DASH, 'Ad-supported', 'Small ads shown in results')}
             </div>
 
             <a
@@ -113,11 +114,11 @@ export default async function PricingPage() {
             <div style={{ marginBottom: 28 }}>
               <div style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 10, letterSpacing: '0.15em', color: '#00ff88', textTransform: 'uppercase', marginBottom: 10 }}>Pro</div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 8 }}>
-                <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 44, fontWeight: 700, color: '#ecfeff', letterSpacing: '-0.03em' }}>$12</span>
+                <span style={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: 44, fontWeight: 700, color: '#ecfeff', letterSpacing: '-0.03em' }}>$7</span>
                 <span style={{ fontSize: 13, color: '#3d4a5c' }}>/month</span>
               </div>
               <p style={{ fontFamily: 'var(--font-inter), system-ui', fontSize: 13, color: '#7ec8d8', margin: 0, lineHeight: 1.6 }}>
-                For investigators, compliance analysts, and anyone who screens wallets regularly.
+                For anyone who uses crypto regularly and wants unlimited checks, no ads, and the full feature set.
               </p>
             </div>
 
@@ -132,6 +133,7 @@ export default async function PricingPage() {
               {row(CHECK, 'Case management', 'Unlimited cases, notes, status tracking')}
               {row(CHECK, 'SAR draft export', 'AI-generated, PDF download')}
               {row(CHECK, 'Watchlist alerts', 'Email on risk change or new OFAC match')}
+              {row(CHECK, 'No ads', 'Clean experience, no interruptions')}
             </div>
 
             <a
@@ -159,6 +161,7 @@ export default async function PricingPage() {
               <tbody>
                 {[
                   { feature: 'Wallet scans', free: '5 / device', pro: 'Unlimited' },
+                  { feature: 'Ad-free experience', free: '—', pro: '✓' },
                   { feature: 'OFAC / SDN screening', free: '✓', pro: '✓' },
                   { feature: 'Risk score & signals', free: '✓', pro: '✓' },
                   { feature: 'Risk score rationale', free: '✓', pro: '✓' },
