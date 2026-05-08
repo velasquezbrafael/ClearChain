@@ -183,13 +183,19 @@ function evaluateMixerSignal(transactions: WalletTransaction[], queriedAddress: 
     ),
   ];
 
+  // Partial scoring: 1–2 txs = limited contact (15 pts base), 3+ = repeated (25 pts base)
+  const baseScore = mixerTxs.length >= 3 ? 25 : 15;
+  const severity = mixerTxs.length >= 3 ? 'repeated' : 'limited';
+  const cappedScore = Math.min(baseScore, weight);
+
   return {
     name: 'mixer_interaction',
     weight,
     triggered: true,
-    score: weight,
+    score: cappedScore,
     detail:
-      `${mixerTxs.length} transaction(s) directly involving known mixer contracts. ` +
+      `${mixerTxs.length} transaction(s) directly involving known mixer contracts ` +
+      `(${severity} interaction — ${cappedScore} pts). ` +
       `Mixer addresses: ${uniqueMixerAddresses.map((a) => a.slice(0, 10) + '...').join(', ')}. ` +
       'Tornado Cash was designated by OFAC on 08/08/2022 (SDN). ' +
       `This interaction pattern is consistent with the "mixer_obfuscation" AML typology.${customNote}`,
@@ -453,13 +459,19 @@ function evaluateCounterpartySignal(transactions: WalletTransaction[], weight = 
     ),
   ];
 
+  // Partial scoring: 1–2 txs = limited exposure (5 pts base), 3+ = multiple (10 pts base)
+  const baseScore = riskCounterparties.length >= 3 ? 10 : 5;
+  const severity = riskCounterparties.length >= 3 ? 'multiple' : 'limited';
+  const cappedScore = Math.min(baseScore, weight);
+
   return {
     name: 'high_risk_counterparty',
     weight,
     triggered: true,
-    score: weight,
+    score: cappedScore,
     detail:
-      `${riskCounterparties.length} transaction(s) with ${uniqueRisky.length} known high-risk counterparty address(es): ` +
+      `${riskCounterparties.length} transaction(s) with ${uniqueRisky.length} known high-risk counterparty address(es) ` +
+      `(${severity} exposure — ${cappedScore} pts): ` +
       `${uniqueRisky.map((a) => a.slice(0, 10) + '...').join(', ')}. ` +
       `Enhanced due diligence and source-of-funds investigation required.${customNote}`,
   };
